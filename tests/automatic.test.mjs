@@ -429,3 +429,16 @@ test('video label library provides 24 tone and placement combinations',()=>{
  }
  assert.equal(new Set(outputs).size,24);
 });
+
+
+test('normalizer preserves descending visual output ranges and only repairs time ranges',()=>{
+ const code="const veil=interpolate(frame,[0,45],[0.55,0]);const headingY=interpolate(frame,[0,0],[34,0]);";
+ const normalized=normalizeMotionCode(code);
+ assert.match(normalized,/\[0, 45\], \[0\.55,0\]/);
+ assert.match(normalized,/\[0, 1\], \[34,0\]/);
+});
+
+test('motion validation rejects animated opacity above one',()=>{
+ const code="import React from 'react';import {AbsoluteFill,useCurrentFrame,interpolate} from 'remotion';export default function Scene(){const frame=useCurrentFrame();const veil=interpolate(frame,[0,45],[0.55,1.55]);return <AbsoluteFill><AbsoluteFill style={{opacity:veil}} />{frame}</AbsoluteFill>}";
+ assert.throws(()=>validateMotionCode(code,{asset:{kind:'image'}}),/Opacidade animada/);
+});
