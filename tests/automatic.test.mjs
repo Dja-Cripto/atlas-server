@@ -356,7 +356,7 @@ test('label media scene prefers its editorial label and animates it',()=>{
  const code=generateCleanMediaSceneCode({id:'s1',kind:'photo',treatment:'label',label:'Moscow - 1991',heading:'Long planning heading',location:'Moscow',asset:{kind:'image',src:'auto/test.jpg'},start:0,end:5});
  assert.match(code,/Moscow - 1991/);
  assert.doesNotMatch(code,/Long planning heading/);
- assert.match(code,/opacity:interpolate/);
+ assert.match(code,/labelOpacity=interpolate/);
 });
 
 
@@ -391,4 +391,27 @@ test('opening media and every still image receive one concise editorial identifi
  assert.equal(balanced[2].label,'');
  assert.equal(balanced[3].treatment,'composed');
  assert.equal(balanced[4].treatment,'clean');
+});
+
+
+test('motion validation rejects bright blend flashes that wash out photographs',()=>{
+ const code="import React from 'react';import {AbsoluteFill,useCurrentFrame} from 'remotion';export default function Scene(){const frame=useCurrentFrame();return <AbsoluteFill><AbsoluteFill style={{backgroundColor:'#fff',mixBlendMode:'screen',opacity:1.5}} />{frame}</AbsoluteFill>}";
+ assert.throws(()=>validateMotionCode(code,{asset:{kind:'image'}}),/estourar|Opacidade/);
+});
+
+test('video identifiers rotate through reusable visual variants',()=>{
+ const first=generateCleanMediaSceneCode({index:0,treatment:'label',label:'Alaska',durationInFrames:150,asset:{src:'auto/a.mp4',kind:'video'}});
+ const second=generateCleanMediaSceneCode({index:1,treatment:'label',label:'Moscow 1991',durationInFrames:150,asset:{src:'auto/b.mp4',kind:'video'}});
+ assert.notEqual(first,second);
+ assert.match(first,/Alaska/);
+ assert.match(second,/Moscow 1991/);
+ assert.doesNotThrow(()=>validateMotionCode(first,{asset:{kind:'video'}}));
+ assert.doesNotThrow(()=>validateMotionCode(second,{asset:{kind:'video'}}));
+});
+
+test('long videos replace a map opening with identified establishing footage',()=>{
+ const result=diversifyVisualPlan([{id:'s1',kind:'map',start:0,end:6,heading:'Russia',location:'Russia',countries:['Russia']},{id:'s2',kind:'footage',start:6,end:12,heading:'Context'}],180);
+ assert.equal(result[0].kind,'footage');
+ assert.equal(result[0].treatment,'label');
+ assert.equal(result[0].openingDiversified,true);
 });
