@@ -1,0 +1,26 @@
+node_modules/
+data/
+.env*
+*.log
+
+# Dependências e modelos locais recriáveis
+renderer/.python/
+renderer/.models/
+
+# Mídia local, caches e resultados de produção
+Musicas/
+.temp/
+renderer/build/
+renderer/out/
+renderer/public/auto/
+renderer/public/audio/
+renderer/public/pilot/
+renderer/src/generated/
+custom_*/
+scratch/
+video/
+benchmarks/results/
+
+# Arquivos locais do sistema operacional
+Thumbs.db
+.DS_Store
