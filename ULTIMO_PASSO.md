@@ -1,32 +1,32 @@
 # Estado atual do Atlas Studio
 
-**Atualizado em:** 19/09/2026, aproximadamente 18:40
+**Atualizado em:** 19/09/2026, aproximadamente 19:20
 
 ## O que foi alterado
 
 - O projeto está versionado em https://github.com/Dja-Cripto/atlas-server. Dados locais, segredos, dependências, modelos, músicas e mídia continuam ignorados.
-- A direção editorial usa `clean | label | composed`: vídeo de apoio pode respirar limpo; abertura e fotografias sempre recebem identificação animada; dados, mapas e explicações podem usar composição motion.
-- Fotografias agora devem identificar a pessoa, evento, objeto ou período retratado. Uma localização genérica não basta para uma imagem histórica.
-- Mídia contextual recebe um título honesto sobre o conceito mostrado e não pode afirmar que representa exatamente um lugar ou uma pessoa.
-- Não podem existir três vídeos limpos consecutivos: o terceiro recebe uma identificação editorial curta.
-- Cada cena mantém somente uma mensagem focal, sem empilhar localização, estatística e cartão adicional.
-- A geometria completa de países com territórios separados foi preservada nos mapas; o recorte anterior removia regiões como o Alasca do contorno dos Estados Unidos.
-- Cenas `clean` e `label` continuam determinísticas e sem chamada individual ao GLM; o GLM programa cenas `composed`.
+- Vídeos usam `clean | label | composed`: podem respirar limpos, receber identificação curta ou ganhar motion quando apresentam dados e explicações.
+- Toda fotografia agora é obrigatoriamente `composed` e segue para o GLM. O componente determinístico de zoom e legenda ficou restrito a vídeos.
+- O prompt proíbe fotografia resolvida apenas com zoom e rodapé. O GLM deve movimentar a composição, revelar detalhes relevantes e usar somente o texto necessário para explicar pessoa, evento, objeto ou período.
+- Cenas longas passaram de teto aproximado de 8,5 segundos para 6,8 segundos, preservando cortes naturais sempre que possível.
+- A abertura em vídeo continua identificada e não podem existir três vídeos limpos consecutivos.
+- A trilha sonora agora repete usando a duração real do arquivo. O loop continua durante vídeos longos sem cortar automaticamente a música a cada 60 segundos.
+- A geometria completa dos países permanece preservada nos mapas.
 
 ## O que foi validado
 
-- O vídeo de teste anterior foi auditado pelo manifesto. Ele foi criado por um processo antigo ainda carregado em memória: a abertura e uma fotografia saíram como `clean`, contrariando o código já salvo.
-- 59/59 testes automatizados aprovados.
-- Sintaxe aprovada em `auto-plan.mjs` e `automatic.mjs`.
-- Os testes cobrem abertura identificada, fotografias contextualizadas, rótulo animado, ausência de três vídeos limpos seguidos e ausência de composições consecutivas.
+- 60/60 testes automatizados aprovados.
+- Sintaxe aprovada em `auto-plan.mjs`, `automatic.mjs` e `motion-author.mjs`.
+- Testes garantem fotografias compostas, vídeos simples determinísticos, cenas próximas de no máximo sete segundos e cobertura integral da narração.
 - Nenhum vídeo novo foi gerado e nenhuma API externa foi consumida nesta correção.
 
 ## Erros ou limitações abertos
 
-- O novo equilíbrio precisa de um teste visual após reiniciar o servidor.
-- Mapas multinacionais ainda dependem da direção do GLM para a hierarquia visual, embora a geometria territorial agora esteja completa.
+- A criatividade das fotografias compostas precisa ser avaliada em uma produção inédita.
+- Caso o GLM falhe três vezes numa fotografia, a contingência segura ainda é mais simples que a composição desejada.
+- Mapas multinacionais continuam dependendo da direção do GLM para hierarquia e enquadramento editorial.
 - O `README.md` ainda descreve uma fase antiga do produto.
 
 ## Próximo passo recomendado
 
-- Reiniciar o Atlas Studio e gerar um teste inédito de um minuto. Confirmar identificação na abertura, contexto em todas as fotografias, no máximo dois vídeos limpos seguidos e presença correta de territórios separados no mapa.
+- Reiniciar o Atlas Studio e gerar um teste inédito de um minuto. Avaliar principalmente a variedade das fotografias compostas, a duração dos takes e a continuidade musical.

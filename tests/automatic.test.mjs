@@ -153,6 +153,14 @@ test('audioSlots splits along sentence boundaries and pauses with comfortable du
  assert.equal(slots[1].end,10.0);
  assert.match(slots[1].narration,/two major oceans\.$/);
 });
+
+test('long-form scene slots stay near seven seconds even without punctuation',()=>{
+ const words=Array.from({length:50},(_,i)=>({word:' word'+i,start:i*.4,end:i*.4+.3}));
+ const slots=audioSlots([{words}],20);
+ assert.ok(slots.length>=3);
+ assert.ok(slots.every(slot=>slot.end-slot.start<=7.5));
+});
+
 test('scene.location and location variables pass validation without banned API error',()=>{
  const code="import {AbsoluteFill,useCurrentFrame} from 'remotion';export default function Scene({scene}){const frame=useCurrentFrame();const location=scene.location||'Singapore';return <AbsoluteFill><span>{location} {frame}</span></AbsoluteFill>}";
  assert.doesNotThrow(()=>validateMotionCode(code));
@@ -316,7 +324,7 @@ test('shortsSceneContract forbids small circular globes and requires full-bleed 
 
 test('visual treatment defaults real media to clean and reserves composed treatment for graphics',()=>{
  assert.equal(normalizeVisualTreatment(undefined,'footage'),'clean');
- assert.equal(normalizeVisualTreatment('label','photo'),'label');
+ assert.equal(normalizeVisualTreatment('label','photo'),'composed');
  assert.equal(normalizeVisualTreatment('clean','map'),'composed');
  const slot={id:'shot-1',start:0,end:5,narration:'People cross the harbor every morning.'};
  const scene=validateDirection(slot,{id:'shot-1',kind:'video',heading:'Busy harbor',caption:'This must not cover the footage',query:'harbor workers'},'');
@@ -363,8 +371,8 @@ test('editorial balance avoids three consecutive unidentified videos and labels 
  const balanced=enforceVisualBreathing(plan,30);
  assert.equal(balanced[3].treatment,'label');
  assert.equal(balanced[3].label,'1867 Transfer');
- assert.equal(balanced[4].treatment,'label');
- assert.equal(balanced[4].label,'After the Battle - 1855');
+ assert.equal(balanced[4].treatment,'composed');
+ assert.equal(balanced[4].label,'');
 });
 
 test('opening media and every still image receive one concise editorial identification',()=>{
@@ -379,8 +387,8 @@ test('opening media and every still image receive one concise editorial identifi
  assert.equal(balanced[0].treatment,'label');
  assert.equal(balanced[0].label,'Kaliningrad');
  assert.equal(balanced[1].treatment,'clean');
- assert.equal(balanced[2].treatment,'label');
- assert.equal(balanced[2].label,'Potsdam Conference');
+ assert.equal(balanced[2].treatment,'composed');
+ assert.equal(balanced[2].label,'');
  assert.equal(balanced[3].treatment,'composed');
  assert.equal(balanced[4].treatment,'clean');
 });
