@@ -327,7 +327,8 @@ test('visual treatment defaults real media to clean and reserves composed treatm
 test('visual breathing prevents consecutive composed media and caps decorative overlays',()=>{
  const plan=Array.from({length:10},(_,index)=>({id:`s${index}`,kind:'footage',treatment:'composed',start:index*5,end:index*5+5,heading:'Detail',caption:'More information',location:'Alaska'}));
  const balanced=enforceVisualBreathing(plan,50);
- assert.ok(balanced.filter(scene=>scene.treatment==='clean').length>=7);
+ assert.ok(balanced.filter(scene=>scene.treatment==='composed').length<=3);
+ assert.equal(balanced.some((scene,index)=>scene.treatment==='clean'&&balanced[index-1]?.treatment==='clean'&&balanced[index-2]?.treatment==='clean'),false);
  assert.equal(balanced.some((scene,index)=>scene.treatment==='composed'&&balanced[index-1]?.treatment==='composed'),false);
 });
 
@@ -350,6 +351,22 @@ test('label media scene prefers its editorial label and animates it',()=>{
  assert.match(code,/opacity:interpolate/);
 });
 
+
+test('editorial balance avoids three consecutive unidentified videos and labels contextual stills honestly',()=>{
+ const plan=[
+  {id:'s1',kind:'footage',treatment:'label',start:0,end:5,heading:'ALASKA',asset:{kind:'video',representationRole:'contextual'}},
+  {id:'s2',kind:'footage',treatment:'clean',start:5,end:10,heading:'Supporting landscape',asset:{kind:'video'}},
+  {id:'s3',kind:'footage',treatment:'clean',start:10,end:15,heading:'Historical context',asset:{kind:'video'}},
+  {id:'s4',kind:'footage',treatment:'clean',start:15,end:20,heading:'1867 Transfer',asset:{kind:'video'}},
+  {id:'s5',kind:'photo',treatment:'clean',start:20,end:25,heading:'After the Battle - 1855',location:'Crimea',asset:{kind:'image',representationRole:'contextual'}}
+ ];
+ const balanced=enforceVisualBreathing(plan,30);
+ assert.equal(balanced[3].treatment,'label');
+ assert.equal(balanced[3].label,'1867 Transfer');
+ assert.equal(balanced[4].treatment,'label');
+ assert.equal(balanced[4].label,'After the Battle - 1855');
+});
+
 test('opening media and every still image receive one concise editorial identification',()=>{
  const plan=[
   {id:'s1',kind:'footage',treatment:'clean',start:0,end:6,heading:'Kaliningrad',location:'Kaliningrad, Russia'},
@@ -360,10 +377,10 @@ test('opening media and every still image receive one concise editorial identifi
  ];
  const balanced=enforceVisualBreathing(plan,30);
  assert.equal(balanced[0].treatment,'label');
- assert.equal(balanced[0].label,'Kaliningrad, Russia');
+ assert.equal(balanced[0].label,'Kaliningrad');
  assert.equal(balanced[1].treatment,'clean');
  assert.equal(balanced[2].treatment,'label');
- assert.equal(balanced[2].label,'Potsdam, 1945');
+ assert.equal(balanced[2].label,'Potsdam Conference');
  assert.equal(balanced[3].treatment,'composed');
  assert.equal(balanced[4].treatment,'clean');
 });
