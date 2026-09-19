@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPlan,normalizeDirectionKind} from '../lib/auto-plan.mjs';
-import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,shortsSceneContract,shortsDirectorContract} from '../lib/motion-author.mjs';
+import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPlan,normalizeDirectionKind,enforceVisualBreathing,normalizeVisualTreatment} from '../lib/auto-plan.mjs';
+import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
 import {candidatePool} from '../lib/auto-media.mjs';
 import {parseRelaxedJSON,splitScriptIntoTTSChunks} from '../lib/providers.mjs';
 test('normalizeMotionCode injects muted on OffthreadVideo and Video to prevent audio bleed',()=>{
@@ -311,3 +311,33 @@ test('shortsSceneContract forbids small circular globes and requires full-bleed 
  assert.match(shortsDirectorContract, /MAP DISCIPLINE/);
 });
 
+
+
+
+test('visual treatment defaults real media to clean and reserves composed treatment for graphics',()=>{
+ assert.equal(normalizeVisualTreatment(undefined,'footage'),'clean');
+ assert.equal(normalizeVisualTreatment('label','photo'),'label');
+ assert.equal(normalizeVisualTreatment('clean','map'),'composed');
+ const slot={id:'shot-1',start:0,end:5,narration:'People cross the harbor every morning.'};
+ const scene=validateDirection(slot,{id:'shot-1',kind:'video',heading:'Busy harbor',caption:'This must not cover the footage',query:'harbor workers'},'');
+ assert.equal(scene.treatment,'clean');
+ assert.equal(scene.caption,'');
+});
+
+test('visual breathing prevents consecutive composed media and caps decorative overlays',()=>{
+ const plan=Array.from({length:10},(_,index)=>({id:`s${index}`,kind:'footage',treatment:'composed',start:index*5,end:index*5+5,heading:'Detail',caption:'More information',location:'Alaska'}));
+ const balanced=enforceVisualBreathing(plan,50);
+ assert.ok(balanced.filter(scene=>scene.treatment==='clean').length>=7);
+ assert.equal(balanced.some((scene,index)=>scene.treatment==='composed'&&balanced[index-1]?.treatment==='composed'),false);
+});
+
+test('clean media scene is full bleed and contains no heading or caption',()=>{
+ const code=generateCleanMediaSceneCode({treatment:'clean',heading:'Large unnecessary title',caption:'Unnecessary caption',durationInFrames:150,asset:{src:'auto/test/coast.mp4',kind:'video',trimStart:2}});
+ assert.match(code,/OffthreadVideo muted/);
+ assert.match(code,/objectFit:'cover'/);
+ assert.doesNotMatch(code,/Large unnecessary title|Unnecessary caption/);
+ assert.doesNotThrow(()=>validateMotionCode(code,{asset:{kind:'video'}}));
+ const labeled=generateCleanMediaSceneCode({treatment:'label',location:'Anchorage',durationInFrames:150,asset:{src:'auto/test/coast.jpg',kind:'image'}});
+ assert.match(labeled,/Anchorage/);
+ assert.doesNotMatch(labeled,/<p|<h[1-6]/);
+});
