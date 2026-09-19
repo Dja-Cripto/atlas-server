@@ -415,3 +415,17 @@ test('long videos replace a map opening with identified establishing footage',()
  assert.equal(result[0].treatment,'label');
  assert.equal(result[0].openingDiversified,true);
 });
+
+
+test('video label library provides 24 tone and placement combinations',()=>{
+ const tones=['documentary','historical','geopolitical','curiosity','dramatic','minimal'];
+ const outputs=[];
+ for(let toneIndex=0;toneIndex<tones.length;toneIndex++){
+  for(let placement=0;placement<4;placement++){
+   const code=generateCleanMediaSceneCode({index:placement,treatment:'label',label:'Editorial label',labelStyle:tones[toneIndex],labelRole:'identity',durationInFrames:150,asset:{src:'auto/test.mp4',kind:'video'}});
+   outputs.push(code);
+   assert.doesNotThrow(()=>validateMotionCode(code,{asset:{kind:'video'}}));
+  }
+ }
+ assert.equal(new Set(outputs).size,24);
+});
