@@ -341,3 +341,29 @@ test('clean media scene is full bleed and contains no heading or caption',()=>{
  assert.match(labeled,/Anchorage/);
  assert.doesNotMatch(labeled,/<p|<h[1-6]/);
 });
+
+
+test('label media scene prefers its editorial label and animates it',()=>{
+ const code=generateCleanMediaSceneCode({id:'s1',kind:'photo',treatment:'label',label:'Moscow - 1991',heading:'Long planning heading',location:'Moscow',asset:{kind:'image',src:'auto/test.jpg'},start:0,end:5});
+ assert.match(code,/Moscow - 1991/);
+ assert.doesNotMatch(code,/Long planning heading/);
+ assert.match(code,/opacity:interpolate/);
+});
+
+test('opening media and every still image receive one concise editorial identification',()=>{
+ const plan=[
+  {id:'s1',kind:'footage',treatment:'clean',start:0,end:6,heading:'Kaliningrad',location:'Kaliningrad, Russia'},
+  {id:'s2',kind:'footage',treatment:'clean',start:6,end:12,heading:'Supporting streets'},
+  {id:'s3',kind:'photo',treatment:'clean',start:12,end:18,heading:'Potsdam Conference',location:'Potsdam, 1945'},
+  {id:'s4',kind:'footage',treatment:'composed',start:18,end:24,heading:'New statistic'},
+  {id:'s5',kind:'footage',treatment:'composed',start:24,end:30,heading:'Explanation continues'}
+ ];
+ const balanced=enforceVisualBreathing(plan,30);
+ assert.equal(balanced[0].treatment,'label');
+ assert.equal(balanced[0].label,'Kaliningrad, Russia');
+ assert.equal(balanced[1].treatment,'clean');
+ assert.equal(balanced[2].treatment,'label');
+ assert.equal(balanced[2].label,'Potsdam, 1945');
+ assert.equal(balanced[3].treatment,'composed');
+ assert.equal(balanced[4].treatment,'clean');
+});
