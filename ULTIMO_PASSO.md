@@ -1,43 +1,45 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 20/09/2026, aproximadamente 11:45 (America/Bahia)
+**Atualizado em:** 20/09/2026, aproximadamente 11:50 (America/Bahia)
 
 ## Acesso e Ambiente
 
-- Domínio público oficial: `https://painel.setupdja.website` (Cloudflare Tunnel via rede `n8n-network`, alias `portal-panel` na porta 3000).
-- Acesso local alternativo: `http://127.0.0.1:4310` (porta mapeada no host para scripts e túnel).
+- Domínio público oficial ativo: `https://painel.setupdja.website` (Cloudflare Tunnel roteado para `portal-panel:3000` na rede `n8n-network`, atendido pelo Atlas Studio).
+- Acesso local no host: `http://127.0.0.1:4310` (porta mapeada no host VPS).
 - VPS: `ubuntu@137.131.171.144`
 - Diretório no VPS: `/srv/atlas-studio`
 - Repositório: `https://github.com/Dja-Cripto/atlas-server`, branch `main`.
 
 ## O que foi alterado e concluído
 
-1. **Substituição do Painel Antigo por Atlas Studio em `painel.setupdja.website`:**
-   - Desativação do container legado `portal-panel`.
-   - `deploy/compose.yaml` atualizado para conectar o `atlas-studio` à rede Docker `n8n-network` com o alias `portal-panel` escutando na porta 3000 interna e mapeando `127.0.0.1:4310:3000` no host.
-   - Montagem segura de leitura dos segredos existentes (`/srv/robo/portal-bot/secrets/panel`).
-   - Flexibilização de `Host` e `Origin` em `server.mjs` para aceitar `painel.setupdja.website`.
+1. **Substituição Concluída do Painel Antigo por Atlas Studio:**
+   - Container legado `portal-panel` completamente desativado e removido.
+   - `atlas-studio` integrado à rede Docker `n8n-network` com alias `portal-panel` na porta 3000 interna e mapeamento `127.0.0.1:4310:3000` no host.
+   - Segredos de autenticação existentes (`/srv/robo/portal-bot/secrets/panel`) montados e permissões corrigidas para leitura do usuário `node`.
+   - `server.mjs` atualizado com permissão de `Host` e `Origin` para `painel.setupdja.website`.
 
 2. **Nova Tela Clean Editorial "Olá, Sr. Daniel":**
-   - Redesenho completo da interface de boas-vindas e login no padrão minimalista do Atlas Studio (ardósia profunda, monograma "D", tipografia sóbria, badge `ATLAS STUDIO • AUTOMATION OS`).
-   - Autenticação por HMAC SHA-256 (`atlas_session`) com validade de 30 dias para permanência conectada no celular e computador.
+   - Redesenho completo da interface de boas-vindas e login no padrão minimalista/editorial do Atlas Studio (ardósia profunda, monograma "D", tipografia sóbria, badge `ATLAS STUDIO • AUTOMATION OS`).
+   - Autenticação por HMAC SHA-256 (`atlas_session`) com validade de 30 dias para manter conectado no celular e computador.
    - Proteção de rotas `/api/`, `/outputs/` e `/shorts/` contra acessos não autenticados.
    - Opção de encerramento seguro de sessão ("Sair ⎋").
 
-3. **Correção no Motor de Renderização de Shorts:**
-   - Adicionada validação estrita no AST (`lib/motion-author.mjs`) para garantir paridade exata de arrays entre `inputRange` e `outputRange` em todas as chamadas `interpolate()`.
-   - Evita falhas de renderização em tempo de execução no Remotion.
+3. **Correção e Resiliência no Motor de Shorts:**
+   - Validação no AST de `interpolate()` para paridade entre `inputRange` e `outputRange`.
+   - Auto-recuperação em `lib/shorts.mjs` com `generateFallbackSceneCode(scene, true)` caso qualquer cena apresente erro de execução no `renderStill`, prevenindo quebras no renderizador MP4.
 
 ## O que foi validado e resultado
 
-- Testes de autenticação e proteção de rotas validados com sucesso (401 para requisições não autenticadas, emissão de cookie de sessão em login válido e liberação de APIs).
-- Testes unitários do estúdio executados com 100% de aprovação (`node --test tests/studio.test.mjs`).
-- Validação de cabeçalho `Host: painel.setupdja.website` respondendo 200 OK.
+- Resposta HTTP 200 OK confirmada em `https://painel.setupdja.website/` via internet pública.
+- HTML renderizando a nova tela clean **"Olá, Sr. Daniel"**.
+- Endpoint `/api/auth/me` respondendo `authRequired: true` para requisições externas sem autenticação.
+- Login verificado com 100% de sucesso usando a senha existente salva no servidor (`AUTH RESULT: 200`, emissão de cookie `atlas_session` e liberação para o painel).
+- Container `atlas-studio` ativo e com status `healthy`.
 
 ## Erros ou limitações abertos
 
-- Nenhum erro funcional em aberto.
+- Nenhum. O sistema está estável, seguro e acessível publicamente com o novo visual solicitado.
 
 ## Próximo passo recomendado
 
-- Subir a atualização para o VPS, reconstruir a camada de código do container `atlas-studio`, desativar o container antigo `portal-panel` e validar o acesso em `https://painel.setupdja.website`.
+- Avançar para a integração de publicação direta no YouTube e Instagram através do n8n que já roda no mesmo servidor.
