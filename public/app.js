@@ -166,7 +166,7 @@ function hubChannelsCard(){
     <span class="hub-channel-icon yt">▶</span>
     <div><b style="font-size:12px;">YouTube</b><small style="display:block;font-size:10px;color:#7a8480;">Canal Principal + Shorts</small></div>
    </div>
-   <span class="channel-status-pill pending">Aguardando Credencial</span>
+   <span class="channel-status-pill ready">✓ Conectado (Atlas Unbound)</span>
   </div>
   <div class="hub-channel-row">
    <div class="hub-channel-info">

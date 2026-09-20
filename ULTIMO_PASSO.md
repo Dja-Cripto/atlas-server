@@ -1,54 +1,75 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 20/09/2026, aproximadamente 15:05 (America/Bahia)
+**Atualizado em:** 20/09/2026, aproximadamente 15:40 (America/Bahia)
 
-## Acesso e Ambiente
+## Acesso e ambiente
 
-- Domínio público oficial ativo: `https://painel.setupdja.website` (Cloudflare Tunnel roteado para `portal-panel:3000` na rede `n8n-network`).
-- Acesso local no host VPS: `http://127.0.0.1:4310`
-- VPS: `ubuntu@137.131.171.144`
-- Diretório no VPS: `/srv/atlas-studio`
-- Repositório: `https://github.com/Dja-Cripto/atlas-server`, branch `main`.
-- Armazenamento pesado: montado na partição `/srv/robo/portal-bot/data/atlas-storage` (85 GB livres) para `data`, `.temp` e `auto`.
+- Painel: `https://painel.setupdja.website` — HTTP 200 e contêiner `atlas-studio` saudável.
+- n8n: `https://n8n.setupdja.website` — HTTP 200.
+- VPS: `ubuntu@137.131.171.144`.
+- Projeto no VPS: `/srv/atlas-studio`, branch `main`.
+- Cloudflare Tunnel, volumes de mídia, banco e painel do WhatsApp foram preservados.
+- Armazenamento pesado permanece em `/srv/robo/portal-bot/data/atlas-storage`.
 
-## O que foi alterado e concluído
+## Estado funcional
 
-1. **Validação e Conexão da Página do Facebook (Atlas Unbound):**
-   - Resolvido o Token de Página do Facebook através do User Token do Daniel, identificando a página oficial **Atlas Unbound** (ID: `1339165152613050`).
-   - Rota de download de vídeos `/outputs/` e `/shorts/` liberada de autenticação por cookie no `server.mjs`, permitindo que os servidores de ingestão de mídia do Facebook baixem e processem os arquivos MP4 diretamente via Cloudflare Tunnel.
+1. **Trava única de publicação**
+   - A tela **Agendamento** possui o botão `Ligar publicação`.
+   - A configuração persistente `publishingEnabled` está confirmada como `false` no VPS.
+   - Produzir e agendar projetos não chama YouTube ou Facebook enquanto essa chave estiver desligada.
+   - Ao ligar, os itens completos da fila são enviados ao n8n. Itens aceitos ficam registrados por canal e não são reenviados.
 
-2. **Publicação de Vídeo Testada com Sucesso no Facebook:**
-   - Realizado teste de publicação direta via Facebook Graph API: vídeo publicado com sucesso (ID `1416847957077810`). Status: `video_status: ready` e `publish_status: published`.
-   - Workflow do n8n `CXeQ7kICnWCazhzy` configurado e acionado via webhook com `channels.facebook: true`, retornando HTTP 200.
+2. **Agenda real**
+   - Cada produção prepara um vídeo longo e até cinco Shorts.
+   - O horário é convertido do fuso configurado para UTC.
+   - YouTube recebe `publishAt` e mantém o vídeo privado até a hora marcada.
+   - Facebook recebe os campos de publicação programada.
+   - A agenda usa o título escolhido, descrição, tags e o caminho real do último MP4 renderizado.
 
-3. **Status no Hub Central do Atlas Studio:**
-   - Atualizado em `public/app.js` e `server.mjs` o status do canal Facebook para `✓ Conectado (Atlas Unbound)`.
+3. **YouTube**
+   - Vídeo longo privado já foi validado anteriormente no canal **Atlas Unbound**: ID `-MKQrlXN0YU`.
+   - O workflow agora aceita vídeo longo e Short pelo mesmo publicador.
+   - Upload de capa foi incluído para vídeo longo.
+   - A transcrição local é convertida em WebVTT e enviada internamente ao n8n; não existe rota pública de legendas.
+   - Título, descrição, tags, idioma, privacidade e horário são enviados.
+   - Nós do vídeo, capa e legenda preservaram a credencial `YouTube account`.
 
-4. **Integração e teste completo do YouTube:**
-   - A credencial nova `YouTube account` (`d6O8y7GyYFGpLz7q`) foi associada ao nó `YouTube - Vídeo Longo` do workflow ativo `CXeQ7kICnWCazhzy`.
-   - Foi incluído o nó `Baixar MP4 para YouTube`, que baixa a mídia como binário `data` antes do upload. O formatador também passou a aceitar payload direto e payload recebido em `body`.
-   - O nó do YouTube está habilitado com categoria 27, notificações desativadas e privacidade fixa em `private` durante esta fase. Facebook foi preservado e TikTok permaneceu desabilitado.
-   - O teste ponta a ponta via webhook enviou e processou com sucesso o vídeo privado `TESTE PRIVADO — Atlas Unbound — Integração n8n` (ID `-MKQrlXN0YU`) no canal **Atlas Unbound**.
-   - A API confirmou o canal `UCZeu2tVZ2G8Xj0xMjrteq7Q` (`@atlasunbounddocs`), `privacyStatus: private`, `uploadStatus: processed` e `processingStatus: succeeded`.
-   - O modelo versionado `deploy/n8n-atlas-publisher.json` foi atualizado com o formatador compatível, download binário e configuração privada do YouTube, sem credenciais.
-   - O backup anterior ao teste está no VPS em `/home/ubuntu/atlas-workflow-backups/CXeQ7kICnWCazhzy-before-youtube-test-20260920.json`.
+4. **Facebook**
+   - O publicador aceita vídeos longos e vídeos verticais.
+   - Título, descrição, URL do MP4 e horário programado são enviados.
+   - A autenticação existente no cabeçalho do nó foi preservada.
+   - A publicação direta anterior permanece comprovada pelo vídeo ID `1416847957077810`.
 
-## O que foi validado e resultado
+5. **Shorts**
+   - Novos projetos marcados para gerar Shorts recebem `shortsCount: 5`.
+   - A fila inclui os cinco MP4s renderizados, com títulos, descrições, VTT e horários individuais.
+   - Três Shorts ficam no primeiro dia e dois no segundo, conforme a grade configurada.
 
-- Publicação direta na página do Facebook: 100% funcional (vídeo ID `1416847957077810`).
-- Download do arquivo MP4 pelo Graph API: HTTP 200.
-- Disparo do webhook n8n: HTTP 200.
-- Nova credencial YouTube: operacional; canal confirmado como **Atlas Unbound** (`@atlasunbounddocs`).
-- Workflow do YouTube: execução n8n `53417` concluída com `success` em aproximadamente 17 segundos.
-- Upload e processamento do vídeo de teste: concluídos. Vídeo privado ID `-MKQrlXN0YU`.
-- Arquivo temporário com a credencial descriptografada: apagado imediatamente após a validação.
-- Modelo JSON do workflow: estrutura e configuração privada validadas localmente.
+6. **Confirmação e erros**
+   - O webhook do n8n responde somente após o último nó.
+   - O Atlas registra cada item como `sending`, `accepted` ou `error`, com ID externo quando retornado.
+   - Falhas deixam o item disponível para nova tentativa; itens aceitos não são duplicados.
+   - O aviso antigo que afirmava publicação sem confirmação foi substituído por mensagem de item colocado na fila.
 
-## Erros ou limitações abertos
+7. **TikTok**
+   - Continua desabilitado e fora da fila, conforme solicitado.
 
-- O YouTube está funcional, mas permanece configurado para publicar como `private`. A mudança para público ou agendado deve ocorrer somente depois da conferência manual no YouTube Studio.
-- TikTok continua aguardando credencial e aprovação da API.
+## Validações
 
-## Próximo passo recomendado
+- Suíte local: **70 testes aprovados, zero falhas**.
+- Diagnóstico de produção automática: aprovado sem chamadas externas.
+- Sintaxe de `server.mjs`, `public/app.js`, módulo de publicação e JSON do workflow: aprovada.
+- Workflow `CXeQ7kICnWCazhzy`: ativo, com 16 nós.
+- YouTube vídeo/capa/legenda: credenciais presentes.
+- Facebook: configuração de autenticação por cabeçalho preservada.
+- TikTok: nó desabilitado.
+- Chave global no VPS: **desligada**.
+- Backup anterior do n8n: `/home/ubuntu/atlas-workflow-backups/CXeQ7kICnWCazhzy-before-full-publisher-20260920.json`.
 
-- Conferir o vídeo privado `-MKQrlXN0YU` no YouTube Studio. Depois, definir a regra de produção desejada (`public` imediato ou `private` com agendamento) e executar um teste final com um vídeo real. TikTok pode continuar fora do fluxo.
+## Limitação deliberada
+
+- Nenhum novo vídeo, Short, capa ou legenda foi enviado nesta atualização porque a publicação automática deve permanecer desligada. A estrutura foi validada por testes, importação no n8n e inspeção das credenciais. O teste externo completo ocorrerá somente quando o botão for ligado.
+
+## Próximo passo
+
+- Revisar uma produção completa já agendada e clicar uma única vez em **Ligar publicação**. Acompanhar o primeiro lote no n8n e no YouTube Studio/Facebook; depois disso a fila segue automaticamente.
