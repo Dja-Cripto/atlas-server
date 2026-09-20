@@ -712,8 +712,9 @@ const server=http.createServer(async(req,res)=>{
    }
 
    if(p==='/api/topics/run-next'&&req.method==='POST'){
+    const b=await body(req).catch(()=>({}));
     const s={...providers.defaults,...store.settings()};
-    const result=await processNextTopicInQueue(store,s.geminiKey,runAutomaticForJob);
+    const result=await processNextTopicInQueue(store,s.geminiKey,runAutomaticForJob,b.topicId||null);
     json(res,200,result);
     return;
    }

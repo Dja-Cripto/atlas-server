@@ -2,7 +2,7 @@ import {renderEditPlan,renderCovers,renderFootage} from './editing-ui.js';
 let shotFilter='';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeURL=u=>{try{const x=new URL(u,location.origin);return ['https:','http:'].includes(x.protocol)?esc(x.href):'#';}catch{return '#';}};
-let state={jobs:[],settings:{configured:{}}},scheduleData={queue:[],history:[],settings:{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']}},musicCatalog={categories:{},tracks:[]},hubData={todayJob:null,alerts:[],queue:[],channels:[]},topicsData={queue:[],alerts:[],settings:{autoRunTime:'00:00',enabled:true}},page='overview',selected=null,tab='research',lastFingerprint='',busy=false;
+let state={jobs:[],settings:{configured:{}}},scheduleData={queue:[],history:[],settings:{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']}},musicCatalog={categories:{},tracks:[]},hubData={todayJob:null,alerts:[],queue:[],channels:[]},topicsData={queue:[],alerts:[],settings:{autoRunTime:'00:00',enabled:true}},topicsFilter='pending',page='overview',selected=null,tab='research',lastFingerprint='',busy=false;
 const names={overview:'Hub Central',topics:'Banco de Pautas',projects:'Produções',library:'Biblioteca',schedule:'Agendamento & Fila',settings:'Integrações',detail:'Produção'};
 const statusNames={draft:'Rascunho',running:'Em andamento',review:'Para revisar',error:'Precisa de atenção',interrupted:'Interrompido',scheduled:'Agendado',done:'Concluído'};
 const stepNames={research:'Pesquisa',script:'Roteiro',scenes:'Plano de cenas',media:'Filmagens',voice:'Narração',thumbnail:'Capa'};
@@ -196,7 +196,7 @@ function overview(){
     ${hubChannelsCard()}
   </div>
   <div class="stats">${[
-   ['Pautas na Fila',pendingTopics.length,'Próximos temas que o robô vai produzir','📋'],
+   ['Pautas na Fila',pendingTopics.length,'Próximos temas que o robô vai produzir','▥'],
    ['Produções no Servidor',jobs.length,'Vídeos longos no acervo','▤'],
    ['Shorts no Acervo',jobs.reduce((acc,j)=>(acc+(j.shorts?.items?.filter(x=>x?.finished)?.length||(j.generateShorts?5:0))),0),'Cortes 9:16 gerados','▧'],
    ['Agendador 24/7',topicsData.settings?.autoRunTime||'00:00',topicsData.settings?.enabled?'Disparo noturno ativo':'Pausado','⚙']
@@ -246,17 +246,38 @@ function topicsPage(){
  const skipped=queue.filter(t=>t.status==='skipped_duplicate');
  const completed=queue.filter(t=>t.status==='completed');
 
- return heading('Banco de Pautas & Fila Automática','Insira seus temas e ângulos. O robô consome um tema por dia à 00:00 e pula duplicados.')+
+ const filteredQueue = topicsFilter === 'pending'
+   ? pending
+   : topicsFilter === 'completed'
+   ? completed
+   : topicsFilter === 'skipped'
+   ? skipped
+   : queue;
+
+ return heading('Banco de Pautas & Fila Automática','Insira seus temas e acompanhe o que já foi produzido e o que está por vir.')+
   hubAlerts()+
   `<div class="stats">${[
-   ['Pautas Pendentes',pending.length,'Aguardando produção noturna','⏳'],
-   ['Pautas Concluídas',completed.length,'Vídeos e Shorts já gerados','✓'],
-   ['Puladas por Duplicidade',skipped.length,'Alertas de semelhança emitidos','💡'],
+   ['A Fazer (Na Fila)',pending.length,'Aguardando produção noturna','⏳'],
+   ['Já Produzidos',completed.length,'Vídeos e Shorts já gerados','✓'],
+   ['Pulados por Duplicidade',skipped.length,'Alertas de semelhança emitidos','💡'],
    ['Horário do Disparo',topicsData.settings?.autoRunTime||'00:00','Horário de Brasília (BRT)','⚙']
   ].map(([label,n,sub,icon])=>`<div class="stat"><div class="stat-top">${label}<span class="stat-icon">${icon}</span></div><div class="stat-value">${n}</div><small>${sub}</small></div>`).join('')}</div>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-   <h3 style="font-size:16px;margin:0;">Lista de Pautas do Canal</h3>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+   <div class="topics-filter-bar" style="display:flex;gap:6px;background:#f0f4f1;padding:4px;border-radius:8px;">
+    <button type="button" class="topics-filter-btn ${topicsFilter==='pending'?'active':''}" data-topics-filter="pending" style="padding:6px 14px;border-radius:6px;border:none;background:${topicsFilter==='pending'?'#fff':'none'};color:${topicsFilter==='pending'?'#176b52':'#6b7570'};font-weight:600;font-size:12px;cursor:pointer;box-shadow:${topicsFilter==='pending'?'0 1px 4px rgba(0,0,0,0.06)':'none'};">
+     ⏳ A Fazer (${pending.length})
+    </button>
+    <button type="button" class="topics-filter-btn ${topicsFilter==='completed'?'active':''}" data-topics-filter="completed" style="padding:6px 14px;border-radius:6px;border:none;background:${topicsFilter==='completed'?'#fff':'none'};color:${topicsFilter==='completed'?'#176b52':'#6b7570'};font-weight:600;font-size:12px;cursor:pointer;box-shadow:${topicsFilter==='completed'?'0 1px 4px rgba(0,0,0,0.06)':'none'};">
+     ✓ Já Produzidos (${completed.length})
+    </button>
+    <button type="button" class="topics-filter-btn ${topicsFilter==='skipped'?'active':''}" data-topics-filter="skipped" style="padding:6px 14px;border-radius:6px;border:none;background:${topicsFilter==='skipped'?'#fff':'none'};color:${topicsFilter==='skipped'?'#176b52':'#6b7570'};font-weight:600;font-size:12px;cursor:pointer;box-shadow:${topicsFilter==='skipped'?'0 1px 4px rgba(0,0,0,0.06)':'none'};">
+     💡 Pulados (${skipped.length})
+    </button>
+    <button type="button" class="topics-filter-btn ${topicsFilter==='all'?'active':''}" data-topics-filter="all" style="padding:6px 14px;border-radius:6px;border:none;background:${topicsFilter==='all'?'#fff':'none'};color:${topicsFilter==='all'?'#176b52':'#6b7570'};font-weight:600;font-size:12px;cursor:pointer;box-shadow:${topicsFilter==='all'?'0 1px 4px rgba(0,0,0,0.06)':'none'};">
+     Todas (${queue.length})
+    </button>
+   </div>
    <div style="display:flex;gap:10px;">
     <button class="secondary" data-run-next-topic ${!pending.length?'disabled':''}>▶ Produzir Próxima Pauta Agora</button>
     <button class="primary" data-open-topics-dialog>＋ Adicionar Pautas</button>
@@ -265,20 +286,35 @@ function topicsPage(){
 
   <section class="panel">
    <div class="topics-list">
-    ${queue.length ? queue.map((t, i) => `
+    ${filteredQueue.length ? filteredQueue.map((t, i) => `
      <div class="topic-row">
       <span class="topic-order">#${i+1}</span>
       <div class="topic-info">
-       <h3>${esc(t.title)}</h3>
-       <p>${esc(t.description || 'Sem descrição específica')} · ${t.minutes} min · +5 Shorts</p>
+       <h3 style="display:flex;align-items:center;gap:8px;">
+        ${esc(t.title)}
+       </h3>
+       <p>${esc(t.description || 'Sem descrição específica')} · ${t.minutes} min · +5 Shorts ${t.processedAt ? `· Processado em ${new Date(t.processedAt).toLocaleDateString('pt-BR')}` : ''}</p>
        ${t.duplicateInfo?.advice ? `<div class="hub-alert-advice" style="margin-top:8px;"><b>Conselho do Robô:</b> “${esc(t.duplicateInfo.advice)}”</div>` : ''}
       </div>
-      <div class="topic-meta">
-       <span class="topic-badge ${t.status}">${t.status==='pending'?'Na Fila':t.status==='running'?'Produzindo':t.status==='completed'?'Concluído':t.status==='skipped_duplicate'?'Pulado (Duplicado)':t.status}</span>
+      <div class="topic-meta" style="display:flex;align-items:center;gap:10px;">
+       <span class="topic-badge ${t.status}">${t.status==='pending'?'Na Fila':t.status==='running'?'Produzindo':t.status==='completed'?'✓ Já Produzido':t.status==='skipped_duplicate'?'Pulado (Duplicado)':t.status}</span>
+       ${t.status === 'completed' && t.jobId ? `
+        <button type="button" class="secondary" style="padding:6px 12px;font-size:11px;font-weight:600;" data-open-job="${t.jobId}" data-open-tab="final">🎬 Abrir Vídeo ↗</button>
+       ` : t.status === 'pending' ? `
+        <button type="button" class="secondary" style="padding:6px 12px;font-size:11px;" data-run-specific-topic="${t.id}" title="Produzir este tema agora">▶ Produzir Agora</button>
+       ` : ''}
        <button type="button" class="text-btn" data-delete-topic="${t.id}" title="Excluir pauta">🗑</button>
       </div>
      </div>
-    `).join('') : empty('Seu banco de pautas está vazio', 'Cole uma lista de temas ou cadastre um a um para o robô produzir automaticamente.', '<button class="primary" data-open-topics-dialog>＋ Cadastrar Temas</button>')}
+    `).join('') : empty(
+      topicsFilter === 'pending' ? 'Nenhuma pauta pendente para fazer' :
+      topicsFilter === 'completed' ? 'Nenhuma pauta foi produzida ainda' :
+      topicsFilter === 'skipped' ? 'Nenhuma pauta foi pulada por duplicidade' :
+      'Seu banco de pautas está vazio',
+      topicsFilter === 'pending' ? 'Adicione novos temas ou clique em "Todas" para ver o histórico.' :
+      'Cadastre novos temas para o robô começar a produzir.',
+      '<button class="primary" data-open-topics-dialog>＋ Cadastrar Ideias</button>'
+    )}
    </div>
   </section>`;
 }
@@ -693,7 +729,7 @@ function automaticPanel(j){
   <div class="panel-head">
    <div>
     <h3 style="font-size:14px;display:flex;align-items:center;gap:8px;">
-     <span>📋</span> Registro de Atividades em Tempo Real
+     <span>▤</span> Registro de Atividades em Tempo Real
     </h3>
     <p>Últimas operações e eventos do robô nesta produção.</p>
    </div>
@@ -1122,6 +1158,24 @@ document.addEventListener('click',async e=>{
     b.disabled=true;
     toast('Iniciando análise inteligente e produção da próxima pauta...');
     const res=await api('/api/topics/run-next',{},'POST');
+    if(res.jobId){
+     selected=res.jobId;
+     page='detail';
+     tab='events';
+    }
+    await refresh(true);
+    toast(res.message||'Produção iniciada com sucesso!');
+    return;
+   }
+   if(b.dataset.topicsFilter){
+    topicsFilter=b.dataset.topicsFilter;
+    render();
+    return;
+   }
+   if(b.dataset.runSpecificTopic){
+    b.disabled=true;
+    toast('Iniciando análise e produção desta pauta...');
+    const res=await api('/api/topics/run-next',{topicId:b.dataset.runSpecificTopic},'POST');
     if(res.jobId){
      selected=res.jobId;
      page='detail';
