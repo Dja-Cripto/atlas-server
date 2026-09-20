@@ -23,10 +23,10 @@ services:
       HOST: 0.0.0.0
       ATLAS_RENDER_CONCURRENCY: 2
     volumes:
-      - ../data:/app/data
+      - /srv/robo/portal-bot/data/atlas-storage/data:/app/data
       - ../Musicas:/app/Musicas:ro
-      - ../.temp:/app/.temp
-      - ../renderer/public/auto:/app/renderer/public/auto
+      - /srv/robo/portal-bot/data/atlas-storage/temp:/app/.temp
+      - /srv/robo/portal-bot/data/atlas-storage/auto:/app/renderer/public/auto
       - ../renderer/public/audio:/app/renderer/public/audio
       - ../renderer/src/generated:/app/renderer/src/generated
       - ../renderer/.models:/app/renderer/.models

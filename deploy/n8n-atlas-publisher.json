@@ -1,0 +1,184 @@
+{
+  "name": "Atlas Studio - Publicação Multiplataforma (YouTube, Facebook, TikTok)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "atlas-publish-video",
+        "responseMode": "onReceived",
+        "responseData": "allEntries",
+        "options": {}
+      },
+      "id": "node-webhook-in",
+      "name": "Webhook - Atlas Studio",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300],
+      "webhookId": "atlas-publish-video"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// Prepara dados formatados para todas as redes\nconst longVideo = {\n  jobId: item.jobId,\n  title: item.title,\n  description: item.description || (item.title + '\\n\\nCuriosidades do mundo e geopolítica.'),\n  tags: Array.isArray(item.tags) ? item.tags : ['documentary', 'curiosities', 'facts'],\n  videoUrl: item.longVideo?.url || item.longVideoUrl,\n  thumbnailUrl: item.thumbnailUrl,\n  scheduledDate: item.scheduled?.targetDate || item.longVideo?.scheduledDate,\n  scheduledTime: item.scheduled?.longVideo?.time || item.longVideo?.scheduledTime || '13:00'\n};\n\nconst shorts = (item.shorts || []).map((s, idx) => ({\n  jobId: item.jobId,\n  index: s.index || idx + 1,\n  title: (s.title || ('Curiosidade ' + (idx + 1))) + ' #Shorts',\n  description: (s.description || s.title || '') + '\\n\\n#Shorts #Curiosidades',\n  videoUrl: s.url || s.videoUrl,\n  scheduledDate: s.date || item.scheduled?.targetDate,\n  scheduledTime: s.time || '15:00'\n}));\n\nreturn [{\n  json: {\n    receivedAt: new Date().toISOString(),\n    jobId: item.jobId,\n    longVideo,\n    shorts,\n    shortsCount: shorts.length,\n    channels: item.channels || { youtube: false, facebook: false, tiktok: false }\n  }\n}];"
+      },
+      "id": "node-format-payload",
+      "name": "Formatar Dados de Publicação",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [{ "leftValue": "={{ $json.channels.youtube }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+              },
+              "renameOutput": true,
+              "outputKey": "YouTube Ativo"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [{ "leftValue": "={{ $json.channels.facebook }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+              },
+              "renameOutput": true,
+              "outputKey": "Facebook Ativo"
+            },
+            {
+              "conditions": {
+                "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+                "conditions": [{ "leftValue": "={{ $json.channels.tiktok }}", "rightValue": true, "operator": { "type": "boolean", "operation": "equals" } }]
+              },
+              "renameOutput": true,
+              "outputKey": "TikTok Ativo"
+            }
+          ]
+        },
+        "options": { "fallbackOutput": "extra" }
+      },
+      "id": "node-router",
+      "name": "Roteador de Canais",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "resource": "video",
+        "operation": "upload",
+        "title": "={{ $json.longVideo.title }}",
+        "description": "={{ $json.longVideo.description }}",
+        "tags": "={{ $json.longVideo.tags.join(',') }}",
+        "categoryId": "27",
+        "privacyStatus": "public"
+      },
+      "id": "node-youtube-long",
+      "name": "YouTube - Vídeo Longo",
+      "type": "n8n-nodes-base.youTube",
+      "typeVersion": 1,
+      "position": [1020, 160],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v19.0/me/videos",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"title\": \"{{ $json.longVideo.title }}\",\n  \"description\": \"{{ $json.longVideo.description }}\",\n  \"file_url\": \"{{ $json.longVideo.videoUrl }}\"\n}",
+        "options": {}
+      },
+      "id": "node-facebook-post",
+      "name": "Facebook - Vídeos & Reels",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1020, 300],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.tiktokapis.com/v2/post/publish/video/init/",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post_info\": {\n    \"title\": \"{{ $json.longVideo.title }}\",\n    \"privacy_level\": \"PUBLIC_TO_EVERYONE\"\n  },\n  \"source_info\": {\n    \"source\": \"PULL_FROM_URL\",\n    \"video_url\": \"{{ $json.longVideo.videoUrl }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "node-tiktok-post",
+      "name": "TikTok - Publicar Vídeo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1020, 440],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n// Log e confirmação de recepção sem erro\nreturn [{\n  json: {\n    status: 'received_and_registered',\n    message: 'Vídeo e Shorts registrados no N8N. Conecte as credenciais dos nós de canais quando desejar ativar a publicação automática.',\n    jobId: input.jobId,\n    title: input.longVideo?.title,\n    shortsCount: input.shortsCount,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "node-log-success",
+      "name": "Registrar no Hub Atlas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1020, 580]
+    }
+  ],
+  "connections": {
+    "Webhook - Atlas Studio": {
+      "main": [
+        [
+          {
+            "node": "Formatar Dados de Publicação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formatar Dados de Publicação": {
+      "main": [
+        [
+          {
+            "node": "Roteador de Canais",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Registrar no Hub Atlas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Roteador de Canais": {
+      "main": [
+        [
+          {
+            "node": "YouTube - Vídeo Longo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Facebook - Vídeos & Reels",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "TikTok - Publicar Vídeo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -2,8 +2,8 @@ import {renderEditPlan,renderCovers,renderFootage} from './editing-ui.js';
 let shotFilter='';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeURL=u=>{try{const x=new URL(u,location.origin);return ['https:','http:'].includes(x.protocol)?esc(x.href):'#';}catch{return '#';}};
-let state={jobs:[],settings:{configured:{}}},scheduleData={queue:[],history:[],settings:{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']}},musicCatalog={categories:{},tracks:[]},page='overview',selected=null,tab='research',lastFingerprint='',busy=false;
-const names={overview:'Visão geral',projects:'Produções',library:'Biblioteca',schedule:'Agendamento & Fila',settings:'Integrações',detail:'Produção'};
+let state={jobs:[],settings:{configured:{}}},scheduleData={queue:[],history:[],settings:{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']}},musicCatalog={categories:{},tracks:[]},hubData={todayJob:null,alerts:[],queue:[],channels:[]},topicsData={queue:[],alerts:[],settings:{autoRunTime:'00:00',enabled:true}},page='overview',selected=null,tab='research',lastFingerprint='',busy=false;
+const names={overview:'Hub Central',topics:'Banco de Pautas',projects:'Produções',library:'Biblioteca',schedule:'Agendamento & Fila',settings:'Integrações',detail:'Produção'};
 const statusNames={draft:'Rascunho',running:'Em andamento',review:'Para revisar',error:'Precisa de atenção',interrupted:'Interrompido',scheduled:'Agendado',done:'Concluído'};
 const stepNames={research:'Pesquisa',script:'Roteiro',scenes:'Plano de cenas',media:'Filmagens',voice:'Narração',thumbnail:'Capa'};
 const providers=[['gemini','G','Gemini','Pesquisa, roteiro e imagens'],['go','⌘','OpenCode Go','Configuração técnica das cenas'],['fish','≈','Fish Audio','Narração oficial em inglês'],['pexels','P','Pexels','Filmagens de banco'],['pixabay','Px','Pixabay','Vídeos e fotografias'],['youtube','▶','YouTube','Busca de referências']];
@@ -93,9 +93,194 @@ function row(j){
  </div>`;
 }
 
+function hubAlerts(){
+ const alerts=(topicsData.alerts||[]).filter(a=>!a.dismissed);
+ if(!alerts.length)return '';
+ return `<section class="hub-alerts-section">
+  ${alerts.map(a=>`
+   <div class="hub-alert-card ${a.type==='error'?'error':''}">
+    <div class="hub-alert-icon">${a.type==='error'?'⚠️':'💡'}</div>
+    <div class="hub-alert-content">
+     <h4>${esc(a.title)}</h4>
+     <p>${esc(a.message)}</p>
+     ${a.advice?`<div class="hub-alert-advice">“${esc(a.advice)}”</div>`:''}
+    </div>
+    <button type="button" class="hub-alert-dismiss" data-dismiss-alert="${a.id}">Entendido ✕</button>
+   </div>
+  `).join('')}
+ </section>`;
+}
+
+function hubTodayCard(){
+ const todayJob=hubData.todayJob||state.jobs.find(j=>j.scheduled)||state.jobs[0];
+ if(!todayJob){
+  return `<div class="hub-today-card">
+   <div class="hub-today-header">
+    <span class="hub-today-badge">PRODUÇÃO DO DIA</span>
+    <small style="color:#7a8480;">Nenhuma produção ativa hoje</small>
+   </div>
+   <div style="padding:20px 0;text-align:center;">
+    <p style="margin-bottom:14px;">Cadastre uma pauta ou produza o próximo tema da fila para abastecer o canal hoje.</p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+     <button class="primary" data-open-topics-dialog>＋ Adicionar Pautas</button>
+     <button class="secondary" data-run-next-topic>▶ Produzir Próxima Pauta</button>
+    </div>
+   </div>
+  </div>`;
+ }
+
+ const hasFinal=Boolean(todayJob.finalVideo||todayJob.renders?.length);
+ const shortsCount=todayJob.shorts?.items?.filter(x=>x?.finished)?.length||(todayJob.generateShorts?5:0);
+ const scheduledDate=todayJob.scheduled?.targetDate||'Agendamento automático';
+
+ return `<div class="hub-today-card">
+  <div class="hub-today-header">
+   <span class="hub-today-badge">PRODUÇÃO EM DESTAQUE</span>
+   <small style="color:#7a8480;font-weight:600;">Postagem: ${esc(scheduledDate)}</small>
+  </div>
+  <div class="hub-today-body">
+   <div class="hub-today-thumb">
+    ${todayJob.thumbnail?`<img src="${esc(todayJob.thumbnail)}" alt="Capa">`:'🎬'}
+   </div>
+   <div class="hub-today-info">
+    <h3>${esc(todayJob.title)}</h3>
+    <p>${todayJob.minutes} min · 1 Vídeo Longo (1080p) + ${shortsCount} Shorts verticais</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+     ${hasFinal?`<button class="primary" style="padding:7px 14px;font-size:11px;" data-watch-video="${todayJob.finalVideo?.path||todayJob.renders?.[0]?.url}" data-video-title="${esc(todayJob.title)} (1080p)" data-type="🎬 VÍDEO PRINCIPAL">▶ Assistir Vídeo</button>`:''}
+     ${shortsCount?`<button class="secondary" style="padding:7px 14px;font-size:11px;" data-open-job="${todayJob.id}" data-open-tab="final" data-scroll-to="section-shorts">📱 Ver ${shortsCount} Shorts</button>`:''}
+     <button class="text-btn" style="font-size:11px;" data-open-job="${todayJob.id}">Ver Detalhes ↗</button>
+    </div>
+   </div>
+  </div>
+ </div>`;
+}
+
+function hubChannelsCard(){
+ return `<div class="hub-channels-card">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #edf2ee;">
+   <h4 style="margin:0;font-size:13px;font-weight:600;">Canais de Postagem</h4>
+   <span class="badge" style="font-size:9px;">Via N8N</span>
+  </div>
+  <div class="hub-channel-row">
+   <div class="hub-channel-info">
+    <span class="hub-channel-icon yt">▶</span>
+    <div><b style="font-size:12px;">YouTube</b><small style="display:block;font-size:10px;color:#7a8480;">Canal Principal + Shorts</small></div>
+   </div>
+   <span class="channel-status-pill pending">Aguardando Credencial</span>
+  </div>
+  <div class="hub-channel-row">
+   <div class="hub-channel-info">
+    <span class="hub-channel-icon fb">f</span>
+    <div><b style="font-size:12px;">Facebook</b><small style="display:block;font-size:10px;color:#7a8480;">Página Oficial & Reels</small></div>
+   </div>
+   <span class="channel-status-pill pending">Aguardando Credencial</span>
+  </div>
+  <div class="hub-channel-row">
+   <div class="hub-channel-info">
+    <span class="hub-channel-icon tt">♪</span>
+    <div><b style="font-size:12px;">TikTok</b><small style="display:block;font-size:10px;color:#7a8480;">Cortes Verticais Diários</small></div>
+   </div>
+   <span class="channel-status-pill pending">Aguardando Credencial</span>
+  </div>
+ </div>`;
+}
+
 function overview(){
  const jobs=state.jobs;
- return heading('Uma boa pergunta. Um novo vídeo.','Organize suas ideias e acompanhe cada etapa da produção.')+`<div class="stats">${[['Produções',jobs.length,'Projetos no seu estúdio','▤'],['Fila de Agendamento',jobs.filter(j=>j.scheduled).length,'Prontos para postagem','▦'],['Para revisar',jobs.filter(j=>j.status==='review').length,'Materiais aguardando seu olhar','◉'],['Integrações',Object.values(state.settings.configured).filter(Boolean).length+'/6','Chaves cadastradas','⌘']].map(([label,n,sub,icon])=>`<div class="stat"><div class="stat-top">${label}<span class="stat-icon">${icon}</span></div><div class="stat-value">${n}</div><small>${sub}</small></div>`).join('')}</div><div class="hero"><div class="hero-copy"><span class="eyebrow">CURIOSIDADE SEM FRONTEIRAS</span><h2>O mundo tem histórias.<br>Seu próximo vídeo começa aqui.</h2><p>Países, números e perguntas que merecem uma resposta. Transforme uma ideia em uma produção organizada.</p><button class="secondary" data-new>Começar uma ideia &nbsp; ↗</button></div><div class="globe" aria-hidden="true"><div class="orbit"></div><div class="dot"></div></div></div><div class="grid-main"><section class="panel"><div class="panel-head"><div><h3>Produções recentes</h3><p>Da primeira ideia aos materiais do episódio.</p></div><button class="text-btn" data-page="projects">Ver todas ↗</button></div>${jobs.length?jobs.slice(0,4).map(row).join(''):empty('Seu primeiro vídeo começa com uma ideia','Crie uma produção para organizar a pesquisa, o roteiro, as filmagens e a narração.','<button class="text-btn" data-new>＋ Criar primeira produção</button>')}</section><section class="panel"><div class="panel-head"><h3>Suas ferramentas</h3><button class="text-btn" data-page="settings">Configurar ↗</button></div>${integrations()}</section></div><section class="panel section-gap"><div class="panel-head"><h3>Um fluxo, do início ao fim</h3><span class="badge">Pré-produção, CapCut & Agendamento</span></div><div class="workflow">${['Pesquisa','Roteiro','Cenas','Filmagens','Narração','Capa','CapCut / Remotion','Agendamento'].map((n,i)=>`<div class="flow-item"><b>${i+1}</b>${n}</div>${i<7?'<span class="arrow">→</span>':''}`).join('')}</div></section>`;
+ const pendingTopics=(topicsData.queue||[]).filter(t=>t.status==='pending');
+
+ return heading('Hub Central de Produção','Controle diário do seu canal, pautas automáticas e publicações.')+
+  hubAlerts()+
+  `<div class="hub-grid-top">
+    ${hubTodayCard()}
+    ${hubChannelsCard()}
+  </div>
+  <div class="stats">${[
+   ['Pautas na Fila',pendingTopics.length,'Próximos temas que o robô vai produzir','📋'],
+   ['Produções no Servidor',jobs.length,'Vídeos longos no acervo','▤'],
+   ['Shorts no Acervo',jobs.reduce((acc,j)=>(acc+(j.shorts?.items?.filter(x=>x?.finished)?.length||(j.generateShorts?5:0))),0),'Cortes 9:16 gerados','▧'],
+   ['Agendador 24/7',topicsData.settings?.autoRunTime||'00:00',topicsData.settings?.enabled?'Disparo noturno ativo':'Pausado','⚙']
+  ].map(([label,n,sub,icon])=>`<div class="stat"><div class="stat-top">${label}<span class="stat-icon">${icon}</span></div><div class="stat-value">${n}</div><small>${sub}</small></div>`).join('')}</div>
+  
+  <div class="grid-main">
+   <section class="panel">
+    <div class="panel-head">
+     <div>
+      <h3>Fila Próxima de Pautas</h3>
+      <p>O robô consome um tema por dia à 00:00. Se detectar repetição, pula automaticamente sem deixar você sem vídeo.</p>
+     </div>
+     <div style="display:flex;gap:8px;">
+      <button class="primary" style="padding:8px 14px;font-size:11px;" data-open-topics-dialog>＋ Nova Pauta</button>
+      <button class="secondary" style="padding:8px 14px;font-size:11px;" data-run-next-topic>▶ Produzir Próxima Agora</button>
+     </div>
+    </div>
+    <div class="topics-list">
+     ${pendingTopics.length ? pendingTopics.slice(0, 4).map((t, i) => `
+      <div class="topic-row">
+       <span class="topic-order">#${i+1}</span>
+       <div class="topic-info">
+        <h3>${esc(t.title)}</h3>
+        <p>${esc(t.description || 'Curiosidade do mundo')} · ${t.minutes} min · +5 Shorts</p>
+       </div>
+       <span class="topic-badge pending">Na Fila</span>
+       <button type="button" class="text-btn" data-delete-topic="${t.id}" title="Excluir pauta">🗑</button>
+      </div>
+     `).join('') : empty('Nenhuma pauta pendente na fila', 'Adicione uma lista de temas para o robô trabalhar sozinho.', '<button class="primary" data-open-topics-dialog>＋ Cadastrar Ideias</button>')}
+    </div>
+    ${pendingTopics.length > 4 ? `<div style="padding:12px 20px;text-align:right;"><button class="text-btn" data-page="topics">Ver todas as ${pendingTopics.length} pautas ↗</button></div>` : ''}
+   </section>
+
+   <section class="panel">
+    <div class="panel-head">
+     <h3>Suas ferramentas de IA</h3>
+     <button class="text-btn" data-page="settings">Configurar ↗</button>
+    </div>
+    ${integrations()}
+   </section>
+  </div>`;
+}
+
+function topicsPage(){
+ const queue=topicsData.queue||[];
+ const pending=queue.filter(t=>t.status==='pending');
+ const skipped=queue.filter(t=>t.status==='skipped_duplicate');
+ const completed=queue.filter(t=>t.status==='completed');
+
+ return heading('Banco de Pautas & Fila Automática','Insira seus temas e ângulos. O robô consome um tema por dia à 00:00 e pula duplicados.')+
+  hubAlerts()+
+  `<div class="stats">${[
+   ['Pautas Pendentes',pending.length,'Aguardando produção noturna','⏳'],
+   ['Pautas Concluídas',completed.length,'Vídeos e Shorts já gerados','✓'],
+   ['Puladas por Duplicidade',skipped.length,'Alertas de semelhança emitidos','💡'],
+   ['Horário do Disparo',topicsData.settings?.autoRunTime||'00:00','Horário de Brasília (BRT)','⚙']
+  ].map(([label,n,sub,icon])=>`<div class="stat"><div class="stat-top">${label}<span class="stat-icon">${icon}</span></div><div class="stat-value">${n}</div><small>${sub}</small></div>`).join('')}</div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+   <h3 style="font-size:16px;margin:0;">Lista de Pautas do Canal</h3>
+   <div style="display:flex;gap:10px;">
+    <button class="secondary" data-run-next-topic ${!pending.length?'disabled':''}>▶ Produzir Próxima Pauta Agora</button>
+    <button class="primary" data-open-topics-dialog>＋ Adicionar Pautas</button>
+   </div>
+  </div>
+
+  <section class="panel">
+   <div class="topics-list">
+    ${queue.length ? queue.map((t, i) => `
+     <div class="topic-row">
+      <span class="topic-order">#${i+1}</span>
+      <div class="topic-info">
+       <h3>${esc(t.title)}</h3>
+       <p>${esc(t.description || 'Sem descrição específica')} · ${t.minutes} min · +5 Shorts</p>
+       ${t.duplicateInfo?.advice ? `<div class="hub-alert-advice" style="margin-top:8px;"><b>Conselho do Robô:</b> “${esc(t.duplicateInfo.advice)}”</div>` : ''}
+      </div>
+      <div class="topic-meta">
+       <span class="topic-badge ${t.status}">${t.status==='pending'?'Na Fila':t.status==='running'?'Produzindo':t.status==='completed'?'Concluído':t.status==='skipped_duplicate'?'Pulado (Duplicado)':t.status}</span>
+       <button type="button" class="text-btn" data-delete-topic="${t.id}" title="Excluir pauta">🗑</button>
+      </div>
+     </div>
+    `).join('') : empty('Seu banco de pautas está vazio', 'Cole uma lista de temas ou cadastre um a um para o robô produzir automaticamente.', '<button class="primary" data-open-topics-dialog>＋ Cadastrar Temas</button>')}
+   </div>
+  </section>`;
 }
 
 function projects(){return heading('Suas produções','Todas as ideias e etapas, em um só lugar.')+`<div class="page-toolbar"><input id="filter" aria-label="Buscar produções" placeholder="Buscar pelo título do vídeo..."></div><section class="panel" id="job-list">${state.jobs.length?state.jobs.map(row).join(''):empty('Nada por aqui ainda','Comece com a pergunta que você gostaria de responder.','<button class="primary" data-new>Nova produção</button>')}</section>`;}
@@ -802,13 +987,19 @@ function render(){
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===(page==='detail'?'projects':page)));
  $('#breadcrumb').innerHTML=`Workspace <span>/</span> ${names[page]||page}`;
  $('#nav-count').textContent=state.jobs.length;
- $('#content').innerHTML=({overview,projects,library,schedule,settings,detail}[page])();
+ const topicsBadge=$('#topics-count');
+ if(topicsBadge) topicsBadge.textContent=(topicsData.queue||[]).filter(t=>t.status==='pending').length;
+ $('#content').innerHTML=({overview,topics:topicsPage,projects,library,schedule,settings,detail}[page])();
 }
 
 async function refresh(force=false){
  const next=await api('/api/state');
  const fingerprint=JSON.stringify(next);
  state=next;
+ hubData=await api('/api/hub').catch(()=>hubData);
+ topicsData=await api('/api/topics').catch(()=>topicsData);
+ const topicsBadge=$('#topics-count');
+ if(topicsBadge) topicsBadge.textContent=(topicsData.queue||[]).filter(t=>t.status==='pending').length;
  if(!musicCatalog.tracks?.length){
   musicCatalog=await api('/api/music').catch(()=>({categories:{},tracks:[]}));
  }
@@ -887,9 +1078,74 @@ document.addEventListener('click',async e=>{
  const b=e.target.closest('button,[data-job],a[data-action],.title-option');
  if(!b||b.disabled)return;
  try{
-  if(b.dataset.page){page=b.dataset.page;if(page==='schedule')scheduleData=await api('/api/schedule').catch(()=>scheduleData);render();}
-  if(b.hasAttribute('data-new')){$('#new-dialog').showModal();$('#new-form input').focus();}
-  if(b.hasAttribute('data-close'))$('#new-dialog').close();
+   if(b.dataset.page){page=b.dataset.page;if(page==='schedule')scheduleData=await api('/api/schedule').catch(()=>scheduleData);render();}
+   if(b.hasAttribute('data-new')){$('#new-dialog').showModal();$('#new-form input').focus();}
+   if(b.hasAttribute('data-close')) (b.closest('dialog')||$('#new-dialog')||$('#topics-dialog'))?.close();
+   if(b.hasAttribute('data-open-topics-dialog')||b.closest('[data-open-topics-dialog]')){
+    const dlg=$('#topics-dialog');
+    if(dlg){
+     dlg.showModal();
+     const titleInput=dlg.querySelector('input[name="title"]');
+     if(titleInput) setTimeout(()=>titleInput.focus(),100);
+    }
+    return;
+   }
+   if(b.id==='tab-topic-single'){
+    b.classList.add('active');
+    b.style.background='#eaf3ee';
+    b.style.color='#216b51';
+    const tabBulk=$('#tab-topic-bulk');
+    if(tabBulk){tabBulk.classList.remove('active');tabBulk.style.background='none';tabBulk.style.color='#7a8480';}
+    const singleFields=$('#topic-single-fields');
+    const bulkFields=$('#topic-bulk-fields');
+    if(singleFields) singleFields.style.display='block';
+    if(bulkFields) bulkFields.style.display='none';
+    const titleInput=singleFields?.querySelector('input[name="title"]');
+    if(titleInput) titleInput.required=true;
+    return;
+   }
+   if(b.id==='tab-topic-bulk'){
+    b.classList.add('active');
+    b.style.background='#eaf3ee';
+    b.style.color='#216b51';
+    const tabSingle=$('#tab-topic-single');
+    if(tabSingle){tabSingle.classList.remove('active');tabSingle.style.background='none';tabSingle.style.color='#7a8480';}
+    const singleFields=$('#topic-single-fields');
+    const bulkFields=$('#topic-bulk-fields');
+    if(singleFields) singleFields.style.display='none';
+    if(bulkFields) bulkFields.style.display='block';
+    const titleInput=singleFields?.querySelector('input[name="title"]');
+    if(titleInput) titleInput.required=false;
+    return;
+   }
+   if(b.hasAttribute('data-run-next-topic')||b.closest('[data-run-next-topic]')){
+    b.disabled=true;
+    toast('Iniciando análise inteligente e produção da próxima pauta...');
+    const res=await api('/api/topics/run-next',{},'POST');
+    if(res.jobId){
+     selected=res.jobId;
+     page='detail';
+     tab='events';
+    }
+    await refresh(true);
+    toast(res.message||'Produção iniciada com sucesso!');
+    return;
+   }
+   if(b.dataset.dismissAlert){
+    b.disabled=true;
+    await api(`/api/hub/alerts/${b.dataset.dismissAlert}/dismiss`,{},'POST');
+    await refresh(true);
+    return;
+   }
+   if(b.dataset.deleteTopic){
+    const topicId=b.dataset.deleteTopic;
+    if(!confirm('Deseja excluir esta pauta da fila?')) return;
+    b.disabled=true;
+    await api(`/api/topics/${topicId}`,undefined,'DELETE');
+    await refresh(true);
+    toast('Pauta excluída com sucesso.');
+    return;
+   }
   if(b.dataset.deleteJob){
    e.stopPropagation();
    const jobId=b.dataset.deleteJob;
@@ -1103,6 +1359,29 @@ document.addEventListener('submit',async e=>{
    form.reset();
    await refresh(true);
    toast('Produção criada! Inicie a geração automática.');
+  }
+  if(form.id==='topics-form'){
+   const isBulk=$('#tab-topic-bulk')?.classList.contains('active');
+   if(isBulk){
+    const bulkText=data.bulkText;
+    if(!bulkText||!bulkText.trim()) throw new Error('Cole ao menos um tema na lista.');
+    const res=await api('/api/topics',{bulkText});
+    $('#topics-dialog').close();
+    form.reset();
+    await refresh(true);
+    toast(`✓ ${res.added?.length||0} pautas cadastradas com sucesso no banco!`);
+   }else{
+    const res=await api('/api/topics',{
+     title:data.title,
+     description:data.description||'',
+     minutes:Number(data.minutes)||15,
+     generateShorts:form.querySelector('[name="generateShorts"]')?.checked??true
+    });
+    $('#topics-dialog').close();
+    form.reset();
+    await refresh(true);
+    toast('✓ Nova pauta cadastrada com sucesso!');
+   }
   }
   if(form.id==='settings-form'){await api('/api/settings',data);await refresh(true);toast('Integrações salvas.');}
   if(form.id==='script-form'){await api(`/api/jobs/${selected}/script`,data);await refresh(true);toast('Revisão salva.');}

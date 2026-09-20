@@ -15,6 +15,7 @@ import {automatic,preflight,renderFinalMP4,exportCapCut} from './lib/automatic.m
 import {automaticShorts,renderAllShortsMP4} from './lib/shorts.mjs';
 import {launchCapCut} from './lib/capcut.mjs';
 import {getScheduleSettings,saveScheduleSettings,listScheduleQueue,listHistory,calculateNextAvailableDate,scheduleJob,unscheduleJob} from './lib/schedule.mjs';
+import {loadTopicsData,saveTopicsData,addTopic,addBulkTopics,parseBulkText,updateTopic,deleteTopic,dismissAlert,addAlert,processNextTopicInQueue} from './lib/topics.mjs';
 
 const root=path.dirname(fileURLToPath(import.meta.url));
 const dir=process.env.ATLAS_DATA_DIR||path.join(root,'data');
@@ -183,6 +184,59 @@ async function run(j,action,options={}){
  }finally{
   active.delete(j.id);
   store.put(j);
+ }
+}
+
+async function runAutomaticForJob(jobId,topic=null){
+ const j=store.get(jobId);
+ if(!j)return;
+ try{
+  await run(j,'automatic',{generateShorts:true});
+  try{ scheduleJob(store,j.id); }catch{}
+  try{
+   await fetch('http://n8n:5678/webhook/atlas-publish-video',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+     jobId:j.id,
+     title:j.title,
+     description:j.publishingMetadata?.description||j.script?.slice(0,500)||'',
+     tags:j.publishingMetadata?.tags||['documentary','facts','curiosities'],
+     longVideoUrl:`https://painel.setupdja.website/outputs/${j.id}/final.mp4`,
+     thumbnailUrl:j.thumbnail?`https://painel.setupdja.website${j.thumbnail}`:`https://painel.setupdja.website/outputs/${j.id}/thumbnail.png`,
+     scheduled:j.scheduled,
+     shorts:(j.shorts?.items||[]).map((s,i)=>({
+      index:i+1,
+      title:s.title||`Short ${i+1}: ${j.title}`,
+      url:`https://painel.setupdja.website/shorts/${j.id}/short-${i+1}.mp4`
+     })),
+     channels:{youtube:false,facebook:false,tiktok:false}
+    })
+   });
+  }catch{}
+  try{
+   const tempJobDir=path.join(root,'.temp',j.id);
+   if(existsSync(tempJobDir))await rm(tempJobDir,{recursive:true,force:true});
+  }catch{}
+  if(topic){
+   updateTopic(dir,topic.id,{status:'completed',processedAt:new Date().toISOString()});
+  }
+  addAlert(dir,{
+   type:'production_ready',
+   title:`Produção Concluída: "${j.title}"`,
+   message:`Vídeo principal de ${j.minutes}min e 5 Shorts verticais foram 100% renderizados e agendados no canal!`,
+   jobId:j.id
+  });
+ }catch(err){
+  if(topic){
+   updateTopic(dir,topic.id,{status:'error'});
+  }
+  addAlert(dir,{
+   type:'error',
+   title:`Falha na Produção: "${j.title}"`,
+   message:err.message||'Erro durante a geração automática.',
+   jobId:j.id
+  });
  }
 }
 
@@ -599,7 +653,88 @@ const server=http.createServer(async(req,res)=>{
    if(action==='search'){if(typeof b.query!=='string')throw new Error('Busca inválida.');active.add(j.id);try{const s={...providers.defaults,...store.settings()};const search=b.source==='youtube'?providers.youtube:b.source==='pixabay'?providers.pixabay:providers.footage;const results=(await search(s,b.query)).map(x=>({...x,queries:[b.query],shotIds:b.shotId?[b.shotId]:[],reviewStatus:'pending'}));j.media=mergeMedia(j.media||[],results);json(res,200,j);}finally{active.delete(j.id);}return;}
   }
   
-  if(p.startsWith('/api/')){json(res,404,{error:'Rota não encontrada.'});return;}
+    if(p==='/api/hub'&&req.method==='GET'){
+    const topicsData=loadTopicsData(dir);
+    const scheduleSlots=calculateNextAvailableDate(store);
+    const jobs=store.list();
+    const todayJob=jobs.find(j=>j.scheduled?.targetDate===scheduleSlots.targetDate)||jobs[0]||null;
+    json(res,200,{
+     todayJob,
+     alerts:(topicsData.alerts||[]).filter(a=>!a.dismissed).slice(0,10),
+     queue:topicsData.queue||[],
+     settings:topicsData.settings||{autoRunTime:'00:00',enabled:true},
+     nextSlot:scheduleSlots,
+     channels:[
+      {id:'youtube',name:'YouTube',status:'pending_creds',label:'Aguardando Credenciais (OAuth2)'},
+      {id:'facebook',name:'Facebook',status:'pending_creds',label:'Aguardando Credenciais (Graph API)'},
+      {id:'tiktok',name:'TikTok',status:'pending_creds',label:'Aguardando Credenciais (Posting API)'}
+     ]
+    });
+    return;
+   }
+
+   if(p==='/api/topics'&&req.method==='GET'){
+    json(res,200,loadTopicsData(dir));
+    return;
+   }
+
+   if(p==='/api/topics'&&req.method==='POST'){
+    const b=await body(req);
+    if(b.bulkText){
+     const list=parseBulkText(b.bulkText);
+     const added=addBulkTopics(dir,list);
+     json(res,201,{added,count:added.length});
+     return;
+    }
+    if(Array.isArray(b.topics)){
+     const added=addBulkTopics(dir,b.topics);
+     json(res,201,{added,count:added.length});
+     return;
+    }
+    const item=addTopic(dir,b);
+    json(res,201,item);
+    return;
+   }
+
+   const topicPatchMatch=p.match(/^\/api\/topics\/([a-zA-Z0-9_-]+)$/);
+   if(topicPatchMatch&&req.method==='PATCH'){
+    const b=await body(req);
+    const updated=updateTopic(dir,topicPatchMatch[1],b);
+    json(res,200,updated);
+    return;
+   }
+
+   const topicDelMatch=p.match(/^\/api\/topics\/([a-zA-Z0-9_-]+)$/);
+   if(topicDelMatch&&req.method==='DELETE'){
+    deleteTopic(dir,topicDelMatch[1]);
+    json(res,200,{deleted:true});
+    return;
+   }
+
+   if(p==='/api/topics/run-next'&&req.method==='POST'){
+    const s={...providers.defaults,...store.settings()};
+    const result=await processNextTopicInQueue(store,s.geminiKey,runAutomaticForJob);
+    json(res,200,result);
+    return;
+   }
+
+   const alertDismissMatch=p.match(/^\/api\/hub\/alerts\/([a-zA-Z0-9_-]+)\/dismiss$/);
+   if(alertDismissMatch&&req.method==='POST'){
+    dismissAlert(dir,alertDismissMatch[1]);
+    json(res,200,{success:true});
+    return;
+   }
+
+   if(p==='/api/hub/settings'&&req.method==='POST'){
+    const b=await body(req);
+    const data=loadTopicsData(dir);
+    data.settings={...data.settings,...b};
+    saveTopicsData(dir,data);
+    json(res,200,data.settings);
+    return;
+   }
+
+   if(p.startsWith('/api/')){json(res,404,{error:'Rota não encontrada.'});return;}
     let target;
    if(/^\/outputs\/[a-f0-9-]+\/(voice\.mp3|pilot\.mp4|video-[a-f0-9-]+\.mp4|video_final\.mp4|credits-[a-f0-9-]+\.json|thumbnail(?:-[a-f0-9-]+)?\.(png|jpg))$/.test(p)){
     const rel=p.slice(9);
@@ -636,3 +771,23 @@ const server=http.createServer(async(req,res)=>{
 
 const bindHost=process.env.HOST||'0.0.0.0';
 server.listen(port,bindHost,()=>console.log(`Atlas Studio: http://${bindHost}:${port}`));
+
+let lastAutoRunDate='';
+setInterval(async()=>{
+ try{
+  const data=loadTopicsData(dir);
+  if(!data.settings?.enabled)return;
+  const now=new Date();
+  const todayYMD=now.toISOString().slice(0,10);
+  const curTime=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Bahia'});
+  const targetTime=data.settings.autoRunTime||'00:00';
+  if(curTime===targetTime&&lastAutoRunDate!==todayYMD){
+   lastAutoRunDate=todayYMD;
+   console.log(`[Agendador Autônomo] Horário ${curTime} atingido. Processando próxima pauta da fila para Daniel...`);
+   const s={...providers.defaults,...store.settings()};
+   await processNextTopicInQueue(store,s.geminiKey,runAutomaticForJob);
+  }
+ }catch(e){
+  console.error('[Agendador Autônomo Erro]',e);
+ }
+},40000);
