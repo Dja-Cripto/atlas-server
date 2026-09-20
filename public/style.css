@@ -42,7 +42,8 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
 .job-btn-pill.pill-secondary:hover{background:#1b5797;color:#fff}
 
 /* =========================================================
-   Clean Editorial "Olá, Sr. Daniel" Login Experience
+   Clean Editorial "Olá, Sr. Daniel" Intro & Login Experience
+   Matches Atlas Studio Sage / Off-White Theme
    ========================================================= */
 .login-overlay {
   position: fixed;
@@ -51,12 +52,13 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #080d15;
+  background: #f5f7f6;
   background-image: 
-    radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 60%),
-    radial-gradient(circle at 80% 80%, rgba(14, 165, 233, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 50% 25%, rgba(23, 107, 82, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 85% 85%, rgba(184, 138, 80, 0.04) 0%, transparent 50%);
   padding: 20px;
   opacity: 1;
+  overflow: hidden;
   transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
@@ -66,22 +68,316 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
   pointer-events: none;
 }
 
+/* Stage 1: "Olá, Sr. Daniel" Fullscreen Interactive Intro */
+.intro-screen {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 1;
+  user-select: none;
+  transition: opacity 0.5s ease 0.25s, transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.intro-screen.launching {
+  opacity: 0;
+  transform: scale(1.1);
+  pointer-events: none;
+}
+
+.intro-screen.hidden {
+  display: none;
+}
+
+.intro-grid-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image: 
+    linear-gradient(rgba(23, 107, 82, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(23, 107, 82, 0.06) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(circle at center, black 40%, transparent 75%);
+  pointer-events: none;
+}
+
+.intro-globe {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(85vw, 620px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border: 1px solid rgba(189, 205, 184, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: intro-orbit-rotate 45s linear infinite;
+}
+
+.intro-orbit.orbit-1 {
+  position: absolute;
+  inset: 13%;
+  border-radius: 50%;
+  border: 1px dashed rgba(168, 191, 164, 0.45);
+}
+
+.intro-orbit.orbit-2 {
+  position: absolute;
+  inset: 27%;
+  border-radius: 50%;
+  border: 1px solid rgba(181, 200, 176, 0.35);
+}
+
+.intro-orbit.orbit-3 {
+  position: absolute;
+  inset: 42%;
+  border-radius: 50%;
+  border: 1px dashed rgba(168, 191, 164, 0.3);
+}
+
+.intro-dot {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.intro-dot.dot-1 {
+  width: 9px;
+  height: 9px;
+  left: 9%;
+  top: 26%;
+  background: #176b52;
+  box-shadow: 0 0 0 7px rgba(23, 107, 82, 0.12);
+}
+
+.intro-dot.dot-2 {
+  width: 7px;
+  height: 7px;
+  right: 14%;
+  top: 19%;
+  background: #176b52;
+  box-shadow: 0 0 0 5px rgba(23, 107, 82, 0.12);
+}
+
+.intro-dot.dot-3 {
+  width: 8px;
+  height: 8px;
+  right: 8%;
+  bottom: 31%;
+  background: #81714d;
+  box-shadow: 0 0 0 6px rgba(129, 113, 77, 0.15);
+}
+
+.intro-status {
+  position: absolute;
+  top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7a8480;
+  pointer-events: none;
+}
+
+.intro-status-left {
+  left: 36px;
+}
+
+.intro-status-right {
+  right: 36px;
+}
+
+.intro-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1db86f;
+  box-shadow: 0 0 0 0 rgba(29, 184, 111, 0.7);
+  animation: pulse-green 1.4s infinite;
+}
+
+.intro-core {
+  position: relative;
+  width: min(92vw, 560px);
+  padding: 40px 24px;
+  text-align: center;
+  z-index: 2;
+  animation: intro-enter 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.intro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 9999px;
+  background: #eaf3ee;
+  border: 1px solid #bad3c5;
+  color: #216b51;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 22px;
+}
+
+.intro-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #216b51;
+}
+
+.intro-avatar-ring {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #bdcdb8 0%, #176b52 100%);
+  box-shadow: 0 8px 24px rgba(23, 107, 82, 0.15);
+}
+
+.intro-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #efeadc;
+  color: #81714d;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  font-weight: 700;
+  font-family: Inter, sans-serif;
+}
+
+.intro-title {
+  font-size: 36px;
+  font-weight: 500;
+  color: #202a29;
+  letter-spacing: -0.03em;
+  margin: 0 0 10px 0;
+}
+
+.intro-highlight {
+  color: #176b52;
+  font-weight: 700;
+}
+
+.intro-subtitle {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #6b7570;
+  max-width: 440px;
+  margin: 0 auto 28px;
+}
+
+.intro-start-btn {
+  position: relative;
+  overflow: hidden;
+  background: #176b52;
+  color: #ffffff;
+  border: 1px solid #11553f;
+  border-radius: 9999px;
+  padding: 13px 32px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(23, 107, 82, 0.22);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.intro-start-btn:hover {
+  background: #11553f;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(23, 107, 82, 0.32);
+}
+
+.intro-start-btn:active {
+  transform: scale(0.98);
+}
+
+.intro-btn-icon {
+  font-size: 13px;
+}
+
+.intro-btn-arrow {
+  font-size: 15px;
+  transition: transform 0.2s;
+}
+
+.intro-start-btn:hover .intro-btn-arrow {
+  transform: translateX(4px);
+}
+
+.intro-click-hint {
+  font-size: 10.5px;
+  color: #89938e;
+  letter-spacing: 0.06em;
+  margin-top: 14px;
+  text-transform: uppercase;
+}
+
+.intro-footer-badges {
+  margin-top: 26px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #9aa69f;
+}
+
+.intro-footer-badges .sep {
+  color: #cbd5ce;
+}
+
+/* Stage 2: Clean Sage / White Login Card */
+.login-card-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 10;
+  opacity: 1;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.login-card-container.hidden {
+  display: none;
+  opacity: 0;
+}
+
+.login-card-container.fade-in {
+  animation: card-enter 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(13, 20, 32, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  background: #ffffff;
+  border: 1px solid #dce8de;
+  border-radius: 16px;
   padding: 36px 32px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: #f1f5f9;
+  box-shadow: 0 20px 55px rgba(23, 107, 82, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02);
+  color: #202a29;
   text-align: center;
 }
 
 .login-header {
-  margin-bottom: 26px;
+  margin-bottom: 22px;
 }
 
 .login-badge {
@@ -90,58 +386,58 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
   gap: 7px;
   padding: 4px 12px;
   border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: #34d399;
+  background: #eaf3ee;
+  border: 1px solid #bad3c5;
+  color: #216b51;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .badge-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #34d399;
+  background: #216b51;
 }
 
 .login-avatar-ring {
-  width: 62px;
-  height: 62px;
-  margin: 0 auto 16px;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
   border-radius: 50%;
   padding: 2px;
-  background: linear-gradient(135deg, #10b981 0%, #0284c7 100%);
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+  background: linear-gradient(135deg, #bdcdb8 0%, #176b52 100%);
+  box-shadow: 0 4px 14px rgba(23, 107, 82, 0.12);
 }
 
 .login-avatar {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: #0b121d;
+  background: #efeadc;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #81714d;
 }
 
-.login-header h1 {
-  font-size: 26px;
+.login-header h2 {
+  font-size: 20px;
   font-weight: 600;
-  color: #ffffff;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.025em;
+  color: #202a29;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
 }
 
 .login-header p {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #94a3b8;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #7a8480;
   margin: 0;
 }
 
@@ -159,7 +455,7 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #cbd5e1;
+  color: #546259;
   margin-bottom: 8px;
 }
 
@@ -173,26 +469,26 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
   position: absolute;
   left: 14px;
   font-size: 14px;
-  color: #64748b;
+  color: #89938e;
   pointer-events: none;
 }
 
 .login-form input {
   width: 100%;
-  background: #090e17;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #dce3dc;
+  border-radius: 8px;
   padding: 12px 42px 12px 38px;
-  font-size: 14px;
-  color: #f8fafc;
+  font-size: 13.5px;
+  color: #202a29;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
 
 .login-form input:focus {
-  border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  border-color: #176b52;
+  box-shadow: 0 0 0 3px rgba(23, 107, 82, 0.12);
 }
 
 .login-form .toggle-password {
@@ -200,7 +496,7 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
   right: 10px;
   background: none;
   border: none;
-  color: #64748b;
+  color: #89938e;
   font-size: 15px;
   cursor: pointer;
   padding: 6px;
@@ -210,41 +506,41 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
 }
 
 .login-form .toggle-password:hover {
-  color: #cbd5e1;
+  color: #202a29;
 }
 
 .login-error {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  color: #fca5a5;
-  font-size: 12.5px;
+  background: #fff2eb;
+  border: 1px solid #efdbce;
+  color: #ae6545;
+  font-size: 12px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 7px;
   margin-bottom: 16px;
 }
 
 .login-submit {
   width: 100%;
   padding: 13px 20px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 8px;
+  border: 1px solid #11553f;
+  background: #176b52;
   color: #ffffff;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+  box-shadow: 0 4px 14px rgba(23, 107, 82, 0.2);
+  transition: all 0.2s ease;
 }
 
 .login-submit:hover {
-  filter: brightness(1.08);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+  background: #11553f;
+  box-shadow: 0 6px 18px rgba(23, 107, 82, 0.3);
 }
 
 .login-submit:active {
@@ -257,9 +553,9 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
 }
 
 .login-footer {
-  margin-top: 22px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #edf0ed;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -271,35 +567,21 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #64748b;
-}
-
-.pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-  animation: pulseGreen 2s infinite;
-}
-
-@keyframes pulseGreen {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
+  color: #7a8480;
 }
 
 .login-footer small {
   font-size: 10.5px;
-  color: #475569;
+  color: #9aa69f;
 }
 
 .logout-btn {
   margin-top: 10px;
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #94a3b8;
+  border: 1px solid #dce3dc;
+  color: #7a8480;
   font-size: 11px;
-  padding: 5px 10px;
+  padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
   display: inline-flex;
@@ -309,8 +591,28 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
 }
 
 .logout-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
-  border-color: rgba(239, 68, 68, 0.3);
+  background: #fdf2f2;
+  color: #c53030;
+  border-color: #f8b4b4;
+}
+
+@keyframes intro-enter {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes intro-orbit-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .intro-status { display: none; }
+  .intro-title { font-size: 27px; }
+  .intro-globe { width: 95vw; }
 }
 

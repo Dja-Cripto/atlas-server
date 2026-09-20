@@ -8,20 +8,50 @@ const statusNames={draft:'Rascunho',running:'Em andamento',review:'Para revisar'
 const stepNames={research:'Pesquisa',script:'Roteiro',scenes:'Plano de cenas',media:'Filmagens',voice:'Narração',thumbnail:'Capa'};
 const providers=[['gemini','G','Gemini','Pesquisa, roteiro e imagens'],['go','⌘','OpenCode Go','Configuração técnica das cenas'],['fish','≈','Fish Audio','Narração oficial em inglês'],['pexels','P','Pexels','Filmagens de banco'],['pixabay','Px','Pixabay','Vídeos e fotografias'],['youtube','▶','YouTube','Busca de referências']];
 
-function showLogin(err){
+function showLogin(err,skipIntro=false){
  const overlay=$('#login-overlay');
- if(overlay){
-  overlay.classList.remove('hidden');
-  const errEl=$('#login-error');
+ if(!overlay)return;
+ overlay.classList.remove('hidden');
+ const introScreen=$('#intro-screen');
+ const loginCardContainer=$('#login-card-container');
+ const errEl=$('#login-error');
+ if(err||skipIntro){
+  if(introScreen)introScreen.classList.add('hidden');
+  if(loginCardContainer){
+   loginCardContainer.classList.remove('hidden');
+   loginCardContainer.classList.add('fade-in');
+  }
   if(errEl&&err){errEl.textContent=err;errEl.style.display='block';}
   const input=$('#login-password');
   if(input)setTimeout(()=>input.focus(),100);
+ }else{
+  if(introScreen)introScreen.classList.remove('hidden','launching');
+  if(loginCardContainer)loginCardContainer.classList.add('hidden');
+  if(errEl){errEl.textContent='';errEl.style.display='none';}
  }
+}
+
+function launchIntro(){
+ const introScreen=$('#intro-screen');
+ const loginCardContainer=$('#login-card-container');
+ if(!introScreen||introScreen.classList.contains('launching'))return;
+ introScreen.classList.add('launching');
+ setTimeout(()=>{
+  introScreen.classList.add('hidden');
+  if(loginCardContainer){
+   loginCardContainer.classList.remove('hidden');
+   loginCardContainer.classList.add('fade-in');
+   const input=$('#login-password');
+   if(input)setTimeout(()=>input.focus(),100);
+  }
+ },650);
 }
 
 function hideLogin(){
  const overlay=$('#login-overlay');
  if(overlay)overlay.classList.add('hidden');
+ const introScreen=$('#intro-screen');
+ if(introScreen)introScreen.classList.remove('launching');
  const errEl=$('#login-error');
  if(errEl){errEl.textContent='';errEl.style.display='none';}
 }
@@ -1084,6 +1114,20 @@ document.addEventListener('submit',async e=>{
   if(b)b.disabled=false;
  }
 });
+
+const introScreen=$('#intro-screen');
+if(introScreen){
+ introScreen.addEventListener('click',()=>launchIntro());
+ introScreen.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ')launchIntro();});
+}
+
+const introStartBtn=$('#intro-start-btn');
+if(introStartBtn){
+ introStartBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  launchIntro();
+ });
+}
 
 const loginForm=$('#login-form');
 if(loginForm){
