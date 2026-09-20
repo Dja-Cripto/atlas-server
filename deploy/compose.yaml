@@ -1,0 +1,38 @@
+services:
+  atlas:
+    image: atlas-studio:local
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: atlas-studio
+    # Linux only: the application still binds exclusively to 127.0.0.1.
+    network_mode: host
+    init: true
+    restart: unless-stopped
+    cpus: 2
+    mem_limit: 8g
+    shm_size: 1g
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      PORT: 4310
+      ATLAS_RENDER_CONCURRENCY: 2
+    volumes:
+      - ../data:/app/data
+      - ../Musicas:/app/Musicas:ro
+      - ../.temp:/app/.temp
+      - ../renderer/public/auto:/app/renderer/public/auto
+      - ../renderer/public/audio:/app/renderer/public/audio
+      - ../renderer/src/generated:/app/renderer/src/generated
+      - ../renderer/.models:/app/renderer/.models
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4310/').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
