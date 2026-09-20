@@ -8,7 +8,36 @@ const statusNames={draft:'Rascunho',running:'Em andamento',review:'Para revisar'
 const stepNames={research:'Pesquisa',script:'Roteiro',scenes:'Plano de cenas',media:'Filmagens',voice:'Narração',thumbnail:'Capa'};
 const providers=[['gemini','G','Gemini','Pesquisa, roteiro e imagens'],['go','⌘','OpenCode Go','Configuração técnica das cenas'],['fish','≈','Fish Audio','Narração oficial em inglês'],['pexels','P','Pexels','Filmagens de banco'],['pixabay','Px','Pixabay','Vídeos e fotografias'],['youtube','▶','YouTube','Busca de referências']];
 
-async function api(url,data,method){const opts={method:method||(data===undefined?'GET':'POST'),headers:{}};if(data!==undefined){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(data);}const r=await fetch(url,opts);const d=await r.json();if(!r.ok)throw new Error(d.error||'Não foi possível concluir.');return d;}
+function showLogin(err){
+ const overlay=$('#login-overlay');
+ if(overlay){
+  overlay.classList.remove('hidden');
+  const errEl=$('#login-error');
+  if(errEl&&err){errEl.textContent=err;errEl.style.display='block';}
+  const input=$('#login-password');
+  if(input)setTimeout(()=>input.focus(),100);
+ }
+}
+
+function hideLogin(){
+ const overlay=$('#login-overlay');
+ if(overlay)overlay.classList.add('hidden');
+ const errEl=$('#login-error');
+ if(errEl){errEl.textContent='';errEl.style.display='none';}
+}
+
+async function api(url,data,method){
+ const opts={method:method||(data===undefined?'GET':'POST'),headers:{}};
+ if(data!==undefined){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(data);}
+ const r=await fetch(url,opts);
+ if(r.status===401&&!url.startsWith('/api/auth/login')){
+  showLogin('Sessão expirada. Digite sua senha novamente.');
+  throw new Error('Sessão não autorizada.');
+ }
+ const d=await r.json();
+ if(!r.ok)throw new Error(d.error||'Não foi possível concluir.');
+ return d;
+}
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('#toast').classList.remove('show'),5000);}
 function date(v){return new Date(v).toLocaleDateString('pt-BR',{day:'2-digit',month:'short'});}
 function heading(title,description,action=true){return `<div class="page-top"><div><span class="eyebrow">SEU ESTÚDIO DE CONTEÚDO</span><h1>${title}</h1><p>${description}</p></div>${action?'<button class="primary" data-new>＋ <span>Nova produção</span></button>':''}</div>`;}
@@ -1056,5 +1085,77 @@ document.addEventListener('submit',async e=>{
  }
 });
 
-await refresh(true).catch(e=>toast(e.message));
-setInterval(()=>refresh().catch(()=>{}),2500);
+const loginForm=$('#login-form');
+if(loginForm){
+ loginForm.addEventListener('submit',async e=>{
+  e.preventDefault();
+  const pwInput=$('#login-password');
+  const errEl=$('#login-error');
+  const submitBtn=$('#login-submit');
+  if(!pwInput||!pwInput.value)return;
+  submitBtn.disabled=true;
+  if(errEl)errEl.style.display='none';
+  try{
+   await api('/api/auth/login',{password:pwInput.value});
+   hideLogin();
+   pwInput.value='';
+   const logoutBtn=$('#btn-logout');
+   if(logoutBtn)logoutBtn.style.display='inline-flex';
+   await refresh(true);
+   toast('Bem-vindo ao Atlas Studio, Sr. Daniel.');
+  }catch(err){
+   if(errEl){errEl.textContent=err.message||'Chave incorreta.';errEl.style.display='block';}
+   pwInput.focus();
+  }finally{
+   submitBtn.disabled=false;
+  }
+ });
+}
+
+const togglePwBtn=$('#toggle-password');
+if(togglePwBtn){
+ togglePwBtn.addEventListener('click',()=>{
+  const input=$('#login-password');
+  if(!input)return;
+  if(input.type==='password'){
+   input.type='text';
+   togglePwBtn.textContent='🔒';
+  }else{
+   input.type='password';
+   togglePwBtn.textContent='👁';
+  }
+ });
+}
+
+const logoutBtn=$('#btn-logout');
+if(logoutBtn){
+ logoutBtn.addEventListener('click',async()=>{
+  if(!confirm('Deseja realmente encerrar a sessão?'))return;
+  await api('/api/auth/logout',{}).catch(()=>{});
+  showLogin();
+ });
+}
+
+async function initApp(){
+ try{
+  const auth=await api('/api/auth/me');
+  if(auth.authRequired){
+   if(logoutBtn)logoutBtn.style.display='inline-flex';
+   if(!auth.authenticated){
+    showLogin();
+    return;
+   }
+  }
+  await refresh(true);
+ }catch(e){
+  // Se 401, o showLogin já foi acionado
+ }
+}
+
+await initApp();
+setInterval(()=>{
+ const overlay=$('#login-overlay');
+ if(overlay&&overlay.classList.contains('hidden')){
+  refresh().catch(()=>{});
+ }
+},2500);

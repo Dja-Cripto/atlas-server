@@ -5,17 +5,22 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile
     container_name: atlas-studio
-    # Linux only: the application still binds exclusively to 127.0.0.1.
-    network_mode: host
-    init: true
     restart: unless-stopped
+    init: true
     cpus: 2
     mem_limit: 8g
     shm_size: 1g
     security_opt:
       - no-new-privileges:true
+    ports:
+      - "127.0.0.1:4310:3000"
+    networks:
+      n8n-network:
+        aliases:
+          - portal-panel
     environment:
-      PORT: 4310
+      PORT: 3000
+      HOST: 0.0.0.0
       ATLAS_RENDER_CONCURRENCY: 2
     volumes:
       - ../data:/app/data
@@ -25,8 +30,9 @@ services:
       - ../renderer/public/audio:/app/renderer/public/audio
       - ../renderer/src/generated:/app/renderer/src/generated
       - ../renderer/.models:/app/renderer/.models
+      - /srv/robo/portal-bot/secrets/panel:/srv/robo/portal-bot/secrets/panel:ro
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4310/').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/auth/me').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -36,3 +42,7 @@ services:
       options:
         max-size: 10m
         max-file: "3"
+
+networks:
+  n8n-network:
+    external: true

@@ -1,9 +1,9 @@
 import http from 'node:http';
-import {createReadStream,existsSync} from 'node:fs';
+import {createReadStream,existsSync,readFileSync} from 'node:fs';
 import {readFile,writeFile,mkdir,stat,rm} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {randomUUID} from 'node:crypto';
+import {randomUUID,createHmac,timingSafeEqual} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {createStore} from './lib/store.mjs';
 import * as providers from './lib/providers.mjs';
@@ -23,6 +23,59 @@ const store=createStore(dir),active=new Set();
 const previewStudios=new Map();
 const steps=['research','script','scenes','media','voice','thumbnail','editing','automatic','shorts','render','capcut'];
 const labels={research:'Pesquisa',script:'Roteiro',scenes:'Plano de cenas',media:'Busca de filmagens',voice:'Narração',thumbnail:'Capa',editing:'Plano de edição detalhado',automatic:'Produção automática',shorts:'Geração de 5 Shorts',render:'Renderização MP4',capcut:'Exportação CapCut'};
+
+function getAuthPassword(){
+ if(process.env.ATLAS_PASSWORD) return process.env.ATLAS_PASSWORD.trim();
+ if(process.env.PANEL_PASSWORD) return process.env.PANEL_PASSWORD.trim();
+ const secretPath='/srv/robo/portal-bot/secrets/panel/password';
+ if(existsSync(secretPath)){
+  try{return readFileSync(secretPath,'utf8').trim();}catch{}
+ }
+ return null;
+}
+
+function getSessionSecret(){
+ if(process.env.SESSION_SECRET) return process.env.SESSION_SECRET.trim();
+ const secretPath='/srv/robo/portal-bot/secrets/panel/session-secret';
+ if(existsSync(secretPath)){
+  try{return readFileSync(secretPath,'utf8').trim();}catch{}
+ }
+ return 'atlas-studio-auth-session-key-2026';
+}
+
+function signSession(userId){
+ const exp=Date.now()+30*24*60*60*1000;
+ const payload=`${userId}:${exp}`;
+ const sig=createHmac('sha256',getSessionSecret()).update(payload).digest('hex');
+ return `${payload}:${sig}`;
+}
+
+function verifySession(token){
+ if(!token||typeof token!=='string')return false;
+ const parts=token.split(':');
+ if(parts.length!==3)return false;
+ const [userId,expStr,sig]=parts;
+ const exp=Number(expStr);
+ if(!exp||exp<Date.now())return false;
+ const expectedSig=createHmac('sha256',getSessionSecret()).update(`${userId}:${expStr}`).digest('hex');
+ if(sig.length!==expectedSig.length)return false;
+ try{
+  return timingSafeEqual(Buffer.from(sig),Buffer.from(expectedSig));
+ }catch{
+  return false;
+ }
+}
+
+function parseCookies(req){
+ const list={};
+ const rc=req.headers.cookie;
+ if(!rc)return list;
+ rc.split(';').forEach(c=>{
+  const parts=c.split('=');
+  if(parts.length>=2)list[parts[0].trim()]=decodeURIComponent(parts.slice(1).join('=').trim());
+ });
+ return list;
+}
 
 for(const j of store.list()){if(j.status==='running'){j.status='interrupted';j.error='Execução interrompida. Retome a etapa pelo painel.';store.put(j);}}
 
@@ -159,13 +212,97 @@ async function previewStudio(j,shortIndex=null){
 
 function json(res,code,data){res.writeHead(code,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});res.end(JSON.stringify(data));}
 
+const allowedHosts=new Set([
+ `127.0.0.1:${port}`,
+ `localhost:${port}`,
+ '127.0.0.1:3000',
+ 'localhost:3000',
+ '127.0.0.1:4310',
+ 'localhost:4310',
+ 'portal-panel:3000',
+ 'portal-panel',
+ 'painel.setupdja.website',
+ 'setupdja.website'
+]);
+
+function isHostAllowed(hostHeader){
+ if(!hostHeader)return false;
+ const clean=hostHeader.toLowerCase().trim();
+ if(allowedHosts.has(clean)||allowedHosts.has(clean.split(':')[0]))return true;
+ if(clean.endsWith('.setupdja.website')||clean==='setupdja.website')return true;
+ if(process.env.ALLOWED_HOSTS){
+  const custom=process.env.ALLOWED_HOSTS.split(',').map(h=>h.trim().toLowerCase());
+  if(custom.includes(clean)||custom.includes(clean.split(':')[0]))return true;
+ }
+ return false;
+}
+
+function isOriginAllowed(originHeader){
+ if(!originHeader)return true;
+ try{
+  const u=new URL(originHeader);
+  if(u.hostname==='127.0.0.1'||u.hostname==='localhost')return true;
+  if(u.hostname.endsWith('setupdja.website')||u.hostname==='setupdja.website')return true;
+ }catch{}
+ return false;
+}
+
 const server=http.createServer(async(req,res)=>{
  try{
-  if(![`127.0.0.1:${port}`,`localhost:${port}`].includes(req.headers.host)){json(res,403,{error:'Host não autorizado.'});return;}
-  if(req.headers.origin&&![origin,`http://localhost:${port}`].includes(req.headers.origin)){json(res,403,{error:'Origem não autorizada.'});return;}
+  if(!isHostAllowed(req.headers.host)){json(res,403,{error:'Host não autorizado.'});return;}
+  if(req.headers.origin&&!isOriginAllowed(req.headers.origin)){json(res,403,{error:'Origem não autorizada.'});return;}
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
   const u=new URL(req.url,origin),p=u.pathname;
+
+  const cookies=parseCookies(req);
+  const authRequired=Boolean(getAuthPassword());
+  const isAuthenticated=!authRequired||verifySession(cookies.atlas_session);
+
+  if(p==='/api/auth/me'&&req.method==='GET'){
+   json(res,200,{authenticated:isAuthenticated,authRequired,user:isAuthenticated?{name:'Sr. Daniel',role:'admin'}:null});
+   return;
+  }
+
+  if(p==='/api/auth/login'&&req.method==='POST'){
+   const expectedPw=getAuthPassword();
+   if(!expectedPw){
+    const token=signSession('daniel');
+    res.setHeader('Set-Cookie',`atlas_session=${token}; Path=/; Max-Age=${30*24*3600}; HttpOnly; SameSite=Lax`);
+    json(res,200,{authenticated:true,user:{name:'Sr. Daniel',role:'admin'}});
+    return;
+   }
+   const b=await body(req);
+   const given=Buffer.from(String(b.password||''));
+   const expected=Buffer.from(expectedPw);
+   const ok=given.length===expected.length&&timingSafeEqual(given,expected);
+   if(!ok){
+    json(res,401,{error:'Chave de acesso incorreta.'});
+    return;
+   }
+   const token=signSession('daniel');
+   res.setHeader('Set-Cookie',`atlas_session=${token}; Path=/; Max-Age=${30*24*3600}; HttpOnly; SameSite=Lax`);
+   json(res,200,{authenticated:true,user:{name:'Sr. Daniel',role:'admin'}});
+   return;
+  }
+
+  if(p==='/api/auth/logout'&&req.method==='POST'){
+   res.setHeader('Set-Cookie',`atlas_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax`);
+   json(res,200,{authenticated:false});
+   return;
+  }
+
   if(!['GET','HEAD','DELETE'].includes(req.method)&&req.headers['content-type']!=='application/json'){json(res,415,{error:'Use application/json.'});return;}
+
+  if(p.startsWith('/api/')&&!isAuthenticated){
+   json(res,401,{error:'Não autorizado. Efetue login para continuar.'});
+   return;
+  }
+
+  if((p.startsWith('/outputs/')||p.startsWith('/shorts/'))&&!isAuthenticated){
+   res.writeHead(401,{'Content-Type':'text/plain; charset=utf-8'});
+   res.end('Não autorizado');
+   return;
+  }
   
   if(p==='/api/state'&&req.method==='GET'){json(res,200,{jobs:store.list(),settings:providers.publicSettings(store.settings()),version:'0.2 • Atlas Studio'});return;}
   
@@ -497,4 +634,5 @@ const server=http.createServer(async(req,res)=>{
  }catch(e){json(res,e.code==='ENOENT'?404:400,{error:safeError(e,store.settings())});}
 });
 
-server.listen(port,'127.0.0.1',()=>console.log(`Atlas Studio: ${origin}`));
+const bindHost=process.env.HOST||'0.0.0.0';
+server.listen(port,bindHost,()=>console.log(`Atlas Studio: http://${bindHost}:${port}`));
