@@ -24,17 +24,26 @@
 3. **Status no Hub Central do Atlas Studio:**
    - Atualizado em `public/app.js` e `server.mjs` o status do canal Facebook para `✓ Conectado (Atlas Unbound)`.
 
+4. **Auditoria da integração do YouTube:**
+   - O workflow antigo `Robô Portal do Investidor - Agenda Semanal IA (TESTE)` contém o nó `Publicar no YouTube Shorts` ligado à credencial `YouTube account` (`LQiHdUFn3UGRHuGQ`).
+   - O workflow novo `Atlas Studio - Publicação Multiplataforma` está ativo, mas seu nó `YouTube - Vídeo Longo` continua desabilitado e sem credencial associada.
+   - Existe somente uma credencial YouTube no n8n. Ela possui escopo `youtube.upload`, access token e refresh token, mas o Google recusou a renovação com `invalid_grant`.
+   - Nenhum vídeo foi publicado ou alterado durante a auditoria. O arquivo temporário com a credencial descriptografada foi apagado imediatamente dentro do container.
+
 ## O que foi validado e resultado
 
 - Publicação direta na página do Facebook: 100% funcional (Vídeo ID `1416847957077810` publicado na página Atlas Unbound).
 - Download do arquivo MP4 pelo Graph API: HTTP 200 OK.
 - Disparo do webhook N8N: HTTP 200 OK.
 - Sintaxe JS dos arquivos modificados: aprovada sem erros.
+- A credencial antiga do YouTube não está operacional; por isso não foi possível consultar ou confirmar o canal secundário `Atlas` pela API.
 
 ## Erros ou limitações abertos
 
-- Canais do YouTube e TikTok continuam aguardando credenciais (YouTube OAuth e TikTok API) para serem ativados no fluxo N8N.
+- O YouTube precisa ser reconectado no n8n usando o mesmo Gmail e selecionando explicitamente o canal secundário `Atlas` durante o consentimento. Reutilizar apenas o registro antigo não funciona porque o refresh token está inválido.
+- O nó do YouTube no workflow novo deve permanecer desligado até a reconexão e um teste privado/não listado.
+- TikTok continua aguardando credencial e aprovação da API.
 
 ## Próximo passo recomendado
 
-- Configurar as credenciais do canal do YouTube quando Daniel decidir ativá-lo.
+- No n8n, abrir a credencial `YouTube account`, executar `Reconnect` e escolher o canal `Atlas` no seletor de canal/Brand Account do Google. Depois validar com upload privado ou não listado antes de associar essa credencial ao nó `YouTube - Vídeo Longo` do workflow novo.
