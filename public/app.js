@@ -2,7 +2,7 @@ import {renderEditPlan,renderCovers,renderFootage} from './editing-ui.js';
 let shotFilter='';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeURL=u=>{try{const x=new URL(u,location.origin);return ['https:','http:'].includes(x.protocol)?esc(x.href):'#';}catch{return '#';}};
-let state={jobs:[],settings:{configured:{}}},scheduleData={queue:[],history:[],settings:{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']}},musicCatalog={categories:{},tracks:[]},hubData={todayJob:null,alerts:[],queue:[],channels:[]},topicsData={queue:[],alerts:[],settings:{autoRunTime:'00:00',enabled:true}},topicsFilter='pending',page='overview',selected=null,tab='research',lastFingerprint='',busy=false;
+let state={jobs:[],settings:{configured:{}}},scheduleData={queue:[],history:[],settings:{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']}},publishingData={settings:{enabled:false,youtube:true,facebook:true,youtubeMode:'scheduled'}},musicCatalog={categories:{},tracks:[]},hubData={todayJob:null,alerts:[],queue:[],channels:[]},topicsData={queue:[],alerts:[],settings:{autoRunTime:'00:00',enabled:true}},topicsFilter='pending',page='overview',selected=null,tab='research',lastFingerprint='',busy=false;
 const names={overview:'Hub Central',topics:'Banco de Pautas',projects:'Produções',library:'Biblioteca',schedule:'Agendamento & Fila',settings:'Integrações',detail:'Produção'};
 const statusNames={draft:'Rascunho',running:'Em andamento',review:'Para revisar',error:'Precisa de atenção',interrupted:'Interrompido',scheduled:'Agendado',done:'Concluído'};
 const stepNames={research:'Pesquisa',script:'Roteiro',scenes:'Plano de cenas',media:'Filmagens',voice:'Narração',thumbnail:'Capa'};
@@ -331,6 +331,7 @@ function schedule(){
  const q=scheduleData.queue||[], h=scheduleData.history||[], cfg=scheduleData.settings||{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']};
  const nextSlot=scheduleData.nextSlot||{targetDate:'Próximo dia livre'};
  const unscheduledReady=state.jobs.filter(j=>!j.scheduled);
+ const publishing=publishingData.settings||{enabled:false,youtube:true,facebook:true,youtubeMode:'scheduled'};
 
  return heading('Agendamento e fila de publicações','Defina os horários padrão e gerencie a linha de postagens.',false)+`
  <div class="stats">${[
@@ -339,6 +340,17 @@ function schedule(){
   ['Shorts derivados',q.length*5,'5 cortes verticais por produção','▧'],
   ['Próxima data livre',nextSlot.targetDate||'Amanhã','Sem conflito de horário','◉']
  ].map(([label,n,sub,icon])=>`<div class="stat"><div class="stat-top">${label}<span class="stat-icon">${icon}</span></div><div class="stat-value">${n}</div><small>${sub}</small></div>`).join('')}</div>
+
+ <section class="panel" style="margin-bottom:24px;border-color:${publishing.enabled?'#a8d5ba':'#e4c8a4'};">
+  <div class="panel-head" style="align-items:center;">
+   <div>
+    <h3>Publicação automática</h3>
+    <p>${publishing.enabled?'ATIVA: os itens completos da fila são enviados às plataformas.':'DESLIGADA: produzir e agendar não envia nada ao YouTube ou Facebook.'}</p>
+   </div>
+   <button type="button" class="${publishing.enabled?'secondary':'primary'}" data-action="toggle-publishing" data-enabled="${publishing.enabled?'true':'false'}">${publishing.enabled?'Desligar publicação':'Ligar publicação'}</button>
+  </div>
+  <div style="padding:16px 24px;font-size:11px;color:var(--muted);">YouTube: ${publishing.youtube?'ativado':'desativado'} · Facebook: ${publishing.facebook?'ativado':'desativado'} · Modo YouTube: ${publishing.youtubeMode==='scheduled'?'privado até o horário agendado':publishing.youtubeMode}</div>
+ </section>
 
  <section class="panel">
   <div class="panel-head">
@@ -1041,6 +1053,7 @@ async function refresh(force=false){
  }
  if(page==='schedule'){
   scheduleData=await api('/api/schedule').catch(()=>scheduleData);
+  publishingData=await api('/api/publishing/settings').catch(()=>publishingData);
  }
  if(force||fingerprint!==lastFingerprint){
   lastFingerprint=fingerprint;
@@ -1242,6 +1255,16 @@ document.addEventListener('click',async e=>{
    await api(`/api/jobs/${b.dataset.jobAction}/capcut`,{});
    await refresh(true);
    toast('Projeto sincronizado e CapCut Desktop aberto com sucesso!');
+  }
+  if(b.dataset.action==='toggle-publishing'){
+   const turningOn=b.dataset.enabled!=='true';
+   if(turningOn&&!confirm('Ligar a publicação automática agora? Os itens completos já agendados serão enviados ao YouTube e Facebook.'))return;
+   b.disabled=true;
+   const result=await api('/api/publishing/settings',{enabled:turningOn});
+   publishingData=result;
+   scheduleData=await api('/api/schedule').catch(()=>scheduleData);
+   await refresh(true);
+   toast(turningOn?'Publicação automática ligada.':'Publicação automática desligada.');
   }
   if(b.dataset.action==='generate-metadata'){
    b.disabled=true;

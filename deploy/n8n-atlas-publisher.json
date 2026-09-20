@@ -5,8 +5,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "atlas-publish-video",
-        "responseMode": "onReceived",
-        "responseData": "allEntries",
+        "responseMode": "lastNode",
         "options": {}
       },
       "id": "node-webhook-in",
@@ -21,10 +20,10 @@
     },
     {
       "parameters": {
-        "jsCode": "const incoming = $input.first().json;\nconst item = incoming.body ?? incoming;\n\n// Prepara dados formatados para todas as redes\nconst longVideo = {\n  jobId: item.jobId,\n  title: item.title,\n  description: item.description || (item.title + '\\n\\nCuriosidades do mundo e geopolítica.'),\n  tags: Array.isArray(item.tags) ? item.tags : ['documentary', 'curiosities', 'facts'],\n  videoUrl: item.longVideo?.url || item.longVideo?.videoUrl || item.longVideoUrl,\n  thumbnailUrl: item.thumbnailUrl,\n  scheduledDate: item.scheduled?.targetDate || item.longVideo?.scheduledDate,\n  scheduledTime: item.scheduled?.longVideo?.time || item.longVideo?.scheduledTime || '13:00'\n};\n\nconst shorts = (item.shorts || []).map((s, idx) => ({\n  jobId: item.jobId,\n  index: s.index || idx + 1,\n  title: (s.title || ('Curiosidade ' + (idx + 1))) + ' #Shorts',\n  description: (s.description || s.title || '') + '\\n\\n#Shorts #Curiosidades',\n  videoUrl: s.url || s.videoUrl,\n  scheduledDate: s.date || item.scheduled?.targetDate,\n  scheduledTime: s.time || '15:00'\n}));\n\nreturn [{\n  json: {\n    receivedAt: new Date().toISOString(),\n    jobId: item.jobId,\n    longVideo,\n    shorts,\n    shortsCount: shorts.length,\n    channels: item.channels || { youtube: false, facebook: false, tiktok: false }\n  }\n}];"
+        "jsCode": "const incoming = $input.first().json.body ?? $input.first().json;\nconst p = incoming.publication;\nif (!p?.channel || !p?.videoUrl || !p?.title) throw new Error('Publicação incompleta.');\nconst future = p.publishAt && new Date(p.publishAt).getTime() > Date.now() + 10 * 60 * 1000;\nconst youtubeMode = incoming.youtubeMode || 'scheduled';\nreturn [{json:{...p,jobId:incoming.jobId,youtubeMode,youtubePrivacy:youtubeMode==='public'?'public':'private',youtubePublishAt:youtubeMode==='scheduled'&&future?p.publishAt:undefined}}];"
       },
-      "id": "node-format-payload",
-      "name": "Formatar Dados de Publicação",
+      "id": "node-format-publication",
+      "name": "Formatar Publicação",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -46,17 +45,17 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.channels.youtube }}",
-                    "rightValue": true,
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "youtube",
                     "operator": {
-                      "type": "boolean",
+                      "type": "string",
                       "operation": "equals"
                     }
                   }
                 ]
               },
               "renameOutput": true,
-              "outputKey": "YouTube Ativo"
+              "outputKey": "YouTube"
             },
             {
               "conditions": {
@@ -68,79 +67,254 @@
                 },
                 "conditions": [
                   {
-                    "leftValue": "={{ $json.channels.facebook }}",
-                    "rightValue": true,
+                    "leftValue": "={{ $json.channel }}",
+                    "rightValue": "facebook",
                     "operator": {
-                      "type": "boolean",
+                      "type": "string",
                       "operation": "equals"
                     }
                   }
                 ]
               },
               "renameOutput": true,
-              "outputKey": "Facebook Ativo"
-            },
-            {
-              "conditions": {
-                "options": {
-                  "caseSensitive": true,
-                  "leftValue": "",
-                  "typeValidation": "strict",
-                  "version": 2
-                },
-                "conditions": [
-                  {
-                    "leftValue": "={{ $json.channels.tiktok }}",
-                    "rightValue": true,
-                    "operator": {
-                      "type": "boolean",
-                      "operation": "equals"
-                    }
-                  }
-                ]
-              },
-              "renameOutput": true,
-              "outputKey": "TikTok Ativo"
+              "outputKey": "Facebook"
             }
           ]
         },
-        "options": {
-          "fallbackOutput": "extra"
-        }
+        "options": {}
       },
-      "id": "node-router",
-      "name": "Roteador de Canais",
+      "id": "node-channel-router",
+      "name": "Roteador de Canal",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.2,
       "position": [
-        720,
+        680,
         300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.videoUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          },
+          "timeout": 900000
+        }
+      },
+      "id": "node-download-video",
+      "name": "Baixar Vídeo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        180
       ]
     },
     {
       "parameters": {
         "resource": "video",
         "operation": "upload",
-        "title": "={{ $json.longVideo.title }}",
+        "title": "={{ $('Formatar Publicação').item.json.title }}",
         "categoryId": "27",
         "binaryProperty": "data",
         "options": {
-          "description": "={{ $json.longVideo.description }}",
-          "privacyStatus": "private",
+          "description": "={{ $('Formatar Publicação').item.json.description }}",
+          "privacyStatus": "={{ $('Formatar Publicação').item.json.youtubePrivacy }}",
+          "publishAt": "={{ $('Formatar Publicação').item.json.youtubePublishAt }}",
           "notifySubscribers": false,
           "selfDeclaredMadeForKids": false,
-          "tags": "={{ $json.longVideo.tags.join(',') }}"
+          "tags": "={{ ($('Formatar Publicação').item.json.tags || []).join(',') }}",
+          "defaultLanguage": "en"
         }
       },
       "id": "node-youtube-long",
-      "name": "YouTube - Vídeo Longo",
+      "name": "YouTube - Publicar Vídeo",
       "type": "n8n-nodes-base.youTube",
       "typeVersion": 1,
       "position": [
-        1260,
-        160
+        1120,
+        180
       ],
       "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $('Formatar Publicação').first().json;\nconst uploaded = $input.first().json;\nreturn [{json:{...source,videoId:uploaded.id || uploaded.uploadId}}];"
+      },
+      "id": "node-restore-youtube",
+      "name": "Preparar Complementos YouTube",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Boolean($json.thumbnailUrl && $json.kind === \"long\") }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-if-thumbnail",
+      "name": "Tem Capa?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.thumbnailUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "thumbnail"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "node-download-thumbnail",
+      "name": "Baixar Capa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1740,
+        80
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId={{ $json.videoId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "thumbnail",
+        "options": {}
+      },
+      "id": "node-upload-thumbnail",
+      "name": "YouTube - Enviar Capa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1940,
+        80
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $('Preparar Complementos YouTube').first().json;\nif (!source.captionVtt) return [{json:{...source,captionReady:false}}];\nconst boundary = 'atlas_caption_' + Date.now();\nconst metadata = JSON.stringify({snippet:{videoId:source.videoId,language:'en',name:'English',isDraft:false}});\nconst body = '--'+boundary+'\\r\\nContent-Type: application/json; charset=UTF-8\\r\\n\\r\\n'+metadata+'\\r\\n--'+boundary+'\\r\\nContent-Type: text/vtt; charset=UTF-8\\r\\n\\r\\n'+source.captionVtt+'\\r\\n--'+boundary+'--';\nreturn [{json:{...source,captionReady:true,captionContentType:'multipart/related; boundary='+boundary},binary:{caption:{data:Buffer.from(body).toString('base64'),mimeType:'application/octet-stream',fileName:'captions.multipart'}}}];"
+      },
+      "id": "node-build-caption",
+      "name": "Preparar Legenda YouTube",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.captionReady }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-if-caption",
+      "name": "Tem Legenda?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2360,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://www.googleapis.com/upload/youtube/v3/captions?uploadType=multipart&part=snippet",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "youTubeOAuth2Api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "={{ $json.captionContentType }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "caption",
+        "options": {}
+      },
+      "id": "node-upload-caption",
+      "name": "YouTube - Enviar Legenda",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2560,
+        100
+      ],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $('Preparar Complementos YouTube').first().json;\nreturn [{json:{ok:true,channel:'youtube',kind:source.kind,id:source.videoId,publishAt:source.publishAt,privacyStatus:source.youtubePrivacy}}];"
+      },
+      "id": "node-youtube-result",
+      "name": "Resultado YouTube",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2780,
+        180
+      ]
     },
     {
       "parameters": {
@@ -148,7 +322,7 @@
         "url": "https://graph.facebook.com/v19.0/me/videos",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"title\": \"{{ $json.longVideo.title }}\",\n  \"description\": \"{{ $json.longVideo.description }}\",\n  \"file_url\": \"{{ $json.longVideo.videoUrl }}\"\n}",
+        "jsonBody": "={\n  \"title\": \"{{ $json.title }}\",\n  \"description\": \"{{ $json.description }}\",\n  \"file_url\": \"{{ $json.videoUrl }}\",\n  \"published\": {{ new Date($json.publishAt).getTime() > Date.now() + 600000 ? false : true }},\n  \"scheduled_publish_time\": {{ Math.floor(new Date($json.publishAt).getTime() / 1000) }}\n}",
         "options": {}
       },
       "id": "node-facebook-post",
@@ -156,10 +330,23 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1020,
-        300
+        920,
+        420
       ],
       "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const response=$input.first().json;const source=$('Formatar Publicação').first().json;return [{json:{ok:!response.error,channel:'facebook',kind:source.kind,id:response.id||response.video_id||null,publishAt:source.publishAt,error:response.error?.message}}];"
+      },
+      "id": "node-facebook-result",
+      "name": "Resultado Facebook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1160,
+        420
+      ]
     },
     {
       "parameters": {
@@ -179,41 +366,6 @@
         440
       ],
       "disabled": true
-    },
-    {
-      "parameters": {
-        "jsCode": "const input = $input.first().json;\n// Log e confirmação de recepção sem erro\nreturn [{\n  json: {\n    status: 'received_and_registered',\n    message: 'Vídeo e Shorts registrados no N8N. Conecte as credenciais dos nós de canais quando desejar ativar a publicação automática.',\n    jobId: input.jobId,\n    title: input.longVideo?.title,\n    shortsCount: input.shortsCount,\n    timestamp: new Date().toISOString()\n  }\n}];"
-      },
-      "id": "node-log-success",
-      "name": "Registrar no Hub Atlas",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1020,
-        580
-      ]
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.longVideo.videoUrl }}",
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "file",
-              "outputPropertyName": "data"
-            }
-          },
-          "timeout": 900000
-        }
-      },
-      "id": "node-download-youtube-video",
-      "name": "Baixar MP4 para YouTube",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1020,
-        160
-      ]
     }
   ],
   "connections": {
@@ -221,34 +373,29 @@
       "main": [
         [
           {
-            "node": "Formatar Dados de Publicação",
+            "node": "Formatar Publicação",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Formatar Dados de Publicação": {
+    "Formatar Publicação": {
       "main": [
         [
           {
-            "node": "Roteador de Canais",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Registrar no Hub Atlas",
+            "node": "Roteador de Canal",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Roteador de Canais": {
+    "Roteador de Canal": {
       "main": [
         [
           {
-            "node": "Baixar MP4 para YouTube",
+            "node": "Baixar Vídeo",
             "type": "main",
             "index": 0
           }
@@ -259,21 +406,127 @@
             "type": "main",
             "index": 0
           }
-        ],
+        ]
+      ]
+    },
+    "Baixar Vídeo": {
+      "main": [
         [
           {
-            "node": "TikTok - Publicar Vídeo",
+            "node": "YouTube - Publicar Vídeo",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Baixar MP4 para YouTube": {
+    "YouTube - Publicar Vídeo": {
       "main": [
         [
           {
-            "node": "YouTube - Vídeo Longo",
+            "node": "Preparar Complementos YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Complementos YouTube": {
+      "main": [
+        [
+          {
+            "node": "Tem Capa?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Capa?": {
+      "main": [
+        [
+          {
+            "node": "Baixar Capa",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar Legenda YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baixar Capa": {
+      "main": [
+        [
+          {
+            "node": "YouTube - Enviar Capa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube - Enviar Capa": {
+      "main": [
+        [
+          {
+            "node": "Preparar Legenda YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Legenda YouTube": {
+      "main": [
+        [
+          {
+            "node": "Tem Legenda?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tem Legenda?": {
+      "main": [
+        [
+          {
+            "node": "YouTube - Enviar Legenda",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Resultado YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "YouTube - Enviar Legenda": {
+      "main": [
+        [
+          {
+            "node": "Resultado YouTube",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook - Vídeos & Reels": {
+      "main": [
+        [
+          {
+            "node": "Resultado Facebook",
             "type": "main",
             "index": 0
           }

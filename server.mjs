@@ -15,6 +15,8 @@ import {automatic,preflight,renderFinalMP4,exportCapCut} from './lib/automatic.m
 import {automaticShorts,renderAllShortsMP4} from './lib/shorts.mjs';
 import {launchCapCut} from './lib/capcut.mjs';
 import {getScheduleSettings,saveScheduleSettings,listScheduleQueue,listHistory,calculateNextAvailableDate,scheduleJob,unscheduleJob} from './lib/schedule.mjs';
+import {getPublishingSettings,savePublishingSettings,dispatchPublicationQueue} from './lib/publishing.mjs';
+import {transcriptToVtt} from './lib/captions.mjs';
 import {loadTopicsData,saveTopicsData,addTopic,addBulkTopics,parseBulkText,updateTopic,deleteTopic,dismissAlert,addAlert,processNextTopicInQueue} from './lib/topics.mjs';
 
 const root=path.dirname(fileURLToPath(import.meta.url));
@@ -82,6 +84,14 @@ for(const j of store.list()){if(j.status==='running'){j.status='interrupted';j.e
 
 function log(j,message){j.events.push({at:new Date().toISOString(),message});j.updatedAt=new Date().toISOString();store.put(j);}
 function safeError(e,s){let m=String(e.message||'Erro inesperado');for(const k of providers.secretFields)if(s[k])m=m.split(s[k]).join('[oculto]');return m.slice(0,500);}
+async function captionForPublication(j,publication){
+ const runId=j.auto?.preview?.runId||j.auto?.runId;
+ if(!runId)return null;
+ const transcriptPath=publication.kind==='long'
+  ?path.join(root,'renderer/public/auto',runId,'transcript.json')
+  :path.join(root,'renderer/public/auto',runId,'shorts',`short-${publication.index-1}`,'transcript.json');
+ try{return transcriptToVtt(JSON.parse(await readFile(transcriptPath,'utf8')));}catch{return null;}
+}
 
 async function run(j,action,options={}){
  active.add(j.id);
@@ -194,27 +204,6 @@ async function runAutomaticForJob(jobId,topic=null){
   await run(j,'automatic',{generateShorts:true});
   try{ scheduleJob(store,j.id); }catch{}
   try{
-   await fetch('http://n8n:5678/webhook/atlas-publish-video',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-     jobId:j.id,
-     title:j.title,
-     description:j.publishingMetadata?.description||j.script?.slice(0,500)||'',
-     tags:j.publishingMetadata?.tags||['documentary','facts','curiosities'],
-     longVideoUrl:`https://painel.setupdja.website/outputs/${j.id}/final.mp4`,
-     thumbnailUrl:j.thumbnail?`https://painel.setupdja.website${j.thumbnail}`:`https://painel.setupdja.website/outputs/${j.id}/thumbnail.png`,
-     scheduled:j.scheduled,
-     shorts:(j.shorts?.items||[]).map((s,i)=>({
-      index:i+1,
-      title:s.title||`Short ${i+1}: ${j.title}`,
-      url:`https://painel.setupdja.website/shorts/${j.id}/short-${i+1}.mp4`
-     })),
-     channels:{youtube:false,facebook:true,tiktok:false}
-    })
-   });
-  }catch{}
-  try{
    const tempJobDir=path.join(root,'.temp',j.id);
    if(existsSync(tempJobDir))await rm(tempJobDir,{recursive:true,force:true});
   }catch{}
@@ -224,7 +213,7 @@ async function runAutomaticForJob(jobId,topic=null){
   addAlert(dir,{
    type:'production_ready',
    title:`Produção Concluída: "${j.title}"`,
-   message:`Vídeo principal de ${j.minutes}min e 5 Shorts verticais foram 100% renderizados e agendados no canal!`,
+   message:`Vídeo principal de ${j.minutes}min e Shorts verticais foram renderizados e colocados na fila. A publicação depende da chave Publicação automática.`,
    jobId:j.id
   });
  }catch(err){
@@ -384,6 +373,7 @@ const server=http.createServer(async(req,res)=>{
     title:b.title.trim(),
     minutes:Number(b.minutes),
     generateShorts:Boolean(b.generateShorts),
+    shortsCount:b.generateShorts?5:0,
     status:'draft',
     createdAt:new Date().toISOString(),
     updatedAt:new Date().toISOString(),
@@ -520,6 +510,25 @@ const server=http.createServer(async(req,res)=>{
    return;
   }
   
+  if(p==='/api/publishing/settings'&&req.method==='GET'){
+   json(res,200,{settings:getPublishingSettings(store)});
+   return;
+  }
+
+  if(p==='/api/publishing/settings'&&req.method==='POST'){
+   const incoming=await body(req);
+   const updated=savePublishingSettings(store,incoming);
+   json(res,200,{settings:updated,queued:updated.enabled});
+   return;
+  }
+
+  if(p==='/api/publishing/dispatch'&&req.method==='POST'){
+   if(!getPublishingSettings(store).enabled){json(res,409,{error:'Publicação automática está desligada.'});return;}
+   const result=await dispatchPublicationQueue({store,scheduleSettings:getScheduleSettings(store),captionResolver:captionForPublication});
+   json(res,200,result);
+   return;
+  }
+
   const scheduleMatch=p.match(/^\/api\/jobs\/([a-f0-9-]+)\/schedule$/);
   if(scheduleMatch&&req.method==='POST'){
    const j=store.get(scheduleMatch[1]);
@@ -786,3 +795,13 @@ setInterval(async()=>{
   console.error('[Agendador Autônomo Erro]',e);
  }
 },40000);
+
+
+let publicationTickRunning=false;
+setInterval(async()=>{
+ if(publicationTickRunning||!getPublishingSettings(store).enabled)return;
+ publicationTickRunning=true;
+ try{await dispatchPublicationQueue({store,scheduleSettings:getScheduleSettings(store),captionResolver:captionForPublication});}
+ catch(e){console.error('[Publicador Automático Erro]',safeError(e,store.settings()));}
+ finally{publicationTickRunning=false;}
+},60000);
