@@ -351,12 +351,6 @@ const server=http.createServer(async(req,res)=>{
    json(res,401,{error:'Não autorizado. Efetue login para continuar.'});
    return;
   }
-
-  if((p.startsWith('/outputs/')||p.startsWith('/shorts/'))&&!isAuthenticated){
-   res.writeHead(401,{'Content-Type':'text/plain; charset=utf-8'});
-   res.end('Não autorizado');
-   return;
-  }
   
   if(p==='/api/state'&&req.method==='GET'){json(res,200,{jobs:store.list(),settings:providers.publicSettings(store.settings()),version:'0.2 • Atlas Studio'});return;}
   
