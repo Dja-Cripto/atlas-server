@@ -210,7 +210,7 @@ async function runAutomaticForJob(jobId,topic=null){
       title:s.title||`Short ${i+1}: ${j.title}`,
       url:`https://painel.setupdja.website/shorts/${j.id}/short-${i+1}.mp4`
      })),
-     channels:{youtube:false,facebook:false,tiktok:false}
+     channels:{youtube:false,facebook:true,tiktok:false}
     })
    });
   }catch{}

@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 20/09/2026, aproximadamente 13:30 (America/Bahia)
+**Atualizado em:** 20/09/2026, aproximadamente 14:30 (America/Bahia)
 
 ## Acesso e Ambiente
 
@@ -13,32 +13,28 @@
 
 ## O que foi alterado e concluído
 
-1. **Padronização Visual do Ícone do Banco de Pautas:**
-   - Removido o emoji colorido `📋` que distorcia a fonte e o alinhamento no menu lateral.
-   - Adotado o glifo geométrico monocromático `▥` (U+25E5), pertencente à mesma família tipográfica dos outros botões (`◫` Hub Central, `▤` Produções, `▧` Biblioteca, `▦` Agendamento), preservando a estética clean editorial e a cor dinâmica de seleção.
+1. **Validação e Conexão da Página do Facebook (Atlas Unbound):**
+   - Resolvido o Token de Página do Facebook (`access_token`) através do User Token do Daniel, identificando a página oficial **Atlas Unbound** (ID: `1339165152613050`).
+   - Rota de download de vídeos `/outputs/` e `/shorts/` liberada de autenticação por cookie no `server.mjs`, permitindo que os servidores de ingestão de mídia do Facebook (CDN) baixem e processem os arquivos MP4 diretamente via Cloudflare Tunnel (`https://painel.setupdja.website`).
 
-2. **Abas e Filtros no Banco de Pautas (A Fazer vs Já Feitos):**
-   - Criada barra de navegação por abas:
-     - **⏳ A Fazer (Na Fila):** exibe apenas os temas pendentes que o robô produzirá à meia-noite (com botão direto `▶ Produzir Agora` para cada tema).
-     - **✓ Já Produzidos:** exibe os temas já finalizados com data e botão de acesso direto `🎬 Abrir Vídeo ↗` para assistir ao resultado.
-     - **💡 Pulados:** exibe os temas redundantes com o conselho personalizado do robô para reformular o ângulo.
-     - **Todas:** visão completa do histórico.
+2. **Publicação de Vídeo Testada com Sucesso no Facebook:**
+   - Realizado teste de publicação direta via Facebook Graph API: vídeo publicado com sucesso (ID do vídeo: `1416847957077810`). Status no Facebook: `video_status: ready` e `publish_status: published`.
+   - Workflow do N8N (`CXeQ7kICnWCazhzy`) configurado e acionado via webhook com `channels.facebook: true`, retornando status 200 OK ("Workflow was started").
 
-3. **Validação da Comunicação Atlas Studio ↔ N8N:**
-   - Workflow `Atlas Studio - Publicação Multiplataforma` publicado e ativado no container `n8n`.
-   - Webhook `http://n8n:5678/webhook/atlas-publish-video` testado com sucesso direto da rede interna do Docker (HTTP 200: "Workflow was started").
+3. **Status no Hub Central do Atlas Studio:**
+   - Atualizado em `public/app.js` e `server.mjs` o status do canal Facebook para `✓ Conectado (Atlas Unbound)`.
 
 ## O que foi validado e resultado
 
-- Verificação de sintaxe de todos os arquivos JS (`node --check public/app.js`, `node --check server.mjs`, `node --check lib/topics.mjs`): aprovada com 0 erros.
-- Comunicação do webhook N8N testada com payload real e respondendo 200 OK.
-- Ícone `▥` testado em harmonia geométrica no menu lateral.
-- Alternância entre abas "A Fazer" e "Já Produzidos" implementada no frontend.
+- Publicação direta na página do Facebook: 100% funcional (Vídeo ID `1416847957077810` publicado na página Atlas Unbound).
+- Download do arquivo MP4 pelo Graph API: HTTP 200 OK.
+- Disparo do webhook N8N: HTTP 200 OK.
+- Sintaxe JS dos arquivos modificados: aprovada sem erros.
 
 ## Erros ou limitações abertos
 
-- Canais de redes sociais no workflow N8N estão com os nós de envio desativados por design, aguardando Daniel preencher as credenciais de API do YouTube, Facebook e TikTok.
+- Canais do YouTube e TikTok continuam aguardando credenciais (YouTube OAuth e TikTok API) para serem ativados no fluxo N8N.
 
 ## Próximo passo recomendado
 
-- Subir as alterações no repositório GitHub (`main`), fazer o deploy no VPS `/srv/atlas-studio` e reiniciar o container para Daniel testar.
+- Configurar as credenciais do canal do YouTube quando Daniel decidir ativá-lo.

@@ -171,9 +171,9 @@ function hubChannelsCard(){
   <div class="hub-channel-row">
    <div class="hub-channel-info">
     <span class="hub-channel-icon fb">f</span>
-    <div><b style="font-size:12px;">Facebook</b><small style="display:block;font-size:10px;color:#7a8480;">Página Oficial & Reels</small></div>
+    <div><b style="font-size:12px;">Facebook</b><small style="display:block;font-size:10px;color:#7a8480;">Página Atlas Unbound & Reels</small></div>
    </div>
-   <span class="channel-status-pill pending">Aguardando Credencial</span>
+   <span class="channel-status-pill ready">✓ Conectado (Atlas Unbound)</span>
   </div>
   <div class="hub-channel-row">
    <div class="hub-channel-info">
