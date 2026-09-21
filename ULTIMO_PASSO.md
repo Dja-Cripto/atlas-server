@@ -1,38 +1,33 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 21/09/2026, aproximadamente 16:06 (America/Bahia)
+**Atualizado em:** 21/09/2026, aproximadamente 20:07 (America/Bahia)
 
 ## Acesso e ambiente
 
-- Painel: `https://painel.setupdja.website` — HTTP 200 e contêiner `atlas-studio` saudável.
-- n8n: `https://n8n.setupdja.website` — HTTP 200.
-- VPS: `ubuntu@137.131.171.144` (autônomo 24/7).
+- Painel: `https://painel.setupdja.website` — VPS `ubuntu@137.131.171.144`.
 - Projeto no VPS: `/srv/atlas-studio`, branch `main`.
-- Armazenamento pesado: montado e validado em `/srv/robo/portal-bot/data/atlas-storage` (78 GB livres).
-- Espaço em disco raiz `/`: 6.1 GB livres.
+- Armazenamento de alta capacidade: `/srv/robo/portal-bot/data/atlas-storage` (67 GB livres).
+- Espaço em disco raiz `/`: 14.2 GB livres (recuperado após limpeza).
 
 ## O que foi alterado e implementado
 
-1. **Correção Definitiva do Erro `Argument missing for parameter "frame"`:**
-   - Diagnosticada a causa-raiz no Remotion v4: quando parâmetros de cena ou composição resultavam em `NaN` ou `undefined`, a chamada a `renderStill({ frame })` lançava `TypeError: Argument missing for parameter "frame"`.
-   - Implementado cálculo estritamente finito e com clamp de limites em `lib/motion-author.mjs` (`sceneUnits`), `lib/automatic.mjs` e `lib/shorts.mjs` (`validatePreview`).
-   - Adicionado tratamento resiliente de contingência em `lib/automatic.mjs` para que eventuais avisos em prévias apliquem a composição de segurança sem abortar a produção nem perder os roteiros, áudios e cenas já criados.
+1. **Resolução Definitiva do Erro `ENOSPC: no space left on device`:**
+   - Diagnosticada a causa-raiz: o diretório de componentes gerados (`/app/renderer/src/generated`) e a pasta temporária de perfis do Chromium/Puppeteer (`/tmp`) gravavam na partição raiz de 45 GB (`/dev/sda1`), que atingiu 100% de uso.
+   - Realizada a limpeza de 13.8 GB de temporários antigos no contêiner, restaurando 14.2 GB livres no disco raiz.
+   - Migrados com 100% de integridade todos os 156 componentes TSX de cenas, visual bibles e Shorts 0, 1 e 2 para a partição dedicada de 67 GB em `/srv/robo/portal-bot/data/atlas-storage/generated`.
+   - Atualizado `deploy/compose.yaml` para mapear tanto `/app/renderer/src/generated` quanto `/tmp` diretamente para o disco de armazenamento de 67 GB (`/srv/robo/portal-bot/data/atlas-storage/generated` e `/srv/robo/portal-bot/data/atlas-storage/tmp`).
 
-2. **Implementação do Proxy de Padronização e Transcodificação de Mídias (1080p + GOP 30):**
-   - Criada a função `transcodeVideo` em `lib/auto-media.mjs` com pipeline FFmpeg otimizado (`-vf "scale='min(1920,iw)':-2:flags=bicubic" -c:v libx264 -preset ultrafast -crf 23 -g 30 -pix_fmt yuv420p -an`).
-   - Todo vídeo em 4K/2K baixado pelo gerador automático agora é imediatamente padronizado para 1080p leve com keyframe a cada 1 segundo (GOP 30) e áudio embutido removido, reduzindo o tempo de renderização/seek do Chromium no Remotion em mais de 10x.
-   - Criado script `scripts/transcode_existing.mjs` e executado no VPS para otimizar todos os 81 vídeos já baixados do documentário da Suíça.
+2. **Gerenciamento e Descarte de Bundles Temporários do Remotion:**
+   - Adicionado `outDir` dedicado com remoção garantida em bloco `finally` nas validações de prévias em `lib/shorts.mjs` e `lib/automatic.mjs`, impedindo o acúmulo de artefatos de build do Webpack em disco.
 
-3. **Retomada e Execução do Job:**
-   - O job `3677be46-ea60-4ea1-aee9-adab207b5235` (*Why Switzerland Built Underground Bunkers for 100% of Its Population*) foi retomado com status `running`.
-   - O processo está em execução autônoma no VPS via `atlas-studio`.
+3. **Recuperação Automática de Shorts em Disco:**
+   - Implementada verificação em `lib/shorts.mjs` para restaurar e validar do disco Shorts que já tiveram roteiro, áudio e código gerados em execuções anteriores, evitando retrabalho.
 
 ## Validação e Resultados
 
 - Suíte de testes automatizados (`npm test`): **71 de 71 testes aprovados com sucesso (100%)**.
-- Código commitado e sincronizado com o repositório GitHub (`main`).
-- Contêiner Docker `atlas-studio` atualizado, operando e renderizando no VPS.
+- Integridade de todos os 465 arquivos da produção da Suíça (`c1118afe-1b7a-49fb-bf87-15b3cb1fe9e0`) confirmada no novo diretório de armazenamento persistente.
 
 ## Próximo passo recomendado
 
-- Acompanhar a conclusão da renderização do MP4 final em 1080p do documentário de 16 minutos e a extração automática dos 5 Shorts verticais.
+- Subir as alterações no VPS, inicializar o contêiner `atlas-studio` com os novos volumes montados e executar a retomada do job `3677be46-ea60-4ea1-aee9-adab207b5235` até a entrega dos arquivos MP4.

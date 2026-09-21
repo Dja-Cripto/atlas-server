@@ -27,9 +27,10 @@ services:
       - /srv/robo/portal-bot/data/atlas-storage/data:/app/data
       - ../Musicas:/app/Musicas:ro
       - /srv/robo/portal-bot/data/atlas-storage/temp:/app/.temp
+      - /srv/robo/portal-bot/data/atlas-storage/tmp:/tmp
       - /srv/robo/portal-bot/data/atlas-storage/auto:/app/renderer/public/auto
       - ../renderer/public/audio:/app/renderer/public/audio
-      - ../renderer/src/generated:/app/renderer/src/generated
+      - /srv/robo/portal-bot/data/atlas-storage/generated:/app/renderer/src/generated
       - ../renderer/.models:/app/renderer/.models
       - /srv/robo/portal-bot/secrets/panel:/srv/robo/portal-bot/secrets/panel:ro
     healthcheck:
