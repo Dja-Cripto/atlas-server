@@ -32,33 +32,23 @@ j.error = null;
 store.put(j);
 
 try {
-  // Step 1: Automatic preview / verification
-  log(j, 'Verificando e validando montagem do vídeo principal...');
+  // Step 1: Long Video (produces code + renders MP4)
+  log(j, 'Verificando e finalizando vídeo principal...');
   await automatic(s, j, { root, dir, log });
+  j.completed = [...new Set([...(j.completed || []), 'automatic', 'render'])];
   store.put(j);
 
-  // Step 2: 5 Vertical Shorts
+  // Step 2: 5 Vertical Shorts (each short generated + immediately rendered in sequence)
   if (j.generateShorts !== false) {
-    log(j, 'Produzindo 5 Shorts verticais com base nas maiores curiosidades...');
-    await automaticShorts(s, j, { root, dir, log });
+    log(j, 'Produzindo e renderizando os 5 Shorts verticais sequencialmente...');
+    await automaticShorts(s, j, { root, dir, log, renderImmediately: true });
     j.completed = [...new Set([...(j.completed || []), 'shorts'])];
     store.put(j);
   }
 
-  // Step 3: Render long video MP4
-  log(j, 'Renderizando MP4 final em 1080p...');
-  await renderFinalMP4(s, j, { root, dir, log });
-
-  // Step 4: Render all shorts MP4s
-  if (j.generateShorts !== false) {
-    log(j, 'Renderizando MP4 dos 5 Shorts verticais...');
-    await renderAllShortsMP4(s, j, { root, dir, log });
-  }
-
-  j.completed = [...new Set([...(j.completed || []), 'render'])];
   j.status = 'review';
   store.put(j);
-  log(j, 'Produção e renderização concluídas com 100% de sucesso!');
+  log(j, 'Produção e renderização completa de todos os vídeos finalizada com 100% de sucesso!');
 } catch (err) {
   j.status = 'error';
   j.error = err.message || String(err);

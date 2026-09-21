@@ -103,34 +103,26 @@ async function run(j,action,options={}){
  try{
   if(action==='automatic'){
    await automatic(s,j,{root,dir,log});
-   j.completed=[...new Set([...j.completed,'automatic'])];
-   j.auto={...j.auto,finished:true,stage:'preview-ready',progress:100};
-   store.put(j);
-   log(j,'Vídeo principal concluído. Renderizando MP4 final em 1080p...');
-   await renderFinalMP4(s,j,{root,dir,log});
+   j.completed=[...new Set([...j.completed,'automatic','render'])];
+   j.auto={...j.auto,finished:true,stage:'done',progress:100};
    store.put(j);
    if(options.generateShorts||j.generateShorts!==false){
     j.current='shorts';
     store.put(j);
-    log(j,'Iniciando geração do Short vertical derivado...');
+    log(j,'Vídeo principal 100% renderizado. Iniciando produção e renderização sequencial dos 5 Shorts...');
     await automaticShorts(s,j,{root,dir,log});
     j.completed=[...new Set([...j.completed,'shorts'])];
     store.put(j);
-    log(j,'Renderizando MP4 do Short...');
-    if(existsSync(path.join(dir,'shorts',j.id))){
-     await renderAllShortsMP4(s,j,{root,dir,log});
-    }
    }
-   j.completed=[...new Set([...j.completed,'render'])];
    j.status='review';
    store.put(j);
+   log(j,'Produção completa (vídeo longo + 5 Shorts) finalizada e renderizada com sucesso!');
   }
   if(action==='shorts'){
    await automaticShorts(s,j,{root,dir,log});
    j.completed=[...new Set([...j.completed,'shorts'])];
    store.put(j);
-   log(j,'Renderizando MP4 dos 5 Shorts gerados...');
-   await renderAllShortsMP4(s,j,{root,dir,log});
+   log(j,'Todos os Shorts finalizados e renderizados com sucesso!');
   }
   if(action==='render'){
    await renderFinalMP4(s,j,{root,dir,log});
