@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 21/09/2026, aproximadamente 09:20 (America/Bahia)
+**Atualizado em:** 21/09/2026, aproximadamente 09:30 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -13,16 +13,13 @@
 
 ## O que foi verificado e status da produção
 
-1. **Limpeza e Reset Completo do Sistema (Zero):**
-   - Todos os 7 projetos e testes anteriores foram excluídos da base de dados SQLite (`records`).
-   - Grade de agendamento e publicações anteriores foram limpas.
-   - Fila do Banco de Pautas (`topics.json`) e alertas foram reiniciados do zero.
-   - Pastas temporárias, pastas de projetos legados, caches de renderização e arquivos de prévia foram removidos.
-   - **Todas as integrações e chaves de API (Gemini, Fish Audio, Pexels, Pixabay, YouTube, OpenCode Go, senhas e configurações de publicação) foram 100% preservadas e continuam ativas.**
-
-2. **Calibração de Duração para Produções do Canal:**
-   - Duração padrão ajustada para **12 a 15 minutos** nos formulários de criação e banco de pautas (1.500 a 2.200 palavras por documentário longo + 5 Shorts verticais de 50 a 60s).
+1. **Produção Completa de 15 Minutos em Andamento:**
+   - **Título:** *Why Switzerland Built Underground Bunkers for 100% of Its Population* (ID: `3677be46-ea60-4ea1-aee9-adab207b5235`).
+   - **Pesquisa Factual com Google Grounding:** Concluída e salva com sucesso.
+   - **Roteiro Documental Completo (15 min):** Redigido com capítulos temáticos, pausas dramáticas de respiração e ganchos de alta retenção.
+   - **Narração e Áudio:** Em processamento via Fish Audio TTS (voz oficial BBC).
+   - **Próximas etapas:** Sincronização de legendas, seleção de mídias/filmagens em alta definição, geração de animações Remotion, renderização do MP4 1080p, derivação dos 5 Shorts verticais e disparo para agendamento.
 
 ## Próximo passo
 
-- Iniciar o novo teste do zero com a pauta escolhida por Daniel.
+- Acompanhar a conclusão da produção do vídeo principal de 15 minutos e dos 5 Shorts verticais no VPS e validar o agendamento no n8n.
