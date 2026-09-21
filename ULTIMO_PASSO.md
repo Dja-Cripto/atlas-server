@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 21/09/2026, aproximadamente 15:55 (America/Bahia)
+**Atualizado em:** 21/09/2026, aproximadamente 16:06 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -23,12 +23,16 @@
    - Todo vídeo em 4K/2K baixado pelo gerador automático agora é imediatamente padronizado para 1080p leve com keyframe a cada 1 segundo (GOP 30) e áudio embutido removido, reduzindo o tempo de renderização/seek do Chromium no Remotion em mais de 10x.
    - Criado script `scripts/transcode_existing.mjs` e executado no VPS para otimizar todos os 81 vídeos já baixados do documentário da Suíça.
 
+3. **Retomada e Execução do Job:**
+   - O job `3677be46-ea60-4ea1-aee9-adab207b5235` (*Why Switzerland Built Underground Bunkers for 100% of Its Population*) foi retomado com status `running`.
+   - O processo está em execução autônoma no VPS via `atlas-studio`.
+
 ## Validação e Resultados
 
 - Suíte de testes automatizados (`npm test`): **71 de 71 testes aprovados com sucesso (100%)**.
 - Código commitado e sincronizado com o repositório GitHub (`main`).
-- Contêiner Docker `atlas-studio` atualizado e operando no VPS.
+- Contêiner Docker `atlas-studio` atualizado, operando e renderizando no VPS.
 
 ## Próximo passo recomendado
 
-- Concluir a renderização do MP4 final em 1080p do documentário de 16 minutos (*Why Switzerland Built Underground Bunkers for 100% of Its Population*) e a extração automática dos 5 Shorts verticais.
+- Acompanhar a conclusão da renderização do MP4 final em 1080p do documentário de 16 minutos e a extração automática dos 5 Shorts verticais.
