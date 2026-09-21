@@ -138,6 +138,16 @@ test('sceneUnits computes frame intervals and background indices for validation'
  assert.equal(units[1].from,150);
  assert.equal(units[1].backgroundIndex,0);
 });
+test('sceneUnits handles missing or non-finite scene properties without NaN',()=>{
+ const manifest={scenes:[{id:'s1',start:null,end:undefined},{id:'s2'}]};
+ const units=sceneUnits(manifest);
+ assert.equal(units.length,2);
+ assert.ok(Number.isFinite(units[0].from));
+ assert.ok(Number.isFinite(units[0].durationInFrames));
+ assert.ok(units[0].durationInFrames>=1);
+ assert.ok(Number.isFinite(units[1].from));
+ assert.ok(Number.isFinite(units[1].durationInFrames));
+});
 test('audioSlots splits along sentence boundaries and pauses with comfortable duration',()=>{
  const words=[
   {word:'In',start:0,end:0.4},{word:' Singapore,',start:0.4,end:1.0},{word:' maritime',start:1.0,end:1.6},{word:' trade',start:1.6,end:2.2},{word:' is',start:2.2,end:2.5},{word:' massive.',start:2.5,end:3.2},
