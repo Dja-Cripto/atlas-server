@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 21/09/2026, aproximadamente 07:20 (America/Bahia)
+**Atualizado em:** 21/09/2026, aproximadamente 09:05 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -13,25 +13,18 @@
 
 ## O que foi verificado e status da produção
 
-1. **Vídeo Longo (1080p): CONCLUÍDO COM 100% DE SUCESSO**
-   - **Projeto:** *The World's Most Extreme Desert Train: Mauritania's 2km Iron Ore Giant* (ID: `b6daffd0-5641-472d-aa2b-ef347510c971`).
-   - MP4 final renderizado e salvo: `/outputs/b6daffd0-5641-472d-aa2b-ef347510c971/video-5e927cba-70ef-4f24-9b55-6b5cfdc56a29.mp4`.
-   - Todas as 15 cenas, trilha sonora ("State Drive - VYEN"), pesquisa e narração em inglês US integradas.
+1. **Duração do Vídeo Principal:**
+   - O vídeo de teste anterior foi gerado com `minutes: 2` para validação rápida de fluxo (~230 palavras / 1m15s).
+   - O modal de criação de novas produções manuais foi ajustado para duração padrão de 12 minutos e os tópicos do Banco de Pautas estão configurados para documentários completos de 15 minutos (1.500 a 2.200 palavras).
 
-2. **Geração dos 5 Shorts: CONTEÚDO E ÁUDIO 100% PRONTOS**
-   - Short 1: *"The 2-Kilometer Iron Monster of the Sahara"* (50s)
-   - Short 2: *"The Lethal Hitchhike: Free Rides on 84 Tons of Dust"* (52s)
-   - Short 3: *"The Single Track Lifeline: Why a 704km Route Cannot Fail"* (55s)
-   - Short 4: *"Sahara's Frozen Paradox: 45°C Days and Sub-Zero Nights"* (51s)
-   - Short 5: *"The Industrial Train That Triggered a Military Coup"* (54s)
-   - Roteiros, vozes Fish Audio, transcrições e composições Remotion gerados nas pastas `data/shorts/.../short_1` a `short_5`.
+2. **Renderização dos 5 Shorts em MP4 Vertical (1080x1920):**
+   - Os 5 roteiros, narrações Fish Audio, trilhas sonoras e composições Remotion já estavam criados.
+   - A renderização dos arquivos de vídeo `.mp4` verticais foi disparada via `render_all_shorts_cli.mjs` no servidor com aceleração de software GL (`gl: 'swangle'`) e multi-processamento habilitado.
+   - Os players do painel passarão a exibir o vídeo vertical assim que os arquivos MP4 forem gerados.
 
-3. **Correções de Infraestrutura Aplicadas:**
-   - Limpeza de 5.5 GB no disco raiz para evitar erro `ENOSPC`.
-   - Configuração de `chromiumOptions` com `gl: 'swangle'` e multi-processo Linux em `lib/render-runtime.mjs`.
-   - Adicionado `dir` ao objeto `createStore` e fallback em `lib/topics.mjs` para o agendador autônomo.
-   - Renderização dos MP4s dos 5 Shorts em processamento.
+3. **Publicação e Agendamento:**
+   - Grade de agendamento configurada para distribuir 1 vídeo longo + 5 Shorts entre YouTube e Facebook Page via n8n.
 
 ## Próximo passo
 
-- Concluir a renderização dos 5 MP4s dos Shorts e disparar a grade de agendamento no n8n para YouTube e Facebook.
+- Acompanhar a conclusão da renderização dos 5 MP4s dos Shorts no VPS e validar a reprodução direta no painel e disparo para o n8n.
