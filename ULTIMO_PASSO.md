@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 20/09/2026, aproximadamente 20:50 (America/Bahia)
+**Atualizado em:** 21/09/2026, aproximadamente 07:20 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -8,21 +8,30 @@
 - n8n: `https://n8n.setupdja.website` — HTTP 200.
 - VPS: `ubuntu@137.131.171.144` (autônomo 24/7).
 - Projeto no VPS: `/srv/atlas-studio`, branch `main`.
-- Armazenamento pesado: montado e validado em `/srv/robo/portal-bot/data/atlas-storage` (85 GB livres) para `data`, `.temp` e `auto`.
+- Armazenamento pesado: montado e validado em `/srv/robo/portal-bot/data/atlas-storage` (80 GB livres).
+- Espaço em disco raiz `/`: 5.5 GB livres recuperados após limpeza de cache.
 
-## O que foi alterado e executado
+## O que foi verificado e status da produção
 
-1. **Ajuste de tolerância de renderização (Remotion Timeout):**
-   - Atualizado `lib/render-runtime.mjs` com `delayRenderTimeoutInMilliseconds: 300000` (5 minutos) em `browserOptions()`, garantindo que extrações de quadros pesados de vídeos em alta resolução não sofram timeout durante a renderização em CPU no VPS.
-
-2. **Produção Autônoma Completa em Execução:**
+1. **Vídeo Longo (1080p): CONCLUÍDO COM 100% DE SUCESSO**
    - **Projeto:** *The World's Most Extreme Desert Train: Mauritania's 2km Iron Ore Giant* (ID: `b6daffd0-5641-472d-aa2b-ef347510c971`).
-   - Etapas concluídas: Pesquisa factual com fontes primárias, Roteiro em inglês US, Narração Fish Audio + transcrição Faster-Whisper, Curadoria de filmagens reais Pexels, Trilha sonora ("State Drive - VYEN"), Direção de 15 cenas e Motion Code MiMo.
-   - Renderização final do MP4 1080p e geração dos 5 Shorts verticais em andamento no VPS.
+   - MP4 final renderizado e salvo: `/outputs/b6daffd0-5641-472d-aa2b-ef347510c971/video-5e927cba-70ef-4f24-9b55-6b5cfdc56a29.mp4`.
+   - Todas as 15 cenas, trilha sonora ("State Drive - VYEN"), pesquisa e narração em inglês US integradas.
 
-3. **Operação 100% em Servidor em Nuvem:**
-   - Confirmado que todos os serviços, filas de produção e disparadores para YouTube e Facebook funcionam independentemente da máquina local do usuário, permitindo desligar o computador a qualquer momento.
+2. **Geração dos 5 Shorts: CONTEÚDO E ÁUDIO 100% PRONTOS**
+   - Short 1: *"The 2-Kilometer Iron Monster of the Sahara"* (50s)
+   - Short 2: *"The Lethal Hitchhike: Free Rides on 84 Tons of Dust"* (52s)
+   - Short 3: *"The Single Track Lifeline: Why a 704km Route Cannot Fail"* (55s)
+   - Short 4: *"Sahara's Frozen Paradox: 45°C Days and Sub-Zero Nights"* (51s)
+   - Short 5: *"The Industrial Train That Triggered a Military Coup"* (54s)
+   - Roteiros, vozes Fish Audio, transcrições e composições Remotion gerados nas pastas `data/shorts/.../short_1` a `short_5`.
+
+3. **Correções de Infraestrutura Aplicadas:**
+   - Limpeza de 5.5 GB no disco raiz para evitar erro `ENOSPC`.
+   - Configuração de `chromiumOptions` com `gl: 'swangle'` e multi-processo Linux em `lib/render-runtime.mjs`.
+   - Adicionado `dir` ao objeto `createStore` e fallback em `lib/topics.mjs` para o agendador autônomo.
+   - Renderização dos MP4s dos 5 Shorts em processamento.
 
 ## Próximo passo
 
-- O servidor concluirá a renderização, gerará os 5 Shorts, registrará a grade de agendamento para 21/09/2026 e acionará os webhooks de publicação no n8n.
+- Concluir a renderização dos 5 MP4s dos Shorts e disparar a grade de agendamento no n8n para YouTube e Facebook.
