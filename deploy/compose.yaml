@@ -22,6 +22,7 @@ services:
       PORT: 3000
       HOST: 0.0.0.0
       ATLAS_RENDER_CONCURRENCY: 2
+      TMPDIR: /app/.temp
     volumes:
       - /srv/robo/portal-bot/data/atlas-storage/data:/app/data
       - ../Musicas:/app/Musicas:ro
