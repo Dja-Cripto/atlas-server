@@ -35,5 +35,5 @@
 
 ## Limitação aberta e próximo passo
 
-- Instalar esta revisão no VPS, limpar apenas os marcadores falsos da produção e retomar pelo vídeo principal.
-- A renderização 1080p de 15 minutos pode levar várias horas no VPS. Os Shorts só começarão depois que o MP4 principal estiver disponível no painel.
+- Revisão `c27febc` instalada no VPS; contêiner saudável e produção retomada em segundo plano pelo vídeo principal. Estado observado: `running`, etapa `visual-review`, processo `resume_job.mjs` ativo.
+- A renderização 1080p de 15 minutos pode levar várias horas no VPS. Acompanhar até o MP4 principal aparecer no painel; só então o robô poderá iniciar o Short 1.
