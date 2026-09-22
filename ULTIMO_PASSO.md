@@ -30,10 +30,17 @@
 ## Validação
 
 - `node --check` aprovado em `lib/automatic.mjs`, `lib/shorts.mjs` e `server.mjs`.
-- `npm test`: **72 de 72 testes aprovados**.
+- `npm test`: **73 de 73 testes aprovados**.
 - Teste novo confirma rejeição de `useCurrentFrame` importado do React.
 
-## Correção adicional do ciclo de reprogramação`r`n`r`n- Diagnosticado que uma falha na validação chamava novamente o GLM para o conjunto de 156 cenas.`r`n- A retomada agora reutiliza o `index.tsx` existente e nunca chama programação em lote dentro do ciclo de validação.`r`n- Somente a cena identificada como inválida é substituída por composição segura; depois a validação prossegue.`r`n- Processo repetitivo interrompido sem apagar materiais. Suíte atual: **73 de 73 testes aprovados**.`r`n`r`n## Limitação aberta e próximo passo
+## Correção adicional do ciclo de reprogramação
 
-- Revisão `c27febc` instalada no VPS; contêiner saudável e produção retomada em segundo plano pelo vídeo principal. Estado observado: `running`, etapa `visual-review`, processo `resume_job.mjs` ativo.
+- Diagnosticado que uma falha na validação chamava novamente o GLM para o conjunto de 156 cenas.
+- A retomada agora reutiliza o `index.tsx` existente e nunca chama programação em lote dentro do ciclo de validação.
+- Somente a cena identificada como inválida é substituída por composição segura; depois a validação prossegue.
+- Processo repetitivo interrompido sem apagar materiais. Suíte atual: **73 de 73 testes aprovados**.
+
+## Limitação aberta e próximo passo
+
+- Revisão `dd8804f` instalada no VPS; contêiner saudável e produção retomada em segundo plano. Confirmado nos eventos: “Código visual existente reutilizado; nenhuma cena será reprogramada em lote”. Estado observado: `running`, etapa `preview-validation`.
 - A renderização 1080p de 15 minutos pode levar várias horas no VPS. Acompanhar até o MP4 principal aparecer no painel; só então o robô poderá iniciar o Short 1.
