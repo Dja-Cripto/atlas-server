@@ -22,4 +22,4 @@
 ## Validação e próximo passo
 
 - Sintaxe dos arquivos alterados aprovada; `npm test`: 73/73 testes aprovados. ffprobe e ffmpeg confirmados no contêiner.
-- Ainda é necessário confirmar o deploy desta revisão e executar um teste curto no VPS antes de iniciar uma produção longa. Não há garantia absoluta contra falhas externas de mídia, IA ou infraestrutura; qualquer falha deve bloquear o avanço e preservar o progresso.
+- Revisão `854366e` instalada no VPS; contêiner saudável e painel HTTP 200. Teste sintético no contêiner confirmou um MP4 vertical por chamada e avanço somente na chamada seguinte. Teste de bloqueio sem pacote principal aprovado. A produção longa completa ainda não foi executada com esta revisão. Falhas externas de mídia, IA ou infraestrutura continuam possíveis; devem bloquear o avanço e preservar o progresso.
