@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 22/09/2026, aproximadamente 20:00 (America/Bahia)
+**Atualizado em:** 22/09/2026, aproximadamente 20:15 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -21,10 +21,10 @@
 - Produção `54204f15-86ce-4fd5-8de6-b4d43c671a7a` (“Why Europe and Africa Still Have No Fixed Link”) preserva pesquisa, roteiro e mídias. Parou em `motion-code` quando o GLM devolveu direção global fora do formato esperado, mas foi retomada após a correção.
 - A direção global agora usa uma amostra de no máximo 12 cenas, completa as demais instruções localmente e usa uma direção segura quando o provedor falha. Nesta produção, as falhas já registradas evitam uma nova chamada global demorada.
 
-- As 104 cenas foram validadas. A renderização do MP4 parou ao tentar limpar o bundle temporário: `tempBundleDir is not defined`. A declaração foi movida para o escopo correto, preservando o erro original caso o render ainda falhe. Na retomada, a validação integral já concluída é reutilizada para o mesmo run e total de cenas, evitando repetir 104 verificações.
+- As 104 cenas foram validadas. O erro `tempBundleDir is not defined` ocultava a causa real: o Remotion exige que o arquivo de saída H.264/AAC termine em `.mp4`; o temporário terminava em `.partial`. Vídeo principal e Shorts agora usam `.partial.mp4` e só renomeiam após validar o arquivo. A retomada reutiliza a validação integral do mesmo run.
 
 ## Validação e próximo passo
 
-- Sintaxe verificada e `npm test`: 75/75 testes aprovados. O teste de API cobre gravação e limite da direção editorial.
+- Sintaxe verificada e `npm test`: 77/77 testes aprovados. O teste de API cobre gravação e limite da direção editorial.
 - Revisão anterior `854366e` instalada e saudável no VPS; painel HTTP 200. Teste sintético confirmou um Short por chamada e bloqueio sem pacote principal.
-- Revisão `b30b491` instalada no VPS; contêiner saudável, painel HTTP 200 e novo campo confirmado no HTML publicado. Revisão `79adaae` instalada no VPS; contêiner saudável. A produção retomou, usou direção global segura, validou 104/104 cenas e parou antes de avançar o MP4 por causa do erro de escopo. Próximo passo: instalar a correção, retomar o mesmo job e identificar ou concluir a renderização do MP4 principal. Falhas externas podem ocorrer e devem bloquear o avanço preservando o progresso.
+- Revisão `b30b491` instalada no VPS; contêiner saudável, painel HTTP 200 e novo campo confirmado no HTML publicado. Revisão `79adaae` instalada no VPS; contêiner saudável. A produção retomou, usou direção global segura, validou 104/104 cenas e parou antes de avançar o MP4 por causa do erro de escopo. Próximo passo: instalar a correção de extensão no Atlas, retomar o mesmo job e acompanhar o MP4 principal até aparecer na aba Final & Publicação. Falhas externas podem ocorrer e devem bloquear o avanço preservando o progresso.
