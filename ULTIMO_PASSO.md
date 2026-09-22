@@ -20,4 +20,4 @@
 
 - Sintaxe verificada e `npm test`: 73/73 testes aprovados. O teste de API cobre gravação e limite da direção editorial.
 - Revisão anterior `854366e` instalada e saudável no VPS; painel HTTP 200. Teste sintético confirmou um Short por chamada e bloqueio sem pacote principal.
-- Próximo passo: instalar esta revisão no serviço Atlas, conferir o campo no painel e então iniciar uma produção curta de teste. Uma produção longa completa ainda não foi executada com o fluxo novo. Falhas externas podem ocorrer e devem bloquear o avanço preservando o progresso.
+- Revisão `b30b491` instalada no VPS; contêiner saudável, painel HTTP 200 e novo campo confirmado no HTML publicado. Próximo passo: criar uma produção curta de teste com título e direção editorial e revisar o resultado antes dos Shorts. Uma produção longa completa ainda não foi executada com o fluxo novo. Falhas externas podem ocorrer e devem bloquear o avanço preservando o progresso.
