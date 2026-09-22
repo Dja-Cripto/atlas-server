@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPlan,normalizeDirectionKind,enforceVisualBreathing,normalizeVisualTreatment} from '../lib/auto-plan.mjs';
-import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
+import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,sampleTimelineForDirector,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
 import {candidatePool} from '../lib/auto-media.mjs';
 import {parseRelaxedJSON,splitScriptIntoTTSChunks} from '../lib/providers.mjs';
 test('normalizeMotionCode injects muted on OffthreadVideo and Video to prevent audio bleed',()=>{
@@ -189,6 +189,16 @@ test('parseRelaxedJSON handles comments, trailing commas, TSX code newlines, arr
  const truncated='{"vision": "Wide panorama", "sceneDirectives": [{"id": "shot-1", "intent": "explain"';
  assert.equal(parseRelaxedJSON(truncated).vision,'Wide panorama');
  assert.equal(parseRelaxedJSON(truncated).sceneDirectives[0].id,'shot-1');
+});
+test('global direction samples long timelines while keeping every scene directive',()=>{
+ const scenes=Array.from({length:104},(_,index)=>({id:'shot-'+(index+1),index,heading:'Scene '+(index+1),countries:[]}));
+ const sample=sampleTimelineForDirector(scenes);
+ assert.equal(sample.length,12);
+ assert.equal(sample[0].id,'shot-1');
+ assert.equal(sample.at(-1).id,'shot-104');
+ const bible=normalizeVisualBible({vision:'Geographic documentary',sceneDirectives:sample.map(scene=>({id:scene.id,intent:scene.heading}))},scenes);
+ validateVisualBible(bible,scenes);
+ assert.equal(bible.sceneDirectives.length,104);
 });
 test('normalizeVisualBible supplies missing scene directives for long multi-scene productions',()=>{
  const scenes=Array.from({length:35},(_,i)=>({id:`shot-${i+1}`,heading:`Heading ${i+1}`,countries:['Country '+i]}));
