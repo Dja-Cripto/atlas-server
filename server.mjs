@@ -352,9 +352,11 @@ const server=http.createServer(async(req,res)=>{
    const b=await body(req);
    if(typeof b.title!=='string'||b.title.trim().length<5||b.title.length>180)throw new Error('Informe um título de 5 a 180 caracteres.');
    if(!Number.isFinite(Number(b.minutes))||Number(b.minutes)<0.1||Number(b.minutes)>30)throw new Error('Informe uma duração entre 0,1 e 30 minutos.');
+   if(b.notes!==undefined&&(typeof b.notes!=='string'||b.notes.length>400))throw new Error('A direção do vídeo deve ter até 400 caracteres.');
    const j={
     id:randomUUID(),
     title:b.title.trim(),
+    notes:String(b.notes||'').trim(),
     minutes:Number(b.minutes),
     generateShorts:Boolean(b.generateShorts),
     shortsCount:b.generateShorts?5:0,

@@ -21,10 +21,11 @@ test('dashboard API: projects, prerequisites, credentials, CSRF and file boundar
   await Promise.race([once(child.stdout,'data'),new Promise((_,reject)=>setTimeout(()=>reject(new Error('Server did not start')),8000).unref())]);
   assert.equal((await request('/')).status,200);
   assert.equal((await request('/api/jobs',{title:'x',minutes:8})).status,400);
-  const r=await request('/api/jobs',{title:'Why are small countries rich?',minutes:3});assert.equal(r.status,201);const j=await r.json();
+  assert.equal((await request('/api/jobs',{title:'A focused geography topic',minutes:3,notes:'x'.repeat(401)})).status,400);
+  const r=await request('/api/jobs',{title:'Why are small countries rich?',minutes:3,notes:'Focus on Monaco and its tax rules.'});assert.equal(r.status,201);const j=await r.json();assert.equal(j.notes,'Focus on Monaco and its tax rules.');
   assert.equal((await request('/api/settings',{geminiBackend:'api',geminiKey:'secret-for-test'},{Origin:'https://attacker.invalid'})).status,403);
   assert.equal((await request('/api/settings',{geminiBackend:'api',geminiKey:'secret-for-test'})).status,200);
-  const state=await(await request('/api/state')).json();assert.equal(state.jobs.length,1);assert.equal(state.settings.configured.geminiKey,true);assert.equal(JSON.stringify(state).includes('secret-for-test'),false);
+  const state=await(await request('/api/state')).json();assert.equal(state.jobs.length,1);assert.equal(state.jobs[0].notes,'Focus on Monaco and its tax rules.');assert.equal(state.settings.configured.geminiKey,true);assert.equal(JSON.stringify(state).includes('secret-for-test'),false);
   await request('/api/settings',{clear:['geminiKey']});
   assert.equal((await request(`/api/jobs/${j.id}/run`,{step:'research'})).status,202);
   let failed;for(let i=0;i<20;i++){failed=(await(await request('/api/state')).json()).jobs[0];if(failed.status==='error')break;await new Promise(r=>setTimeout(r,25));}assert.equal(failed.status,'error');assert.match(failed.error,/Configure/);assert.equal(failed.completed.length,0);
