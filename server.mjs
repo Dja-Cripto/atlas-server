@@ -11,7 +11,7 @@ import {validateServiceAccount} from './lib/vertex.mjs';
 import {parseFile} from 'music-metadata';
 import {createEditPlan} from './lib/storyboard.mjs';
 import {mergeMedia,recordThumbnail,selectThumbnail,assignClip} from './lib/editing.mjs';
-import {automatic,preflight,renderFinalMP4,exportCapCut} from './lib/automatic.mjs';
+import {automatic,preflight,renderFinalMP4,exportCapCut,finalizeMainPackage} from './lib/automatic.mjs';
 import {automaticShorts,renderAllShortsMP4} from './lib/shorts.mjs';
 import {launchCapCut} from './lib/capcut.mjs';
 import {getScheduleSettings,saveScheduleSettings,listScheduleQueue,listHistory,calculateNextAvailableDate,scheduleJob,unscheduleJob} from './lib/schedule.mjs';
@@ -103,29 +103,24 @@ async function run(j,action,options={}){
  try{
   if(action==='automatic'){
    await automatic(s,j,{root,dir,log});
+   await finalizeMainPackage(s,j,{root,dir,log});
    j.completed=[...new Set([...j.completed,'automatic','render'])];
    j.auto={...j.auto,finished:true,stage:'done',progress:100};
    store.put(j);
-   if(options.generateShorts||j.generateShorts!==false){
-    j.current='shorts';
-    store.put(j);
-    log(j,'Vídeo principal 100% renderizado. Iniciando produção e renderização sequencial dos 5 Shorts...');
-    await automaticShorts(s,j,{root,dir,log});
-    j.completed=[...new Set([...j.completed,'shorts'])];
-    store.put(j);
-   }
    j.status='review';
    store.put(j);
-   log(j,'Produção completa (vídeo longo + 5 Shorts) finalizada e renderizada com sucesso!');
+   log(j,'Vídeo principal completo e disponível para revisão. Shorts aguardam ação do usuário.');
   }
   if(action==='shorts'){
-   await automaticShorts(s,j,{root,dir,log});
-   j.completed=[...new Set([...j.completed,'shorts'])];
+   await finalizeMainPackage(s,j,{root,dir,log});
+   const result=await automaticShorts(s,j,{root,dir,log});
+   if(result.finished)j.completed=[...new Set([...j.completed,'shorts'])];
+   j.status='review';
    store.put(j);
-   log(j,'Todos os Shorts finalizados e renderizados com sucesso!');
-  }
-  if(action==='render'){
+   log(j,result.finished?'Todos os Shorts finalizados e renderizados com sucesso!':`Short ${result.nextIndex}/${result.total} pronto para assistir. Inicie o próximo após revisar este.`);
+  }  if(action==='render'){
    await renderFinalMP4(s,j,{root,dir,log});
+   await finalizeMainPackage(s,j,{root,dir,log});
    j.completed=[...new Set([...j.completed,'render'])];
    j.status='review';
    store.put(j);
@@ -173,7 +168,7 @@ async function run(j,action,options={}){
    await writeFile(path.join(dir,j.id,filename),img.buffer);
    recordThumbnail(j,`/outputs/${j.id}/${filename}`,options.direction||'');
   }
-  j.completed=[...new Set([...j.completed,action])];
+  if(action!=='shorts'||j.shorts?.finished)j.completed=[...new Set([...j.completed,action])];
   j.status='review';
   log(j,labels[action]+' concluída.');
  }catch(e){

@@ -475,9 +475,9 @@ function automaticPanel(j){
  const renderPctFromLog=lastRenderMsg?parseInt(lastRenderMsg.match(/(\d+)%/)?.[1]||0,10):0;
  const renderPct=j.auto?.renderProgress!==undefined?j.auto.renderProgress:renderPctFromLog;
 
- const autoFinished=Boolean(j.auto?.finished&&hasFinalVideo);
- const shortsFinished=Boolean(j.shorts?.finished&&(j.shorts?.items||[]).every(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url));
- const shortsItems=(j.shorts?.items||[]).filter(x=>x?.finished);
+ const autoFinished=Boolean(j.auto?.finished&&hasFinalVideo&&j.finalization?.ready);
+ const shortsFinished=Boolean(j.shorts?.finished&&(j.shorts?.items||[]).length>0&&(j.shorts?.items||[]).every(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url));
+ const shortsItems=(j.shorts?.items||[]).filter(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url);
  const stageName=stageTitles[j.auto?.stage]||j.auto?.stage||'Pronto para iniciar';
  const shortsStageTitles={curiosities:'Extraindo curiosidades do vídeo principal',script:'Gerando roteiro do Short',voice:'Gerando narração do Short',transcription:'Transcrevendo para sincronização',direction:'Dirigindo cenas do Short',assets:'Selecionando mídia para o Short','motion-code':'GLM programando cenas verticais','preview-validation':'Validando composição do Short',done:'Todos os 5 Shorts prontos'};
 
@@ -639,7 +639,7 @@ function automaticPanel(j){
     ${[0,1,2,3,4].map(idx=>{
       const item=j.shorts?.items?.[idx];
       const curiosity=j.shorts?.curiosities?.[idx];
-      const isDone=Boolean(item&&item.finished);
+      const isDone=Boolean(item?.finished&&item?.renderedMp4&&item?.mp4Url);
       const isCurrent=isShortsRunning&&!isDone&&(idx===shortsItems.length);
       return `
        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:${isDone?'#f2f8f4':isCurrent?'#fffbf0':'#fafafa'};border:1px solid ${isDone?'#cde7d5':isCurrent?'#ffe082':'#eef0ee'};border-radius:8px;gap:8px;flex-wrap:wrap;">
@@ -664,7 +664,7 @@ function automaticPanel(j){
 
    <div style="display:flex;gap:12px;align-items:center;">
     <button class="secondary" data-run="shorts" data-auto-job="${j.id}" ${isRunning||shortsFinished?'disabled':''} style="font-weight:600;">
-     ${shortsFinished?'✓ Todos os 5 Shorts Gerados com Sucesso':isShortsRunning?'⏳ Gerando Shorts em Segundo Plano…':'⚡ Gerar os 5 Shorts Agora'}
+     ${shortsFinished?'✓ Todos os 5 Shorts Gerados com Sucesso':isShortsRunning?'⏳ Gerando Shorts em Segundo Plano…':'⚡ Gerar próximo Short'}
     </button>
    </div>
   </div>
@@ -765,7 +765,8 @@ function finalPanel(j){
  const isRunning=j.status==='running';
  const isRenderRunning=(isRunning&&j.current==='render')||Boolean(j.auto?.renderingMp4);
  const isCapcutRunning=isRunning&&j.current==='capcut';
- const autoFinished=Boolean(j.auto?.finished||j.auto?.preview?.ready);
+ const mainPackageReady=Boolean(j.auto?.finished&&hasFinalVideo&&j.finalization?.ready&&j.thumbnail&&j.publishingMetadata?.description&&j.selectedTitle);
+ const autoFinished=mainPackageReady;
  const totalScenesCount=j.automaticPlan?.shots?.length||j.scenes?.length||69;
  const durationSec=Math.round(j.voiceDuration||j.renders?.[0]?.duration||(j.minutes*60));
  const durationMin=Math.floor(durationSec/60);
@@ -775,11 +776,11 @@ function finalPanel(j){
  const renderPctFromLog=lastRenderMsg?parseInt(lastRenderMsg.match(/(\d+)%/)?.[1]||0,10):0;
  const renderPct=j.auto?.renderProgress!==undefined?j.auto.renderProgress:renderPctFromLog;
 
- const shortsFinished=Boolean(j.shorts?.finished);
+ const shortsFinished=Boolean(j.shorts?.finished&&(j.shorts?.items||[]).length>0&&(j.shorts?.items||[]).every(item=>item?.finished&&item?.renderedMp4&&item?.mp4Url));
  const isShortsRunning=isRunning&&j.current==='shorts';
  const shortsItems=j.shorts?.items||[];
  const curiosities=j.shorts?.curiosities||[];
- const shortsCount=shortsItems.filter(x=>x?.finished).length;
+ const shortsCount=shortsItems.filter(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url).length;
 
  // Section 1: Main Big Video (1080p)
  const mainVideoSection=`
@@ -817,6 +818,7 @@ function finalPanel(j){
       </div>
      </div>
      <video controls playsinline preload="metadata" src="${esc(finalVideoPath)}" style="width:100%;max-height:480px;border-radius:6px;background:#000;"></video>
+      ${j.thumbnail?`<div style="margin-top:14px;"><b>Capa principal</b><br><img src="${esc(j.thumbnail)}" alt="Capa principal" style="display:block;max-width:480px;width:100%;margin-top:6px;border-radius:8px;"></div>`:''}
     </div>
    `:autoFinished?`
     <div style="margin-bottom:16px;padding:16px;background:linear-gradient(135deg,rgba(20,59,54,0.08),rgba(122,202,157,0.18));border:1.5px solid #2e7d32;border-radius:8px;">
@@ -856,8 +858,8 @@ function finalPanel(j){
   // Section 2: Shorts Gallery
   const targetShortsCount = (j.shorts?.finished && j.shorts?.items?.length) ? j.shorts.items.length : (j.shortsCount || (j.shorts?.items?.length > 1 ? j.shorts.items.length : (j.generateShorts ? 5 : 1)));
   const targetIndices = Array.from({length: Math.max(targetShortsCount, (j.shorts?.items?.length || 0))}, (_, i) => i);
-  const doneShortsCount = (j.shorts?.items?.filter(x=>x?.finished)?.length) || 0;
-  const isAllDone = shortsFinished || (targetShortsCount > 0 && doneShortsCount >= targetShortsCount);
+  const doneShortsCount = (j.shorts?.items?.filter(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url)?.length) || 0;
+  const isAllDone = shortsFinished && targetShortsCount > 0 && doneShortsCount >= targetShortsCount;
   const shortsSection=`
   <section class="panel" id="section-shorts" style="margin-top:20px;border:1.5px solid ${isAllDone?'#2e7d32':isShortsRunning?'#ffb74d':'var(--line)'};">
    <div class="panel-head" style="background:${isAllDone?'#f4fbf6':isShortsRunning?'#fffbf5':'#fff'};">
@@ -871,8 +873,8 @@ function finalPanel(j){
      ${isAllDone?`<span class="badge" style="background:#d4f3e0;color:#18613d;font-weight:700;">✓ ${doneShortsCount || targetShortsCount} DE ${targetShortsCount} PRONTOS</span>`:
        isShortsRunning?`<span class="badge running" style="background:#fff3e0;color:#b26a00;font-weight:700;"><span class="pulse-dot"></span> GERANDO (${shortsCount}/${targetShortsCount})...</span>`:
        '<span class="badge">NÃO INICIADO</span>'}
-     <button class="secondary" data-run="shorts" data-auto-job="${j.id}" ${isRunning||isAllDone?'disabled':''} style="font-size:11px;padding:5px 10px;">
-      ${isAllDone?`✓ ${targetShortsCount > 1 ? targetShortsCount + ' Shorts' : 'Short'} Concluído`:isShortsRunning?'⏳ Gerando...':`⚡ Gerar ${targetShortsCount > 1 ? 'os ' + targetShortsCount + ' Shorts' : 'Short'}`}
+     <button class="secondary" data-run="shorts" data-auto-job="${j.id}" ${isRunning||isAllDone||!mainPackageReady?'disabled':''} style="font-size:11px;padding:5px 10px;">
+      ${isAllDone?`✓ ${targetShortsCount > 1 ? targetShortsCount + ' Shorts' : 'Short'} Concluído`:isShortsRunning?'⏳ Gerando...':`⚡ Gerar Short ${doneShortsCount+1}`}
      </button>
     </div>
    </div>
@@ -882,7 +884,7 @@ function finalPanel(j){
      ${targetIndices.map(idx=>{
       const item=shortsItems[idx];
       const curiosity=curiosities[idx];
-      const isDone=Boolean(item&&item.finished);
+      const isDone=Boolean(item?.finished&&item?.renderedMp4&&item?.mp4Url);
       const isCurrent=isShortsRunning&&!isDone&&(idx===shortsCount);
       const title=item?.title||curiosity?.title||`Short ${idx+1}`;
       const hook=curiosity?.hook||curiosity?.body||'Curiosidade independente derivada do vídeo.';
@@ -1004,7 +1006,7 @@ function finalPanel(j){
   </div>
  </section>`;
 
- return mainVideoSection+shortsSection+metadataSection+scheduleSection;
+ return mainVideoSection+metadataSection+shortsSection+scheduleSection;
 }
 
 function detail(){
@@ -1016,7 +1018,7 @@ function detail(){
   ...stepNames,
   final:'Final & Publicação'
  };
- return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><button class="text-btn" data-page="projects">← Todas as produções</button><button class="text-btn" data-delete-job="${j.id}" style="color:#b25d3b;font-size:11px;">🗑 Excluir esta produção e arquivos</button></div>`+heading(esc(j.title),`${j.minutes} minutos planejados · Inglês americano · Criado em ${date(j.createdAt)} ${j.generateShorts?'· (+5 Shorts ativado)':''} ${j.scheduled?`· Agendado para ${j.scheduled.targetDate}`:''}`,false)+`${j.error&&tab==='events'?`<div class="error-box">${esc(j.error)}</div>`:''}<div class="details-grid"><section class="panel"><div class="panel-head"><h3>Etapas da produção</h3></div>${Object.entries(stepNames).map(([key,name],i)=>`<div class="step"><div><h3>${String(i+1).padStart(2,'0')} &nbsp; ${name}</h3><small>${(j.current===key||(key==='scenes'&&j.current==='editing'))&&blocked?'Em execução...':j.completed.includes(key)?'Concluída':'Aguardando'}</small></div><button class="secondary" data-run="${key}" ${blocked||j.completed.includes(key)?'disabled':''}>${j.completed.includes(key)?'✓':'Iniciar'}</button></div>`).join('')}<div class="step" style="border-top:1px solid var(--border);padding-top:12px;margin-top:10px;"><div><h3>07 &nbsp; Vídeo Completo</h3><small>${isAuto?'Gerando...':j.auto?.finished?'✓ Concluído':'Automático Remotion'}</small></div><button class="primary" data-run="automatic" ${isAuto||j.auto?.finished?'disabled':''}>${isAuto?'Gerando...':j.auto?.finished?'✓ Pronto':'Gerar Vídeo'}</button></div><div class="step"><div><h3>08 &nbsp; 5 Shorts Verticais</h3><small>${isShorts?'Gerando...':j.shorts?.finished?'✓ 5 prontos':'Cortes 9:16 (1 a 1,5m)'}</small></div><button class="secondary" data-run="shorts" ${isShorts||!j.auto?.finished||j.shorts?.finished?'disabled':''}>${isShorts?'Gerando...':j.shorts?.finished?'✓ Prontos':'Gerar 5 Shorts'}</button></div><div class="detail-body"><p>Cada etapa pode ser controlada individualmente ou pelo robô automático.</p><a class="text-btn" href="/api/jobs/${j.id}/export">↓ Exportar projeto JSON</a></div></section><section class="panel"><div class="detail-tabs">${Object.entries(tabMap).map(([k,n])=>`<button data-tab="${k}" class="${tab===k?'active':''}">${n}</button>`).join('')}</div><div class="detail-body">${tab==='events'?automaticPanel(j):detailContent(j)}</div></section></div>`;
+ return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><button class="text-btn" data-page="projects">← Todas as produções</button><button class="text-btn" data-delete-job="${j.id}" style="color:#b25d3b;font-size:11px;">🗑 Excluir esta produção e arquivos</button></div>`+heading(esc(j.title),`${j.minutes} minutos planejados · Inglês americano · Criado em ${date(j.createdAt)} ${j.generateShorts?'· (+5 Shorts ativado)':''} ${j.scheduled?`· Agendado para ${j.scheduled.targetDate}`:''}`,false)+`${j.error&&tab==='events'?`<div class="error-box">${esc(j.error)}</div>`:''}<div class="details-grid"><section class="panel"><div class="panel-head"><h3>Etapas da produção</h3></div>${Object.entries(stepNames).map(([key,name],i)=>`<div class="step"><div><h3>${String(i+1).padStart(2,'0')} &nbsp; ${name}</h3><small>${(j.current===key||(key==='scenes'&&j.current==='editing'))&&blocked?'Em execução...':j.completed.includes(key)?'Concluída':'Aguardando'}</small></div><button class="secondary" data-run="${key}" ${blocked||j.completed.includes(key)?'disabled':''}>${j.completed.includes(key)?'✓':'Iniciar'}</button></div>`).join('')}<div class="step" style="border-top:1px solid var(--border);padding-top:12px;margin-top:10px;"><div><h3>07 &nbsp; Vídeo Completo</h3><small>${isAuto?'Gerando...':j.auto?.finished?'✓ Concluído':'Automático Remotion'}</small></div><button class="primary" data-run="automatic" ${isAuto||j.auto?.finished?'disabled':''}>${isAuto?'Gerando...':j.auto?.finished?'✓ Pronto':'Gerar Vídeo'}</button></div><div class="step"><div><h3>08 &nbsp; 5 Shorts Verticais</h3><small>${isShorts?'Gerando...':j.shorts?.finished?'✓ 5 prontos':'Cortes 9:16 (1 a 1,5m)'}</small></div><button class="secondary" data-run="shorts" ${isShorts||!j.auto?.finished||!j.finalization?.ready||j.shorts?.finished?'disabled':''}>${isShorts?'Gerando...':j.shorts?.finished?'✓ Prontos':'Gerar próximo Short'}</button></div><div class="detail-body"><p>Cada etapa pode ser controlada individualmente ou pelo robô automático.</p><a class="text-btn" href="/api/jobs/${j.id}/export">↓ Exportar projeto JSON</a></div></section><section class="panel"><div class="detail-tabs">${Object.entries(tabMap).map(([k,n])=>`<button data-tab="${k}" class="${tab===k?'active':''}">${n}</button>`).join('')}</div><div class="detail-body">${tab==='events'?automaticPanel(j):detailContent(j)}</div></section></div>`;
 }
 
 function detailContent(j){

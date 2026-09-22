@@ -1,6 +1,6 @@
 import {createStore} from '../lib/store.mjs';
 import * as providers from '../lib/providers.mjs';
-import {automatic,renderFinalMP4} from '../lib/automatic.mjs';
+import {automatic,renderFinalMP4,finalizeMainPackage} from '../lib/automatic.mjs';
 import {automaticShorts,renderAllShortsMP4} from '../lib/shorts.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -35,21 +35,13 @@ try {
   // Step 1: Long Video (produces code + renders MP4)
   log(j, 'Verificando e finalizando vídeo principal...');
   await automatic(s, j, { root, dir, log });
+  await finalizeMainPackage(s,j,{root,dir,log});
   j.completed = [...new Set([...(j.completed || []), 'automatic', 'render'])];
   store.put(j);
 
-  // Step 2: 5 Vertical Shorts (each short generated + immediately rendered in sequence)
-  if (j.generateShorts !== false) {
-    log(j, 'Produzindo e renderizando os 5 Shorts verticais sequencialmente...');
-    await automaticShorts(s, j, { root, dir, log, renderImmediately: true });
-    j.completed = [...new Set([...(j.completed || []), 'shorts'])];
-    store.put(j);
-  }
-
   j.status = 'review';
   store.put(j);
-  log(j, 'Produção e renderização completa de todos os vídeos finalizada com 100% de sucesso!');
-} catch (err) {
+  log(j, 'Vídeo principal completo e disponível para revisão. Shorts aguardam ação do usuário.');} catch (err) {
   j.status = 'error';
   j.error = err.message || String(err);
   log(j, `Erro na execução: ${j.error}`);
