@@ -76,7 +76,7 @@ function integrations(){return providers.map(([id,icon,title,desc])=>`<div class
 function row(j){
  const hasFinal=Boolean(j.finalVideo||(j.renders&&j.renders.length>0));
  const hasShorts=Boolean(j.shorts?.finished||(j.shorts?.items&&j.shorts.items.some(x=>x?.finished)));
- const shortsBadgeCount = (j.shorts?.items?.filter(x=>x?.finished)?.length) || (j.shortsCount) || 5;
+ const shortsBadgeCount = (j.shorts?.items?.filter(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url)?.length) || (j.shortsCount) || 5;
  return `<div class="job-row" data-job="${j.id}" tabindex="0" role="button">
   <div class="job-art">${j.thumbnail?`<img src="${esc(j.thumbnail)}" alt="Capa da produção">`:'◎'}</div>
   <div class="job-info">
@@ -475,8 +475,8 @@ function automaticPanel(j){
  const renderPctFromLog=lastRenderMsg?parseInt(lastRenderMsg.match(/(\d+)%/)?.[1]||0,10):0;
  const renderPct=j.auto?.renderProgress!==undefined?j.auto.renderProgress:renderPctFromLog;
 
- const autoFinished=Boolean(j.auto?.finished||j.auto?.preview?.ready);
- const shortsFinished=Boolean(j.shorts?.finished);
+ const autoFinished=Boolean(j.auto?.finished&&hasFinalVideo);
+ const shortsFinished=Boolean(j.shorts?.finished&&(j.shorts?.items||[]).every(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url));
  const shortsItems=(j.shorts?.items||[]).filter(x=>x?.finished);
  const stageName=stageTitles[j.auto?.stage]||j.auto?.stage||'Pronto para iniciar';
  const shortsStageTitles={curiosities:'Extraindo curiosidades do vídeo principal',script:'Gerando roteiro do Short',voice:'Gerando narração do Short',transcription:'Transcrevendo para sincronização',direction:'Dirigindo cenas do Short',assets:'Selecionando mídia para o Short','motion-code':'GLM programando cenas verticais','preview-validation':'Validando composição do Short',done:'Todos os 5 Shorts prontos'};
@@ -494,7 +494,7 @@ function automaticPanel(j){
     <div>
      ${hasFinalVideo?'<span class="badge" style="background:#d4f3e0;color:#18613d;font-weight:700;">✓ VÍDEO FINAL RENDERIZADO</span>':
        isRenderRunning?`<span class="badge running" style="background:#b3e5fc;color:#01579b;font-weight:700;"><span class="pulse-dot" style="background:#01579b;"></span> RENDERIZANDO MP4 (${renderPct}%)...</span>`:
-       autoFinished?'<span class="badge review" style="background:#e8f5e9;color:#1b5e20;font-weight:700;">✓ PRONTO PARA ASSISTIR</span>':
+       j.auto?.preview?.ready?'<span class="badge review">MP4 PENDENTE</span>':
        isAutoRunning?'<span class="badge running"><span class="pulse-dot"></span> GERANDO PRODUÇÃO...</span>':
        '<span class="badge">NÃO INICIADO</span>'}
     </div>

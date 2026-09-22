@@ -126,9 +126,6 @@ async function run(j,action,options={}){
   }
   if(action==='render'){
    await renderFinalMP4(s,j,{root,dir,log});
-   if(existsSync(path.join(dir,'shorts',j.id))){
-    await renderAllShortsMP4(s,j,{root,dir,log});
-   }
    j.completed=[...new Set([...j.completed,'render'])];
    j.status='review';
    store.put(j);

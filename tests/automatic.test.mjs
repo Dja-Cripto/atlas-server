@@ -253,6 +253,10 @@ test('extractCuriosities, shortScript and shortVoice are exported from providers
  assert.equal(typeof mod.shortVoice,'function');
 });
 
+test('rejects useCurrentFrame imported from React',()=>{
+ assert.throws(()=>validateMotionCode("import {useCurrentFrame} from 'react'; export default function Scene(){return <div>{useCurrentFrame()}</div>}"),/exclusivamente de remotion/);
+});
+
 test('shorts module exports automaticShorts function',async()=>{
  const mod=await import('../lib/shorts.mjs');
  assert.equal(typeof mod.automaticShorts,'function');
