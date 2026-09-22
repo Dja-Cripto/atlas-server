@@ -1,5 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPlan,normalizeDirectionKind,enforceVisualBreathing,normalizeVisualTreatment} from '../lib/auto-plan.mjs';
 import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
 import {candidatePool} from '../lib/auto-media.mjs';
@@ -251,6 +252,13 @@ test('extractCuriosities, shortScript and shortVoice are exported from providers
  assert.equal(typeof mod.extractCuriosities,'function');
  assert.equal(typeof mod.shortScript,'function');
  assert.equal(typeof mod.shortVoice,'function');
+});
+
+test('automatic recovery reuses generated entry point and never calls bulk authoring from the validation loop',()=>{
+ const source=readFileSync(new URL('../lib/automatic.mjs',import.meta.url),'utf8');
+ const validationBlock=source.slice(source.indexOf("stage('preview-validation'"),source.indexOf("j.auto.preview={ready:true"));
+ assert.match(source,/Código visual existente reutilizado/);
+ assert.doesNotMatch(validationBlock,/authorMotion\(/);
 });
 
 test('rejects useCurrentFrame imported from React',()=>{
