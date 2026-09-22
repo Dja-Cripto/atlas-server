@@ -4,7 +4,15 @@ import {readFileSync} from 'node:fs';
 import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPlan,normalizeDirectionKind,enforceVisualBreathing,normalizeVisualTreatment} from '../lib/auto-plan.mjs';
 import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,sampleTimelineForDirector,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
 import {candidatePool} from '../lib/auto-media.mjs';
+import {canReuseValidatedPreview} from '../lib/automatic.mjs';
 import {parseRelaxedJSON,splitScriptIntoTTSChunks} from '../lib/providers.mjs';
+test('completed preview can resume MP4 render only for the same run and scene count',()=>{
+ const auto={preview:{ready:true,runId:'run-a'},previewValidation:{totalScenes:104}};
+ assert.equal(canReuseValidatedPreview(auto,'run-a',104),true);
+ assert.equal(canReuseValidatedPreview(auto,'run-b',104),false);
+ assert.equal(canReuseValidatedPreview(auto,'run-a',105),false);
+ assert.equal(canReuseValidatedPreview({preview:{ready:false,runId:'run-a'},previewValidation:{totalScenes:104}},'run-a',104),false);
+});
 test('normalizeMotionCode injects muted on OffthreadVideo and Video to prevent audio bleed',()=>{
  const videoCode="import {OffthreadVideo,Video,useCurrentFrame} from 'remotion';export default function Scene(){return <AbsoluteFill><OffthreadVideo src='a.mp4' /><Video style={{width:'100%'}} /></AbsoluteFill>;}";
  const normalized=normalizeMotionCode(videoCode);
