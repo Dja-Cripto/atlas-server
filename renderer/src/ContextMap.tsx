@@ -1,10 +1,10 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {AbsoluteFill,continueRender,delayRender,cancelRender,staticFile,useCurrentFrame,interpolate,Easing} from 'remotion';
-import {geoMercator,geoPath,geoCentroid} from 'd3-geo';
+import {geoMercator,geoPath,geoCentroid,geoBounds} from 'd3-geo';
 import type {FeatureCollection} from 'geojson';
 export const ContextMap:React.FC<{map:FeatureCollection;duration:number}>=({map,duration})=>{
  const f=useCurrentFrame();const [world,setWorld]=useState<FeatureCollection|null>(null);const [handle]=useState(()=>delayRender('Loading geographic basemap'));
- useEffect(()=>{let live=true;fetch(staticFile('auto/world.json')).then(r=>{if(!r.ok)throw Error('Geographic basemap unavailable');return r.json();}).then(data=>{if(live){setWorld(data);continueRender(handle);}}).catch(cancelRender);return()=>{live=false;};},[handle]);
+ useEffect(()=>{let live=true;fetch(staticFile('auto/world-background.json')).then(r=>{if(!r.ok)throw Error('Geographic basemap unavailable');return r.json();}).then(data=>{if(live){setWorld(data);continueRender(handle);}}).catch(cancelRender);return()=>{live=false;};},[handle]);
   const geometry=useMemo(()=>{
    const fit=geoMercator().fitExtent([[240,190],[1680,880]],map),center=fit.invert!([960,535])!,scale=Math.min(16000,Math.max(450,fit.scale())),projection=geoMercator().center(center).scale(scale).translate([960,560]),path=geoPath(projection);
    const focus=map.features.map(feature=>({path:path(feature)||'',point:projection(geoCentroid(feature))!,name:String(feature.properties?.name||''),focal:Boolean(feature.properties?.focal)}));
@@ -14,7 +14,15 @@ export const ContextMap:React.FC<{map:FeatureCollection;duration:number}>=({map,
     const mx=(p1[0]+p2[0])/2,my=Math.min(p1[1],p2[1])-Math.abs(p2[0]-p1[0])*.22-30;
     route={d:`M ${p1[0]} ${p1[1]} Q ${mx} ${my} ${p2[0]} ${p2[1]}`,p1,p2,mx,my};
    }
-   return {worldPaths:(world?.features||[]).map(feature=>path(feature)||''),focus,route};
+   const [[west,south],[east,north]]=geoBounds(map);
+   const canCrop=Number.isFinite(west)&&Number.isFinite(east)&&east>=west;
+   const lonPad=Math.max(8,(east-west)*.8),latPad=Math.max(6,(north-south)*.8);
+   const nearby=(world?.features||[]).filter(feature=>{
+    if(!canCrop)return true;
+    const [[w,s],[e,n]]=geoBounds(feature);
+    return e>=west-lonPad&&w<=east+lonPad&&n>=south-latPad&&s<=north+latPad;
+   });
+   return {worldPaths:nearby.map(feature=>path(feature)||''),focus,route};
   },[map,world]);
   const p=interpolate(f,[0,Math.max(45,duration*.8)],[0,1],{extrapolateRight:'clamp',easing:Easing.out(Easing.quad)}),zoom=.86+.14*p;
   return <AbsoluteFill style={{background:'#0c1922',overflow:'hidden'}}>

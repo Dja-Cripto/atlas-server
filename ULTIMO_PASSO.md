@@ -1,31 +1,28 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 23/09/2026, aproximadamente 15:30 (America/Bahia)
+**Atualizado em:** 23/09/2026, aproximadamente 16:25 (America/Bahia)
 
 ## Acesso e ambiente
 
-- Painel: `https://painel.setupdja.website`; VPS `ubuntu@137.131.171.144`.
-- Projeto no VPS: `/srv/atlas-studio`; serviço Docker Compose `atlas`, contêiner `atlas-studio`.
-- Publicação automática desligada. n8n, Cloudflare e painel do WhatsApp preservados.
+- Painel: `https://painel.setupdja.website`; VPS: `ubuntu@137.131.171.144`.
+- Código no VPS: `/srv/atlas-studio`; serviço Docker Compose `atlas`, contêiner `atlas-studio`.
+- Dados persistentes do Atlas: `/srv/robo/portal-bot/data/atlas-storage`.
+- n8n, Cloudflare e painel do WhatsApp preservados. O teste atual não cria Shorts nem publica conteúdo.
 
-## Monitoramento frame a frame em tempo real
+## Estado da produção
 
-- **Widget de progresso ao vivo (`liveProgressWidget`)**: painel dinâmico implementado tanto no topo do registro de atividades quanto no painel de finalização.
-- **Métricas ao vivo exibidas**:
-  - Contagem exata de quadros processados (`X / Y quadros`);
-  - Percentual com precisão decimal;
-  - Velocidade em quadros por segundo (`X.X quadros/s`);
-  - Tempo restante estimado dinâmico (`~Xh Ym` / `~X min`);
-  - Barra animada de alta visibilidade com efeito neon/gradiente.
-- **Otimização de decodificação no Remotion (`SceneBackdrop.tsx`)**: eliminado o carregamento duplicado de `<OffthreadVideo>` no fundo das cenas com vídeo em primeiro plano, aliviando o uso de CPU e evitando bloqueios de IPC.
-- **Persistência frequente**: status salvo a cada 1,5 segundos no SQLite e polling a cada 2 segundos no navegador.
+- A produção longa `54204f15-86ce-4fd5-8de6-b4d43c671a7a` foi interrompida e excluída, incluindo registro, mídias, código gerado e temporários exclusivos. Nenhum outro projeto foi removido.
+- Teste curto `25e8f356-46c1-490e-836b-d4315b19c609` (“Why the Dead Sea Is So Salty”): narração de 34,3 s, cinco cenas, sem Shorts. Cenas e mídias foram preservadas para diagnóstico.
+- O primeiro render do teste foi interrompido após 21/1.030 quadros por lentidão (cerca de 0,1 quadro/s). Ele foi reiniciado com a correção de mapa e segue em renderização; o MP4 final ainda não foi validado.
 
-## Produção em andamento
+## Correção e validação
 
-- Produção `54204f15-86ce-4fd5-8de6-b4d43c671a7a` (“Why Europe and Africa Still Have No Fixed Link”) mantém 100% dos dados e 104 cenas intactos.
-- Retomada limpa da renderização MP4 1080p no VPS com métricas ao vivo ativas.
+- O `ContextMap` agora usa uma base cartográfica de fundo Natural Earth 1:50m (~3 MB), carregada automaticamente quando necessário, em vez de desenhar a base mundial 1:10m (~13 MB). Só as fronteiras próximas ao assunto são desenhadas no fundo. Os contornos destacados continuam usando os dados detalhados 1:10m; resolução final permanece 1080p.
+- Benchmark no mesmo intervalo de oito quadros do mapa: 95 s original, 52 s após limitar a região, 16,5 s com a base de fundo 1:50m. Cenas de vídeo e foto no mesmo benchmark levaram 9,5 s e 13,7 s. Retirar o desfoque da foto produziu ganho pequeno e foi revertido para preservar o visual.
+- O painel permite duração de 0,5 minuto para testes. Script `scripts/benchmark_scene_windows.mjs` mede janelas de cenas reais sem renderizar o vídeo inteiro.
+- `npm test`: 77/77 aprovados. `eslint src/ContextMap.tsx`: aprovado. O lint geral do renderizador ainda aponta 154 erros preexistentes, principalmente em cenas geradas antigas.
 
-## Validação
+## Limites e próximo passo
 
-- 77/77 testes aprovados no `npm test`.
-- Teste real de renderização executado e validado em 60 quadros a 0.9 fps no servidor.
+- A previsão do render de 30 segundos caiu de cerca de quatro horas para aproximadamente meia hora após a correção; é uma previsão dinâmica, não o tempo final medido. Monitorar até gerar e validar o MP4 antes de extrapolar para vídeos longos.
+- Não iniciar Shorts ou outra produção longa neste teste. Depois do MP4, conferir visual do mapa, duração, reprodução e tempo total; só então decidir se a velocidade atende à meta de até oito horas para o vídeo principal.
