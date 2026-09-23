@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 23/09/2026, aproximadamente 15:18 (America/Bahia)
+**Atualizado em:** 23/09/2026, aproximadamente 15:30 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -8,24 +8,24 @@
 - Projeto no VPS: `/srv/atlas-studio`; serviço Docker Compose `atlas`, contêiner `atlas-studio`.
 - Publicação automática desligada. n8n, Cloudflare e painel do WhatsApp preservados.
 
-## Log e indicador de progresso em tempo real
+## Monitoramento frame a frame em tempo real
 
-- **Indicador dinâmico de progresso**: implementada barra de status ao vivo no cabeçalho do registro de atividades (`eventsCard`) e no painel final (`finalPanel`). Mostra a ação exata, percentual, contagem de quadros em tempo real (`X/Y quadros · 4 núcleos`) e barra animada com gradiente.
-- **Limpeza automática**: a linha dinâmica é exibida exclusivamente enquanto o robô está trabalhando e desaparece de forma limpa ao término da etapa, preservando o histórico de eventos sem poluir o registro permanente.
-- **Persistência desacelerada (throttling)**: o estado no backend (`lib/automatic.mjs` e `lib/shorts.mjs`) agora atualiza `j.auto.liveStatus`, `renderedFrames` e `renderProgress` a cada ~2 segundos no banco SQLite (`store.put(j)`), enquanto marcos permanentes de 5% e 100% são registrados no log.
-- **Polling inteligente no frontend**: `public/app.js` agora faz pooling a cada 2 segundos quando há processamento ativo ou renderização, 3.5 segundos na tela de detalhes e 8 segundos quando ocioso.
-
-## Pipeline e renderização
-
-- Preset Remotion: `x264Preset: 'ultrafast'`, `crf: 24`, cache de vídeo em RAM de 2 GB e 4 núcleos ARM64 dedicados no VPS.
-- Transcodificação prévia de B-rolls para 30 FPS / GOP 30 ativa.
+- **Widget de progresso ao vivo (`liveProgressWidget`)**: painel dinâmico implementado tanto no topo do registro de atividades quanto no painel de finalização.
+- **Métricas ao vivo exibidas**:
+  - Contagem exata de quadros processados (`X / Y quadros`);
+  - Percentual com precisão decimal;
+  - Velocidade em quadros por segundo (`X.X quadros/s`);
+  - Tempo restante estimado dinâmico (`~Xh Ym` / `~X min`);
+  - Barra animada de alta visibilidade com efeito neon/gradiente.
+- **Otimização de decodificação no Remotion (`SceneBackdrop.tsx`)**: eliminado o carregamento duplicado de `<OffthreadVideo>` no fundo das cenas com vídeo em primeiro plano, aliviando o uso de CPU e evitando bloqueios de IPC.
+- **Persistência frequente**: status salvo a cada 1,5 segundos no SQLite e polling a cada 2 segundos no navegador.
 
 ## Produção em andamento
 
-- Produção `54204f15-86ce-4fd5-8de6-b4d43c671a7a` (“Why Europe and Africa Still Have No Fixed Link”) mantém 100% dos arquivos e cenas salvos no disco persistente.
-- Processo de renderização ativo na máquina remota com consumo balanceado entre os 4 núcleos.
+- Produção `54204f15-86ce-4fd5-8de6-b4d43c671a7a` (“Why Europe and Africa Still Have No Fixed Link”) mantém 100% dos dados e 104 cenas intactos.
+- Retomada limpa da renderização MP4 1080p no VPS com métricas ao vivo ativas.
 
-## Validação e próximo passo
+## Validação
 
-- Testes automatizados: 77/77 testes aprovados no `npm test`.
-- Próximo passo: sincronizar código com o VPS (`git pull`), reiniciar o serviço web e acompanhar a finalização do MP4 1080p do vídeo principal.
+- 77/77 testes aprovados no `npm test`.
+- Teste real de renderização executado e validado em 60 quadros a 0.9 fps no servidor.

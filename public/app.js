@@ -462,6 +462,58 @@ function postProductionActions(j){
  </div>`;
 }
 
+function liveProgressWidget(j, isRenderRunning, isAutoRunning, renderPct) {
+ const show = isRenderRunning || Boolean(j.auto?.renderingMp4) || Boolean(j.auto?.liveStatus) || isAutoRunning;
+ if (!show) return '';
+ 
+ const renderedFrames = j.auto?.renderedFrames || 0;
+ const totalFrames = j.auto?.totalFrames || (j.automaticPlan?.shots?.length ? j.automaticPlan.shots.length * 150 : 0);
+ const exactPct = j.auto?.renderProgressExact || j.auto?.renderProgress || renderPct || 0;
+ const fps = j.auto?.renderFps || null;
+ const eta = j.auto?.renderEta || null;
+ const liveText = j.auto?.liveStatus || (isRenderRunning ? `Renderizando MP4 (${exactPct}%)... Processando quadros em 4 núcleos` : isAutoRunning ? 'Executando etapa da produção...' : 'Trabalhando...');
+ 
+ return `
+  <div style="margin-bottom:16px;padding:14px 18px;background:linear-gradient(135deg,#061727 0%,#0c2540 100%);border:1.5px solid #0288d1;border-radius:10px;box-shadow:0 4px 18px rgba(2,136,209,0.22);display:flex;flex-direction:column;gap:12px;color:#e1f5fe;">
+   <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#38bdf8;">
+     <span class="pulse-dot" style="background:#00e5ff;box-shadow:0 0 10px #00e5ff;"></span>
+     <span>⚡ PROCESSAMENTO EM TEMPO REAL NO SERVIDOR</span>
+     <span style="font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(2,136,209,0.35);color:#b3e5fc;font-weight:600;">4 núcleos ARM64</span>
+    </div>
+    <div style="font-size:17px;font-weight:800;color:#00e5ff;font-family:monospace;">
+     ${exactPct > 0 ? exactPct + '%' : 'Ativo'}
+    </div>
+   </div>
+
+   ${(totalFrames > 0 || renderedFrames > 0 || fps || eta) ? `
+   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);">
+    <div>
+     <small style="font-size:10px;color:#94a3b8;display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">Quadros Prontos</small>
+     <b style="font-size:14px;color:#f8fafc;font-family:monospace;">${renderedFrames.toLocaleString('pt-BR')}${totalFrames > 0 ? ' / ' + totalFrames.toLocaleString('pt-BR') : ''}</b>
+    </div>
+    <div>
+     <small style="font-size:10px;color:#94a3b8;display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">Velocidade</small>
+     <b style="font-size:14px;color:#38bdf8;font-family:monospace;">${fps ? fps + ' quadros/s' : 'Calculando...'}</b>
+    </div>
+    <div>
+     <small style="font-size:10px;color:#94a3b8;display:block;text-transform:uppercase;font-weight:700;letter-spacing:0.5px;">Tempo Restante</small>
+     <b style="font-size:14px;color:#a7f3d0;font-family:monospace;">${eta ? '~' + eta : 'Calculando...'}</b>
+    </div>
+   </div>` : ''}
+
+   <div style="display:flex;flex-direction:column;gap:6px;">
+    <div style="display:flex;justify-content:space-between;font-size:11.5px;color:#cbd5e1;">
+     <span style="font-weight:500;">${esc(liveText)}</span>
+     ${totalFrames > 0 ? `<span style="font-family:monospace;font-size:11px;color:#94a3b8;">${Math.min(100, Math.round((renderedFrames/totalFrames)*100))}%` : ''}</span>
+    </div>
+    <div style="width:100%;height:8px;background:rgba(255,255,255,0.12);border-radius:4px;overflow:hidden;position:relative;">
+     <div style="width:${Math.max(2, exactPct)}%;height:100%;background:linear-gradient(90deg,#0288d1 0%,#00e5ff 100%);border-radius:4px;transition:width 0.4s ease;box-shadow:0 0 10px #00e5ff;"></div>
+    </div>
+   </div>
+  </div>`;
+}
+
 function automaticPanel(j){
  const isRunning=j.status==='running';
  const isAutoRunning=isRunning&&j.current==='automatic';
@@ -747,23 +799,8 @@ function automaticPanel(j){
     <p>Últimas operações e eventos do robô nesta produção.</p>
    </div>
   </div>
-  <div style="padding:16px;max-height:300px;overflow-y:auto;">
-   ${(isRenderRunning||Boolean(j.auto?.renderingMp4)||Boolean(j.auto?.liveStatus)||isAutoRunning)?`
-    <div style="margin-bottom:14px;padding:12px 16px;background:linear-gradient(135deg,rgba(1,87,155,0.08),rgba(2,136,209,0.15));border:1.5px solid #0288d1;border-radius:8px;display:flex;flex-direction:column;gap:8px;">
-     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#01579b;">
-       <span class="pulse-dot" style="background:#0288d1;box-shadow:0 0 8px #0288d1;"></span>
-       <span>⚡ Processando ao Vivo:</span>
-       <span style="font-weight:600;color:#0277bd;">${esc(j.auto?.liveStatus||(isRenderRunning?`Renderizando MP4 (${renderPct}%)... Processando quadros em 4 núcleos`:isAutoRunning?'Executando etapa da produção...':'Trabalhando...'))}</span>
-      </div>
-      <span style="font-size:12px;font-weight:700;color:#01579b;">${renderPct>0?renderPct+'%':''}</span>
-     </div>
-     ${renderPct>0?`
-     <div style="width:100%;height:6px;background:#e1f5fe;border-radius:3px;overflow:hidden;">
-      <div style="width:${Math.max(2, renderPct)}%;height:100%;background:linear-gradient(90deg,#0288d1,#00e5ff);border-radius:3px;transition:width 0.4s ease;"></div>
-     </div>`:''}
-    </div>
-   `:''}
+  <div style="padding:16px;max-height:360px;overflow-y:auto;">
+   ${liveProgressWidget(j, isRenderRunning, isAutoRunning, renderPct)}
    ${(j.events||[]).slice().reverse().slice(0,20).map(e=>`
     <div class="event" style="padding:6px 0;font-size:12px;">
      <time style="color:#8ca093;font-size:10px;margin-right:10px;font-family:monospace;">${new Date(e.at).toLocaleTimeString('pt-BR')}</time>
@@ -818,22 +855,7 @@ function finalPanel(j){
   </div>
 
   <div style="padding:20px;">
-   ${(isRenderRunning||Boolean(j.auto?.renderingMp4)||Boolean(j.auto?.liveStatus))?`
-    <div style="margin-bottom:18px;padding:14px 18px;background:linear-gradient(135deg,rgba(1,87,155,0.08),rgba(2,136,209,0.15));border:1.5px solid #0288d1;border-radius:8px;display:flex;flex-direction:column;gap:10px;">
-     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#01579b;">
-       <span class="pulse-dot" style="background:#0288d1;box-shadow:0 0 8px #0288d1;"></span>
-       <span>⚡ Renderizando ao Vivo:</span>
-       <span style="font-weight:600;color:#0277bd;">${esc(j.auto?.liveStatus||(renderPct>0?`Renderizando MP4 (${renderPct}%)... Processando quadros em 4 núcleos`:'Iniciando renderização MP4...'))}</span>
-      </div>
-      <span style="font-size:13px;font-weight:700;color:#01579b;">${renderPct>0?renderPct+'%':''}</span>
-     </div>
-     ${renderPct>0?`
-     <div style="width:100%;height:8px;background:#e1f5fe;border-radius:4px;overflow:hidden;">
-      <div style="width:${Math.max(2, renderPct)}%;height:100%;background:linear-gradient(90deg,#0288d1,#00e5ff);border-radius:4px;transition:width 0.4s ease;"></div>
-     </div>`:''}
-    </div>
-   `:''}
+   ${liveProgressWidget(j, isRenderRunning, false, renderPct)}
    ${hasFinalVideo?`
     <div style="background:#0d1916;border-radius:10px;padding:16px;margin-bottom:18px;border:1px solid #1f3d35;">
      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
