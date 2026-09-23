@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 23/09/2026, aproximadamente 19:40 (America/Bahia)
+**Atualizado em:** 23/09/2026, aproximadamente 19:54 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -20,8 +20,10 @@
 - O mapa permanece como aprovado pelo usuário: fundo Natural Earth 1:50m com países próximos; países destacados usam contornos 1:10m. Vídeo final 1080p. Nenhum código, efeito, mapa ou concorrência de renderização foi alterado durante o teste de 1 minuto.
 - Benchmark anterior do mapa: 95 s para 8 quadros na versão original, 16,5 s após otimização. Retirar o desfoque da foto produziu ganho pequeno e foi revertido para preservar o visual.
 - No teste de 1 minuto, a taxa por cena oscilou: primeira filmagem e mapa ficaram por momentos abaixo de 1 quadro/s; outras cenas avançaram mais rápido. A média do render completo superou 1 quadro/s. Picos instantâneos não representam a média.
-- `npm test` na última alteração de código: 77/77 aprovados. Lint geral do renderizador ainda mostra erros preexistentes em cenas geradas antigas.
+- Refinamento instalado no VPS para futuras produções: roteiro longo abre uma pergunta concreta e a resolve com explicação gradual; Shorts mantêm ritmo breve e focado. A redação favorece variação natural de frases e ênfase pontual da voz. O planejador impede que pausas longas estendam um clipe planejado além de cerca de 8 s; o autor visual exige movimento perceptível e contínuo nas fotos. Mapa, renderizador, efeitos e concorrência permanecem iguais.
+- Sound design: música com redução de volume sob a fala já existe; não foram adicionados efeitos pontuais porque ainda faltam marcações de eventos e uma biblioteca aprovada, e sons genéricos seriam repetitivos.
+- Validação: `npm test` 78/78 aprovados, sintaxe dos três módulos aprovada no contêiner e Atlas `running healthy` após reinício isolado. Qualidade subjetiva da nova voz e tempo de vídeo longo + 5 Shorts ainda precisam de produção real. Lint geral do renderizador ainda mostra erros preexistentes em cenas geradas antigas.
 
 ## Próximo passo
 
-- Usuário pode assistir ao teste de 1 minuto no painel e avaliar qualidade. Para otimização futura, medir render por tipo de cena e testar mudanças isoladas em fotos/vídeos; manter a versão atual até demonstrar ganho sem perda visual. Não gerar Shorts nem publicar este teste sem novo pedido.
+- Na próxima produção, ouvir a voz, conferir o gancho e a movimentação das fotos e medir o tempo total do vídeo longo com 5 Shorts antes de afirmar que cabe em 10 horas. Teste de 1 minuto continua sem Shorts nem publicação. Somente considerar efeitos sonoros após definir pistas pontuais verificáveis e ouvir uma amostra.

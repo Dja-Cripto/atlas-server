@@ -173,6 +173,15 @@ test('audioSlots splits along sentence boundaries and pauses with comfortable du
  assert.match(slots[1].narration,/two major oceans\.$/);
 });
 
+test('long narration pauses do not hold the preceding video clip beyond eight seconds',()=>{
+ const words=Array.from({length:15},(_,i)=>({word:' word'+i,start:i*.4,end:i*.4+.3}));
+ words.push({word:' returns',start:10,end:10.4},{word:' now.',start:10.5,end:11});
+ const slots=audioSlots([{words}],11);
+ assert.ok(slots[0].end<=8);
+ assert.equal(slots[1].start,slots[0].end);
+ assert.equal(slots.at(-1).end,11);
+});
+
 test('long-form scene slots stay near seven seconds even without punctuation',()=>{
  const words=Array.from({length:50},(_,i)=>({word:' word'+i,start:i*.4,end:i*.4+.3}));
  const slots=audioSlots([{words}],20);
