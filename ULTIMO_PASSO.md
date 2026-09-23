@@ -1,28 +1,27 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 23/09/2026, aproximadamente 16:25 (America/Bahia)
+**Atualizado em:** 23/09/2026, aproximadamente 19:40 (America/Bahia)
 
 ## Acesso e ambiente
 
 - Painel: `https://painel.setupdja.website`; VPS: `ubuntu@137.131.171.144`.
 - Código no VPS: `/srv/atlas-studio`; serviço Docker Compose `atlas`, contêiner `atlas-studio`.
-- Dados persistentes do Atlas: `/srv/robo/portal-bot/data/atlas-storage`.
-- n8n, Cloudflare e painel do WhatsApp preservados. O teste atual não cria Shorts nem publica conteúdo.
+- Dados persistentes: `/srv/robo/portal-bot/data/atlas-storage`.
+- n8n, Cloudflare e painel do WhatsApp preservados. Publicação automática não foi ativada.
 
-## Estado da produção
+## Produções de teste
 
-- A produção longa `54204f15-86ce-4fd5-8de6-b4d43c671a7a` foi interrompida e excluída, incluindo registro, mídias, código gerado e temporários exclusivos. Nenhum outro projeto foi removido.
-- Teste curto `25e8f356-46c1-490e-836b-d4315b19c609` (“Why the Dead Sea Is So Salty”): narração de 34,3 s, cinco cenas, sem Shorts. Cenas e mídias foram preservadas para diagnóstico.
-- O primeiro render do teste foi interrompido após 21/1.030 quadros por lentidão (cerca de 0,1 quadro/s). Ele foi reiniciado com a correção de mapa e segue em renderização; o MP4 final ainda não foi validado.
+- Teste de 30 segundos `25e8f356-46c1-490e-836b-d4315b19c609` (“Why the Dead Sea Is So Salty”): MP4 final de 34,39 s em 1080p, capa e metadados prontos, status `review`. O render otimizado levou aproximadamente 13 min; nenhum Short foi gerado.
+- Teste solicitado de 1 minuto `72d29595-cb7b-4974-ba30-1db4969dc4cd`, mesmo tema, sem Shorts: finalizado em `review`. MP4 H.264/AAC de 53,547 s, 1920×1080, 61.466.627 bytes, capa e metadados confirmados por `ffprobe` e pelo estado `finalization.ready`. Vídeo: `/outputs/72d29595-cb7b-4974-ba30-1db4969dc4cd/video-3017aa34-745e-4139-915b-903c4131420c.mp4` no painel.
+- Teste de 1 minuto criado às 21:53:00 UTC e pronto para revisão às 22:37:36 UTC: aproximadamente 44 min 36 s no fluxo completo. Render de 1.605 quadros iniciado às 22:14:09 UTC e finalizado às 22:37:13 UTC: aproximadamente 23 min 04 s, média de 1,16 quadro/s. A etapa de programação visual demorou cerca de 17 minutos por correções e esperas do GLM; o vídeo não travou.
 
-## Correção e validação
+## Configuração e validação
 
-- O `ContextMap` agora usa uma base cartográfica de fundo Natural Earth 1:50m (~3 MB), carregada automaticamente quando necessário, em vez de desenhar a base mundial 1:10m (~13 MB). Só as fronteiras próximas ao assunto são desenhadas no fundo. Os contornos destacados continuam usando os dados detalhados 1:10m; resolução final permanece 1080p.
-- Benchmark no mesmo intervalo de oito quadros do mapa: 95 s original, 52 s após limitar a região, 16,5 s com a base de fundo 1:50m. Cenas de vídeo e foto no mesmo benchmark levaram 9,5 s e 13,7 s. Retirar o desfoque da foto produziu ganho pequeno e foi revertido para preservar o visual.
-- O painel permite duração de 0,5 minuto para testes. Script `scripts/benchmark_scene_windows.mjs` mede janelas de cenas reais sem renderizar o vídeo inteiro.
-- `npm test`: 77/77 aprovados. `eslint src/ContextMap.tsx`: aprovado. O lint geral do renderizador ainda aponta 154 erros preexistentes, principalmente em cenas geradas antigas.
+- O mapa permanece como aprovado pelo usuário: fundo Natural Earth 1:50m com países próximos; países destacados usam contornos 1:10m. Vídeo final 1080p. Nenhum código, efeito, mapa ou concorrência de renderização foi alterado durante o teste de 1 minuto.
+- Benchmark anterior do mapa: 95 s para 8 quadros na versão original, 16,5 s após otimização. Retirar o desfoque da foto produziu ganho pequeno e foi revertido para preservar o visual.
+- No teste de 1 minuto, a taxa por cena oscilou: primeira filmagem e mapa ficaram por momentos abaixo de 1 quadro/s; outras cenas avançaram mais rápido. A média do render completo superou 1 quadro/s. Picos instantâneos não representam a média.
+- `npm test` na última alteração de código: 77/77 aprovados. Lint geral do renderizador ainda mostra erros preexistentes em cenas geradas antigas.
 
-## Limites e próximo passo
+## Próximo passo
 
-- A previsão do render de 30 segundos caiu de cerca de quatro horas para aproximadamente meia hora após a correção; é uma previsão dinâmica, não o tempo final medido. Monitorar até gerar e validar o MP4 antes de extrapolar para vídeos longos.
-- Não iniciar Shorts ou outra produção longa neste teste. Depois do MP4, conferir visual do mapa, duração, reprodução e tempo total; só então decidir se a velocidade atende à meta de até oito horas para o vídeo principal.
+- Usuário pode assistir ao teste de 1 minuto no painel e avaliar qualidade. Para otimização futura, medir render por tipo de cena e testar mudanças isoladas em fotos/vídeos; manter a versão atual até demonstrar ganho sem perda visual. Não gerar Shorts nem publicar este teste sem novo pedido.
