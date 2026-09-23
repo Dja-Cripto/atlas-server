@@ -7,8 +7,9 @@ services:
     container_name: atlas-studio
     restart: unless-stopped
     init: true
-    cpus: 2
-    mem_limit: 8g
+    cpus: 3
+    mem_limit: 16g
+    memswap_limit: 20g
     shm_size: 1g
     security_opt:
       - no-new-privileges:true

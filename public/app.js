@@ -2,7 +2,7 @@ import {renderEditPlan,renderCovers,renderFootage} from './editing-ui.js';
 let shotFilter='';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const safeURL=u=>{try{const x=new URL(u,location.origin);return ['https:','http:'].includes(x.protocol)?esc(x.href):'#';}catch{return '#';}};
-let state={jobs:[],settings:{configured:{}}},scheduleData={queue:[],history:[],settings:{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']}},publishingData={settings:{enabled:false,youtube:true,facebook:true,youtubeMode:'scheduled'}},musicCatalog={categories:{},tracks:[]},hubData={todayJob:null,alerts:[],queue:[],channels:[]},topicsData={queue:[],alerts:[],settings:{autoRunTime:'00:00',enabled:true}},topicsFilter='pending',page='overview',selected=null,tab='research',lastFingerprint='',busy=false;
+let state={jobs:[],settings:{configured:{}}},stateLoaded=false,stateLoadError='',refreshPromise=null,scheduleData={queue:[],history:[],settings:{longTime:'13:00',shortTimes:['15:00','17:30','20:00','09:00','12:00']}},publishingData={settings:{enabled:false,youtube:true,facebook:true,youtubeMode:'scheduled'}},musicCatalog={categories:{},tracks:[]},hubData={todayJob:null,alerts:[],queue:[],channels:[]},topicsData={queue:[],alerts:[],settings:{autoRunTime:'00:00',enabled:true}},topicsFilter='pending',page='overview',selected=null,tab='research',lastFingerprint='',busy=false;
 const names={overview:'Hub Central',topics:'Banco de Pautas',projects:'Produções',library:'Biblioteca',schedule:'Agendamento & Fila',settings:'Integrações',detail:'Produção'};
 const statusNames={draft:'Rascunho',running:'Em andamento',review:'Para revisar',error:'Precisa de atenção',interrupted:'Interrompido',scheduled:'Agendado',done:'Concluído'};
 const stepNames={research:'Pesquisa',script:'Roteiro',scenes:'Plano de cenas',media:'Filmagens',voice:'Narração',thumbnail:'Capa'};
@@ -59,6 +59,7 @@ function hideLogin(){
 async function api(url,data,method){
  const opts={method:method||(data===undefined?'GET':'POST'),headers:{}};
  if(data!==undefined){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(data);}
+ if(url==='/api/state')opts.signal=AbortSignal.timeout(20000);
  const r=await fetch(url,opts);
  if(r.status===401&&!url.startsWith('/api/auth/login')){
   showLogin('Sessão expirada. Digite sua senha novamente.');
@@ -197,7 +198,7 @@ function overview(){
   </div>
   <div class="stats">${[
    ['Pautas na Fila',pendingTopics.length,'Próximos temas que o robô vai produzir','▥'],
-   ['Produções no Servidor',jobs.length,'Vídeos longos no acervo','▤'],
+   ['Produções no Servidor',stateLoaded?jobs.length:'—','Vídeos longos no acervo','▤'],
    ['Shorts no Acervo',jobs.reduce((acc,j)=>(acc+(j.shorts?.items?.filter(x=>x?.finished)?.length||(j.generateShorts?5:0))),0),'Cortes 9:16 gerados','▧'],
    ['Agendador 24/7',topicsData.settings?.autoRunTime||'00:00',topicsData.settings?.enabled?'Disparo noturno ativo':'Pausado','⚙']
   ].map(([label,n,sub,icon])=>`<div class="stat"><div class="stat-top">${label}<span class="stat-icon">${icon}</span></div><div class="stat-value">${n}</div><small>${sub}</small></div>`).join('')}</div>
@@ -319,7 +320,7 @@ function topicsPage(){
   </section>`;
 }
 
-function projects(){return heading('Suas produções','Todas as ideias e etapas, em um só lugar.')+`<div class="page-toolbar"><input id="filter" aria-label="Buscar produções" placeholder="Buscar pelo título do vídeo..."></div><section class="panel" id="job-list">${state.jobs.length?state.jobs.map(row).join(''):empty('Nada por aqui ainda','Comece com a pergunta que você gostaria de responder.','<button class="primary" data-new>Nova produção</button>')}</section>`;}
+function projects(){if(!stateLoaded)return heading('Suas produções','Todas as ideias e etapas, em um só lugar.')+`<div class="error-box">Não foi possível carregar a lista do servidor. A conexão será tentada novamente; nenhum projeto foi apagado.</div>`;return heading('Suas produções','Todas as ideias e etapas, em um só lugar.')+`<div class="page-toolbar"><input id="filter" aria-label="Buscar produções" placeholder="Buscar pelo título do vídeo..."></div><section class="panel" id="job-list">${state.jobs.length?state.jobs.map(row).join(''):empty('Nada por aqui ainda','Comece com a pergunta que você gostaria de responder.','<button class="primary" data-new>Nova produção</button>')}</section>`;}
 function pilotCard(j){return j.pilot?`<section class="panel library-item"><h3>Piloto · Luxemburgo</h3><video class="output-image" controls preload="metadata" src="${esc(j.pilot)}"></video><p>33 segundos · Montagem supervisionada de teste</p><a href="${esc(j.pilot)}" download>Baixar piloto MP4</a></section>`:'';}
 
 function library(){
@@ -1039,13 +1040,14 @@ function render(){
  $('#nav-count').textContent=state.jobs.length;
  const topicsBadge=$('#topics-count');
  if(topicsBadge) topicsBadge.textContent=(topicsData.queue||[]).filter(t=>t.status==='pending').length;
- $('#content').innerHTML=({overview,topics:topicsPage,projects,library,schedule,settings,detail}[page])();
+ $('#content').innerHTML=(stateLoadError?`<div class="error-box">${esc(stateLoadError)}</div>`:'')+({overview,topics:topicsPage,projects,library,schedule,settings,detail}[page])();
 }
 
-async function refresh(force=false){
+async function refreshState(force=false){
  const next=await api('/api/state');
  const fingerprint=JSON.stringify(next);
  state=next;
+ stateLoaded=true;stateLoadError='';
  hubData=await api('/api/hub').catch(()=>hubData);
  topicsData=await api('/api/topics').catch(()=>topicsData);
  const topicsBadge=$('#topics-count');
@@ -1061,6 +1063,16 @@ async function refresh(force=false){
   lastFingerprint=fingerprint;
   if(force||!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)&&page!=='settings')render();
  }
+}
+
+async function refresh(force=false){
+ if(refreshPromise)return force?refreshPromise.then(()=>render()):refreshPromise;
+ refreshPromise=refreshState(force).catch(error=>{
+  stateLoadError='Não foi possível atualizar as produções. Tentando novamente.';
+  render();
+  throw error;
+ }).finally(()=>{refreshPromise=null;});
+ return refreshPromise;
 }
 
 document.addEventListener('click',async e=>{
@@ -1560,4 +1572,4 @@ setInterval(()=>{
  if(overlay&&overlay.classList.contains('hidden')){
   refresh().catch(()=>{});
  }
-},2500);
+},10000);

@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 22/09/2026, aproximadamente 20:30 (America/Bahia)
+**Atualizado em:** 23/09/2026, aproximadamente 13:20 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -27,4 +27,4 @@
 
 - Sintaxe verificada e `npm test`: 77/77 testes aprovados. O teste de API cobre gravação e limite da direção editorial.
 - Revisão anterior `854366e` instalada e saudável no VPS; painel HTTP 200. Teste sintético confirmou um Short por chamada e bloqueio sem pacote principal.
-- Revisões `f23c8ac`, `0f7a229` e `ee73e17` instaladas no VPS; contêiner saudável. O job retomou sem reprogramar ou revalidar as 104 cenas. O Chromium está ativo e quadros JPEG temporários estão sendo criados, mas o painel ainda marca 0% e o MP4 não foi concluído. Próximo passo: acompanhar o render até obter MP4 verificável por ffprobe e disponível em Final & Publicação; se os quadros pararem de avançar, diagnosticar a cena e corrigir o gerador antes de outra produção. Falhas externas devem bloquear o avanço preservando o progresso.
+- Em 23/09, o projeto parecia ter sumido do painel, mas o registro completo permaneceu no SQLite persistente (1 produção, mesmo ID e título). O render principal chegou a 40%. O contêiner Atlas atingiu o limite antigo de 8 GB e a API deixou de responder até para a checagem de saúde. O limite foi elevado ao vivo para 16 GB de RAM, 20 GB com swap e 3 CPUs, sem reiniciar: a API autenticada voltou a responder em 0,14 s e listou a produção; o contêiner voltou a saudável. O Compose e o painel foram ajustados para persistir os limites, impedir consultas de estado sobrepostas e distinguir falha de carregamento de lista vazia. n8n, Cloudflare e WhatsApp não foram alterados. O MP4 ainda não terminou. Próximo passo: acompanhar o render até MP4 verificável por ffprobe e visível em Final & Publicação; observar memória e progresso, sem iniciar Shorts antes disso.
