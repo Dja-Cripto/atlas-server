@@ -9,7 +9,7 @@ export const SceneBackdrop:FC<{scene:Scene;backgroundScene?:Scene|null;duration:
  const frame=useCurrentFrame();
  if(scene.map)return <ContextMap map={scene.map} duration={duration}/>;
  const asset=backgroundScene?.asset || scene?.asset;
- if(!asset || !asset.src){
+ if(!asset || !asset.src || asset.kind==='video'){
   const drift=interpolate(frame,[0,Math.max(1,duration)],[-3,3],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
   return <AbsoluteFill
     style={{
@@ -34,7 +34,7 @@ export const SceneBackdrop:FC<{scene:Scene;backgroundScene?:Scene|null;duration:
  const scale=interpolate(frame,[0,Math.max(1,duration)],[1.04,1.1],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
  const style={width:'100%',height:'100%',objectFit:'cover' as const,filter:'blur(12px) brightness(.48) saturate(.78)',scale};
  return <AbsoluteFill style={{overflow:'hidden',backgroundColor:'#17221f'}}>
-  {asset.kind==='video'?<OffthreadVideo muted src={staticFile(asset.src)} startFrom={Math.round((asset.trimStart||0)*30)} style={style}/>:<Img src={staticFile(asset.src)} style={style}/>} 
+  <Img src={staticFile(asset.src)} style={style}/> 
   <AbsoluteFill style={{background:'linear-gradient(120deg,rgba(5,16,14,.30),rgba(8,18,17,.62))'}}/>
  </AbsoluteFill>;
 };
