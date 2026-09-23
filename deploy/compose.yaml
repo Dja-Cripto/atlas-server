@@ -34,6 +34,7 @@ services:
       - /srv/robo/portal-bot/data/atlas-storage/generated:/app/renderer/src/generated
       - ../renderer/.models:/app/renderer/.models
       - ../lib:/app/lib:ro
+      - ../public:/app/public:ro
       - ../scripts:/app/scripts:ro
       - ../server.mjs:/app/server.mjs:ro
       - /srv/robo/portal-bot/secrets/panel:/srv/robo/portal-bot/secrets/panel:ro
