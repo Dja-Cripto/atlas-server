@@ -102,8 +102,8 @@ async function run(j,action,options={}){
  log(j,labels[action]+' iniciada.');
  try{
   if(action==='automatic'){
-   await automatic(s,j,{root,dir,log});
-   await finalizeMainPackage(s,j,{root,dir,log});
+   await automatic(s,j,{root,dir,log,store});
+   await finalizeMainPackage(s,j,{root,dir,log,store});
    j.completed=[...new Set([...j.completed,'automatic','render'])];
    j.auto={...j.auto,finished:true,stage:'done',progress:100};
    store.put(j);
@@ -113,13 +113,13 @@ async function run(j,action,options={}){
   }
   if(action==='shorts'){
    await finalizeMainPackage(s,j,{root,dir,log});
-   const result=await automaticShorts(s,j,{root,dir,log});
+   const result=await automaticShorts(s,j,{root,dir,log,store});
    if(result.finished)j.completed=[...new Set([...j.completed,'shorts'])];
    j.status='review';
    store.put(j);
    log(j,result.finished?'Todos os Shorts finalizados e renderizados com sucesso!':`Short ${result.nextIndex}/${result.total} pronto para assistir. Inicie o próximo após revisar este.`);
   }  if(action==='render'){
-   await renderFinalMP4(s,j,{root,dir,log});
+   await renderFinalMP4(s,j,{root,dir,log,store});
    await finalizeMainPackage(s,j,{root,dir,log});
    j.completed=[...new Set([...j.completed,'render'])];
    j.status='review';

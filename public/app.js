@@ -747,7 +747,23 @@ function automaticPanel(j){
     <p>Últimas operações e eventos do robô nesta produção.</p>
    </div>
   </div>
-  <div style="padding:16px;max-height:260px;overflow-y:auto;">
+  <div style="padding:16px;max-height:300px;overflow-y:auto;">
+   ${(isRenderRunning||Boolean(j.auto?.renderingMp4)||Boolean(j.auto?.liveStatus)||isAutoRunning)?`
+    <div style="margin-bottom:14px;padding:12px 16px;background:linear-gradient(135deg,rgba(1,87,155,0.08),rgba(2,136,209,0.15));border:1.5px solid #0288d1;border-radius:8px;display:flex;flex-direction:column;gap:8px;">
+     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#01579b;">
+       <span class="pulse-dot" style="background:#0288d1;box-shadow:0 0 8px #0288d1;"></span>
+       <span>⚡ Processando ao Vivo:</span>
+       <span style="font-weight:600;color:#0277bd;">${esc(j.auto?.liveStatus||(isRenderRunning?`Renderizando MP4 (${renderPct}%)... Processando quadros em 4 núcleos`:isAutoRunning?'Executando etapa da produção...':'Trabalhando...'))}</span>
+      </div>
+      <span style="font-size:12px;font-weight:700;color:#01579b;">${renderPct>0?renderPct+'%':''}</span>
+     </div>
+     ${renderPct>0?`
+     <div style="width:100%;height:6px;background:#e1f5fe;border-radius:3px;overflow:hidden;">
+      <div style="width:${Math.max(2, renderPct)}%;height:100%;background:linear-gradient(90deg,#0288d1,#00e5ff);border-radius:3px;transition:width 0.4s ease;"></div>
+     </div>`:''}
+    </div>
+   `:''}
    ${(j.events||[]).slice().reverse().slice(0,20).map(e=>`
     <div class="event" style="padding:6px 0;font-size:12px;">
      <time style="color:#8ca093;font-size:10px;margin-right:10px;font-family:monospace;">${new Date(e.at).toLocaleTimeString('pt-BR')}</time>
@@ -802,6 +818,22 @@ function finalPanel(j){
   </div>
 
   <div style="padding:20px;">
+   ${(isRenderRunning||Boolean(j.auto?.renderingMp4)||Boolean(j.auto?.liveStatus))?`
+    <div style="margin-bottom:18px;padding:14px 18px;background:linear-gradient(135deg,rgba(1,87,155,0.08),rgba(2,136,209,0.15));border:1.5px solid #0288d1;border-radius:8px;display:flex;flex-direction:column;gap:10px;">
+     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#01579b;">
+       <span class="pulse-dot" style="background:#0288d1;box-shadow:0 0 8px #0288d1;"></span>
+       <span>⚡ Renderizando ao Vivo:</span>
+       <span style="font-weight:600;color:#0277bd;">${esc(j.auto?.liveStatus||(renderPct>0?`Renderizando MP4 (${renderPct}%)... Processando quadros em 4 núcleos`:'Iniciando renderização MP4...'))}</span>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:#01579b;">${renderPct>0?renderPct+'%':''}</span>
+     </div>
+     ${renderPct>0?`
+     <div style="width:100%;height:8px;background:#e1f5fe;border-radius:4px;overflow:hidden;">
+      <div style="width:${Math.max(2, renderPct)}%;height:100%;background:linear-gradient(90deg,#0288d1,#00e5ff);border-radius:4px;transition:width 0.4s ease;"></div>
+     </div>`:''}
+    </div>
+   `:''}
    ${hasFinalVideo?`
     <div style="background:#0d1916;border-radius:10px;padding:16px;margin-bottom:18px;border:1px solid #1f3d35;">
      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
@@ -1567,9 +1599,17 @@ async function initApp(){
 }
 
 await initApp();
-setInterval(()=>{
+let pollTimer=null;
+function scheduleNextPoll(){
+ clearTimeout(pollTimer);
  const overlay=$('#login-overlay');
- if(overlay&&overlay.classList.contains('hidden')){
-  refresh().catch(()=>{});
- }
-},10000);
+ const hasActiveWork=(state.jobs||[]).some(x=>x.status==='running'||Boolean(x.auto?.renderingMp4)||Boolean(x.auto?.liveStatus));
+ const delay=hasActiveWork?2000:(page==='detail'?3500:8000);
+ pollTimer=setTimeout(async()=>{
+  if(!overlay||overlay.classList.contains('hidden')){
+   await refresh().catch(()=>{});
+  }
+  scheduleNextPoll();
+ },delay);
+}
+scheduleNextPoll();
