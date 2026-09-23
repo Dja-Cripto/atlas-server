@@ -7,10 +7,10 @@ services:
     container_name: atlas-studio
     restart: unless-stopped
     init: true
-    cpus: 3
-    mem_limit: 16g
-    memswap_limit: 20g
-    shm_size: 1g
+    cpus: 4
+    mem_limit: 20g
+    memswap_limit: 24g
+    shm_size: 4g
     security_opt:
       - no-new-privileges:true
     ports:
@@ -22,7 +22,7 @@ services:
     environment:
       PORT: 3000
       HOST: 0.0.0.0
-      ATLAS_RENDER_CONCURRENCY: 2
+      ATLAS_RENDER_CONCURRENCY: 4
       TMPDIR: /app/.temp
     volumes:
       - /srv/robo/portal-bot/data/atlas-storage/data:/app/data
