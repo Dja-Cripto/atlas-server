@@ -34,8 +34,8 @@ store.put(j);
 try {
   // Step 1: Long Video (produces code + renders MP4)
   log(j, 'Verificando e finalizando vídeo principal...');
-  await automatic(s, j, { root, dir, log });
-  await finalizeMainPackage(s,j,{root,dir,log});
+  await automatic(s, j, { root, dir, log, store });
+  await finalizeMainPackage(s, j, { root, dir, log, store });
   j.completed = [...new Set([...(j.completed || []), 'automatic', 'render'])];
   store.put(j);
 
