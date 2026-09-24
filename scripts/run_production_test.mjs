@@ -23,7 +23,8 @@ const now = new Date().toISOString();
 const job = {
   id: jobId,
   title: topicTitle,
-  targetDuration,
+  minutes: 1,
+  targetDuration: 55,
   shortsCount: 1, // Generate exactly 1 short
   completed: [],
   status: 'running',
