@@ -32,9 +32,9 @@ export const SceneBackdrop:FC<{scene:Scene;backgroundScene?:Scene|null;duration:
   </AbsoluteFill>;
  }
  const scale=interpolate(frame,[0,Math.max(1,duration)],[1.04,1.1],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
- const style={width:'100%',height:'100%',objectFit:'cover' as const,filter:'blur(12px) brightness(.48) saturate(.78)',scale};
- return <AbsoluteFill style={{overflow:'hidden',backgroundColor:'#17221f'}}>
+ const style={width:'100%',height:'100%',objectFit:'cover' as const,opacity:0.18,scale};
+ return <AbsoluteFill style={{overflow:'hidden',backgroundColor:'#0f1a18'}}>
   <Img src={staticFile(asset.src)} style={style}/> 
-  <AbsoluteFill style={{background:'linear-gradient(120deg,rgba(5,16,14,.30),rgba(8,18,17,.62))'}}/>
+  <AbsoluteFill style={{background:'linear-gradient(120deg,rgba(5,16,14,.72),rgba(8,18,17,.85))'}}/>
  </AbsoluteFill>;
 };

@@ -1,28 +1,32 @@
-# Atlas Studio — Visual V2
-**Atualizado em:** 24/09/2026, aproximadamente 18:45 (America/Bahia).
+# Atlas Studio — Otimização de Renderização Visual V2 (CPU ARM64)
+**Atualizado em:** 24/09/2026, aproximadamente 20:10 (America/Bahia).
 
 ## Checkpoint e versão
 - V1 estável: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`, enviada ao GitHub.
 - Imagem V1 preservada no VPS: `atlas-studio:visual-v1-checkpoint-2026-09-24`.
-- V2: branch `codex/atlas-visual-v2`. Procedimento de reversão em `CHECKPOINTS.md`.
-- Neste registro, V2 validada localmente; implantação no VPS é o próximo passo. Painel: https://painel.setupdja.website; código do servidor: /srv/atlas-studio.
+- V2: branch `codex/atlas-visual-v2` e `main`. Procedimento de reversão em `CHECKPOINTS.md`.
+- Painel: https://painel.setupdja.website; código do servidor: /srv/atlas-studio.
 
 ## Alterações
-- Mesma preparação geográfica para vídeos longos, Shorts e recuperação de mídia. Mapas adaptam o enquadramento a 16:9 e 9:16; ligação apenas com origem/destino explícitos e citação disponível. Ligações são identificadas como esquemáticas.
-- Mapas consecutivos e efeitos consecutivos permitidos quando avançam a explicação.
-- Regra do Daniel: vídeo descritivo pode ficar limpo; fotografia sempre precisa de movimento/efeito; números, datas, idade, dimensões ou fatos explicativos narrados recebem animação relevante. Sem cotas que removam explicações necessárias.
-- Recuperação tenta corrigir somente a cena defeituosa; alternativas científicas dependem do mecanismo explícito da narração. Água fria não aciona diagrama de ferro.
-- Validação de início/meio/fim com navegador compartilhado; pendências visuais e alternativas registradas. Pausas em vídeo não são bloqueadas por detector de congelamento.
-- Preparação de trechos curtos com cache compartilhado, duração conferida, correção do reaproveitamento de seleção; tempos por etapa registrados.
-- Timeout de programação ajustável por ATLAS_MOTION_TIMEOUT_MS (padrão 240 s; 60–420 s). Tentativas e continuidade preservadas.
+- **Eliminação de camadas duplicadas e blur pesado**:
+  - Removido `filter: blur(12px)` e `blur(16px)` de `SceneBackdrop.tsx` e `ShortsBackdrop.tsx`, substituindo por cor sólida escura `#0f1a18` com opacidade suave e gradiente, mantendo a estética cinematográfica sem custo de convolução gaussiana na CPU.
+  - Em `motion-author.mjs`, o `SceneBackdrop` não é mais montado em cenas que já possuem imagem ou vídeo (evita decodificação dupla da mídia por quadro).
+- **Restrições de performance no GLM e validação**:
+  - `sceneContract`: adicionada seção obrigatória de restrições para CPU (proibição de `backdropFilter`, filtros SVG como `feTurbulence`, `mixBlendMode`, e teto de raio de sombra a <= 6px).
+  - `validateMotionCode`: rejeita `mixBlendMode`, `backdropFilter`, elementos `<filter>` e primitivas `<fe*>`.
+  - `normalizeMotionCode`: remove automaticamente resquícios de `backdropFilter`, `mixBlendMode`, `<feTurbulence>`, `<feGaussianBlur>`, `<feColorMatrix>` e `<filter>`.
+  - `generateFallbackSceneCode`: removido `backdropFilter: 'blur(8px)'`.
+- **Otimização de mapas SVG**:
+  - `ContextMap.tsx`: o zoom dinâmico foi migrado da matriz `<g transform="scale(...)">` para transformação CSS no container `<svg>`, permitindo que o Chromium reaproveite a rasterização vetorial em cache em vez de recalcular caminhos do GeoJSON por frame.
+- **Configurações do Remotion para ARM64**:
+  - `render-runtime.mjs`: `gl` atualizado para `angle-egl` com flags `--disable-gpu`, `--disable-software-rasterizer` e `--disable-dev-shm-usage`. Concorrência padrão ajustada de 4 para 2 para eliminar concorrência excessiva de threads no VPS de 4 vCPUs.
+- **Transições no AutomaticVideo**:
+  - Removido blur animado em `<Freeze>`, substituído por fade de opacidade simples.
 
 ## Validação e limites
-- 96 testes locais aprovados; TypeScript aprovado.
-- Integração real dos dois geradores: 18 quadros e dois MP4s técnicos curtos, com render a 50% de escala; mapas conferidos horizontal/vertical. Conversão de trecho Full HD testada com FFmpeg.
-- Sem chamadas pagas de geração; sem reescrever produções antigas.
-- Aprovação editorial de uma nova produção completa e medição de tempo real no VPS continuam pendentes. Países e ligações esquemáticas não representam rotas locais medidas.
-- Diagramas desconhecidos sem reparo válido podem continuar pendentes para evitar explicações inventadas.
-- Publicação automática deve permanecer desabilitada.
+- 96/96 testes automatizados aprovados no Node.js (`npm test`).
+- Nenhuma dependência externa adicionada; integridade de dados e credenciais preservada.
+- Validação da nova taxa de quadros (FPS) real no VPS pendente de execução imediata.
 
 ## Próximo passo
-Implantar V2, conferir saúde do painel e então avaliar uma nova produção pelo painel. Se necessário, restaurar V1 conforme CHECKPOINTS.md, preservando dados e credenciais.
+Enviar alterações ao GitHub, atualizar o código no VPS (`/srv/atlas-studio`), regenerar a produção de teste de 1 minuto + Short e monitorar os FPS de renderização no log.

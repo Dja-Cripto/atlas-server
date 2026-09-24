@@ -26,14 +26,14 @@ export const ContextMap:React.FC<{map:FeatureCollection & {atlasRoute?:{from:num
   },[map,world,width,height,portrait]);
   const p=interpolate(f,[0,Math.max(45,duration*.8)],[0,1],{extrapolateRight:'clamp',easing:Easing.out(Easing.quad)}),zoom=.94+.06*p;
   return <AbsoluteFill style={{background:'#0c1922',overflow:'hidden'}}>
-   <svg width={width} height={height}>
+    <svg width={width} height={height} style={{transform:`scale(${zoom})`,transformOrigin:'center center'}}>
     <defs>
      <pattern id="map-grid" width="96" height="96" patternUnits="userSpaceOnUse">
       <path d="M96 0H0V96" fill="none" stroke="#68938a" strokeWidth={1} opacity=".07"/>
      </pattern>
     </defs>
     <rect width={width} height={height} fill="url(#map-grid)"/>
-    <g transform={`translate(${width/2} ${height/2}) scale(${zoom}) translate(${-width/2} ${-height/2})`}>
+    <g>
      {geometry.worldPaths.map((d,i)=><path key={`w-${i}`} d={d} fill="#182b35" stroke="#2a424e" strokeWidth={1}/>)}
      {geometry.focus.map((feature,i)=><path key={'country-'+i} d={feature.path} fill={feature.focal?'#d49a42':'#2a5a54'} fillOpacity={.8} stroke={feature.focal?'#ffd485':'#52b2a4'} strokeWidth={2}/>)}
      {geometry.route&&(()=>{

@@ -29,9 +29,9 @@ export const ShortsBackdrop:FC<{scene:Scene;backgroundScene?:Scene|null;duration
   </AbsoluteFill>;
  }
  const scale=interpolate(frame,[0,Math.max(1,duration)],[1.04,1.1],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
- const style={width:'100%',height:'100%',objectFit:'cover' as const,filter:'blur(16px) brightness(.45) saturate(.85)',scale};
- return <AbsoluteFill style={{overflow:'hidden',backgroundColor:'#17221f'}}>
+ const style={width:'100%',height:'100%',objectFit:'cover' as const,opacity:0.15,scale};
+ return <AbsoluteFill style={{overflow:'hidden',backgroundColor:'#0f1a18'}}>
   {asset.kind==='video'?<OffthreadVideo muted src={staticFile(asset.src)} startFrom={Math.round((asset.trimStart||0)*30)} style={style}/>:<Img src={staticFile(asset.src)} style={style}/>} 
-  <AbsoluteFill style={{background:'linear-gradient(160deg,rgba(5,16,14,.30),rgba(8,18,17,.70))'}}/>
+  <AbsoluteFill style={{background:'linear-gradient(160deg,rgba(5,16,14,.75),rgba(8,18,17,.88))'}}/>
  </AbsoluteFill>;
 };
