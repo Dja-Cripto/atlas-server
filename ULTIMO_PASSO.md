@@ -1,37 +1,24 @@
-# Atlas Studio — Otimização de Renderização Visual V2 (CPU ARM64)
-**Atualizado em:** 24/09/2026, aproximadamente 20:35 (America/Bahia).
+# Atlas Studio — Correção de Mapas e Continuidade Visual de Fundo
+**Atualizado em:** 24/09/2026, aproximadamente 21:00 (America/Bahia).
 
 ## Checkpoint e versão
 - V1 estável: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`, enviada ao GitHub.
 - Imagem V1 preservada no VPS: `atlas-studio:visual-v1-checkpoint-2026-09-24`.
-- V2: branch `codex/atlas-visual-v2` e `main`. Commit `3211e32`. Procedimento de reversão em `CHECKPOINTS.md`.
+- V2: branch `codex/atlas-visual-v2` e `main`. Procedimento de reversão em `CHECKPOINTS.md`.
 - Painel: https://painel.setupdja.website; código do servidor: /srv/atlas-studio.
 
 ## Alterações
-- **Eliminação de camadas duplicadas e blur pesado**:
-  - Removido `filter: blur(12px)` e `blur(16px)` de `SceneBackdrop.tsx` e `ShortsBackdrop.tsx`, substituindo por cor sólida escura `#0f1a18` com opacidade suave e gradiente.
-  - Em `motion-author.mjs`, o `SceneBackdrop` não é mais montado em cenas que já possuem imagem ou vídeo (evita decodificação dupla da mídia por quadro).
-- **Restrições de performance no GLM e validação**:
-  - `sceneContract`: adicionada seção obrigatória de restrições para CPU (proibição de `backdropFilter`, filtros SVG como `feTurbulence`, `mixBlendMode`, e teto de raio de sombra a <= 6px).
-  - `validateMotionCode`: rejeita `mixBlendMode`, `backdropFilter`, elementos `<filter>` e primitivas `<fe*>`.
-  - `normalizeMotionCode`: remove automaticamente resquícios de `backdropFilter`, `mixBlendMode`, `<feTurbulence>`, `<feGaussianBlur>`, `<feColorMatrix>` e `<filter>`.
-  - `generateFallbackSceneCode`: removido `backdropFilter: 'blur(8px)'`.
-- **Otimização de mapas SVG**:
-  - `ContextMap.tsx`: o zoom dinâmico foi migrado da matriz `<g transform="scale(...)">` para transformação CSS no container `<svg>`, reaproveitando cache vetorial.
-- **Configurações do Remotion para ARM64**:
-  - `render-runtime.mjs`: `gl` atualizado para `angle-egl` com flags `--disable-gpu`, `--disable-software-rasterizer` e `--disable-dev-shm-usage`. Concorrência ajustada para 2.
-- **Transições no AutomaticVideo**:
-  - Removido blur animado em `<Freeze>`, substituído por fade de opacidade simples.
+- **Correção da renderização de mapas cartográficos**:
+  - Em `lib/motion-author.mjs`, corrigida a condição de montagem do `SceneBackdrop` de `!scene.asset && !scene.map` para `Boolean(scene.map || !scene.asset)`. Quando uma cena possuía mapa (`scene.map`), a negação anterior desabilitava o `SceneBackdrop`, impedindo que o `ContextMap` fosse montado e deixando a tela preta com apenas o texto overlay.
+- **Herança de mapa e mídia em cenas de texto/título**:
+  - Em `renderer/src/SceneBackdrop.tsx` e `renderer/src/ShortsBackdrop.tsx`, adicionada verificação de mapa herdado: `if(backgroundScene?.map && !scene.asset) return <ContextMap map={backgroundScene.map} duration={duration}/>;`. Quando uma cena de texto sucede uma cena de mapa (ex: títulos e explicações geopolíticas), o mapa continua visível por baixo da tipografia animada, eliminando telas com apenas degradê vazio.
+  - Restaurado suporte a vídeo de fundo herdado via `<OffthreadVideo>` com opacidade reduzida e sobreposição escura suave (sem blur pesado de CPU).
+  - Em `lib/motion-author.mjs`, `sceneUnits` agora pesquisa candidatos com asset ou mapa (`candidate.asset || candidate.map`) ao definir `backgroundIndex`, garantindo que cenas sem mídia própria herdem o mapa relevante anterior em vez de ficarem desprovidas de contexto visual.
 
-## Validação e resultados medidos
-- **96/96 testes unitários** aprovados no Node.js (`npm test`).
-- **Renderização real do Vídeo Principal (Job `968140ed-b84a-45af-acf0-c36e728565dc`)**:
-  - **Duração**: 60.8 segundos (1.824 quadros) em 1080p (1920x1080).
-  - **Tempo de renderização**: **432.9 segundos (7 minutos e 12 segundos)**.
-  - **Taxa de quadros medida**: Média de **4.21 FPS**, com trechos finais atingindo **9.2 FPS** (salto brutal em relação aos 0.3 FPS anteriores).
-  - **Trilha sonora**: *"Liquid Time"* (estilo Vox/documentário, zero rock/guitarras).
-  - **Arquivo**: `/app/data/long_videos/968140ed-b84a-45af-acf0-c36e728565dc/video-ef7db079-9f42-4e3a-b94f-7138ec3772c2.mp4` (160.24 MB).
-- **Short vertical (1080x1920)**: Em programação e renderização sequencial no mesmo job.
+## Validação e resultados
+- 96/96 testes automatizados aprovados no Node.js (`npm test`).
+- Diagnóstico validado contra as capturas de tela enviadas pelo usuário (cenas de mapa e transição entre França e Brasil).
+- Preservada a alta velocidade de renderização da CPU (4 a 9 FPS) sem reintroduzir filtros pesados de desfoque.
 
 ## Próximo passo
-Acompanhar a conclusão da renderização do Short vertical correspondente e validar o pacote completo no painel web.
+Sincronizar no VPS e regerar o vídeo de teste da França e Brasil para validação visual direta pelo usuário.
