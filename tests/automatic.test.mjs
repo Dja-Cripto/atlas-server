@@ -1,9 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPlan,normalizeDirectionKind,enforceVisualBreathing,normalizeVisualTreatment} from '../lib/auto-plan.mjs';
+import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPlan,enforceExplanatoryScenes,normalizeDirectionKind,enforceVisualBreathing,normalizeVisualTreatment} from '../lib/auto-plan.mjs';
 import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,sampleTimelineForDirector,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
-import {candidatePool} from '../lib/auto-media.mjs';
+import {candidatePool,meetsFullHd} from '../lib/auto-media.mjs';
 import {canReuseValidatedPreview} from '../lib/automatic.mjs';
 import {parseRelaxedJSON,splitScriptIntoTTSChunks,directNarrationChunk} from '../lib/providers.mjs';
 test('completed preview can resume MP4 render only for the same run and scene count',()=>{
@@ -360,6 +360,16 @@ test('documentary opening and closing receive authored scenes even with clean fo
  assert.equal(usesCleanMediaFastPath({...scenes[1],editorialRole:'body'}),true);
 });
 
+test('opposing-flow diagram fallback remains an animated explanation',async()=>{
+ const {generateFallbackSceneCode}=await import('../lib/motion-author.mjs');
+ const scene={kind:'diagram',title:'Why water flows in two directions',heading:'Opposing currents',narration:'Two currents run in opposite directions.',durationInFrames:150};
+ const code=generateFallbackSceneCode(scene,false);
+ assert.match(code,/SURFACE FLOW/);
+ assert.match(code,/DEEP RETURN/);
+ assert.match(code,/interpolate/);
+ assert.doesNotThrow(()=>validateMotionCode(code,scene));
+});
+
 test('generateFallbackSceneCode produces valid Remotion component for long videos and shorts',async()=>{
  const mod = await import('../lib/motion-author.mjs');
  assert.equal(typeof mod.generateFallbackSceneCode, 'function');
@@ -402,6 +412,30 @@ test('visual treatment defaults real media to clean and reserves composed treatm
  const scene=validateDirection(slot,{id:'shot-1',kind:'video',heading:'Busy harbor',caption:'This must not cover the footage',query:'harbor workers'},'');
  assert.equal(scene.treatment,'clean');
  assert.equal(scene.caption,'');
+});
+
+test('invisible geographic mechanism receives explanatory scenes while a visible landmark does not',()=>{
+ const shots=Array.from({length:13},(_,index)=>({id:`s${index}`,start:index*5,end:(index+1)*5,kind:index===3?'photo':'footage',treatment:'clean',narration:index===3?'How can two currents move in opposite directions?':'Ocean water moves.',heading:'Coast'}));
+ const explained=enforceExplanatoryScenes(shots,'Why water flows in two directions through the Strait of Gibraltar');
+ assert.deepEqual(explained.map((scene,index)=>scene.kind==='diagram'?index:null).filter(index=>index!==null),[2,8]);
+ assert.equal(shots[3].kind,'photo');
+ assert.equal(enforceExplanatoryScenes(shots,'The Eiffel Tower')[3].kind,'photo');
+ assert.equal(normalizeDirectionKind('schematic'),'diagram');
+});
+
+test('visual media must reach Full HD in both dimensions',()=>{
+ assert.equal(meetsFullHd({width:1920,height:1080}),true);
+ assert.equal(meetsFullHd({width:1366,height:720}),false);
+ assert.equal(meetsFullHd({width:1880,height:1253}),false);
+ assert.equal(meetsFullHd({width:3840,height:2160}),true);
+ const scene={location:'',query:'sea'};
+ const candidates=[{id:'low',source:'Pexels',files:[{width:1366,height:720}]},{id:'hd',source:'Pexels',files:[{width:1920,height:1080}]}];
+ assert.deepEqual(candidatePool(scene,candidates).map(candidate=>candidate.id),['hd']);
+});
+
+test('contextual footage with a narrated mechanism gets an explanatory effect',()=>{
+ const plan=Array.from({length:8},(_,index)=>({id:`s${index}`,kind:'footage',treatment:'clean',start:index*5,end:index*5+5,narration:index===4?'The deep current crosses west below the surface.':'The sea is visible.',asset:{kind:'video',representationRole:index===4?'contextual':'exact-location'}}));
+ assert.equal(enforceVisualBreathing(plan,40)[4].treatment,'composed');
 });
 
 test('visual breathing keeps the narrated quantity over decorative footage within its budget',()=>{
