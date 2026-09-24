@@ -393,18 +393,18 @@ test('short explanatory video keeps one diagram and removes planning captions fr
 
 test('thermal diagram fallback animates atoms without displaying planning copy',async()=>{
  const {generateFallbackSceneCode}=await import('../lib/motion-author.mjs');
- const scene={kind:'diagram',title:'Eiffel Tower in Summer',narration:'Heat makes the atoms vibrate and expand.',heading:'Molecular Heating Dynamic',caption:'Animated visualization of atoms',durationInFrames:160};
+ const scene={kind:'diagram',title:'Eiffel Tower in Summer',narration:'Heat makes iron expand as its atoms vibrate more.',heading:'Molecular Heating Dynamic',caption:'Animated visualization of atoms',durationInFrames:160};
  const code=generateFallbackSceneCode(scene,false);
- assert.match(code,/HEAT EXPANDS METAL/);
- assert.match(code,/dots\.map/);
+ assert.match(code,/Heating expands metal/);
+ assert.match(code,/length:12/);
  assert.doesNotMatch(code,/Molecular Heating Dynamic|Animated visualization of atoms/);
  assert.doesNotThrow(()=>validateMotionCode(code,scene));
- assert.throws(()=>generateFallbackSceneCode({kind:'diagram',title:'Unknown',narration:'An unspecified effect.'},false),/Diagrama sem animação/);
+ assert.throws(()=>generateFallbackSceneCode({kind:'diagram',title:'Unknown',narration:'An unspecified effect.'},false),/Diagrama sem alternativa factual/);
 });
 
 test('opposing-flow diagram fallback remains an animated explanation',async()=>{
  const {generateFallbackSceneCode}=await import('../lib/motion-author.mjs');
- const scene={kind:'diagram',title:'Why water flows in two directions',heading:'Opposing currents',narration:'Two currents run in opposite directions.',durationInFrames:150};
+ const scene={kind:'diagram',title:'Why water flows in two directions',heading:'Opposing currents',narration:'Surface inflow and the deep return current run in opposite directions.',durationInFrames:150};
  const code=generateFallbackSceneCode(scene,false);
  assert.match(code,/SURFACE FLOW/);
  assert.match(code,/DEEP RETURN/);
@@ -437,9 +437,9 @@ test('diversifyVisualPlan limits vertical shorts to at most 1 map and converts e
  assert.equal(diversified[3].kind, 'footage');
 });
 
-test('shortsSceneContract forbids small circular globes and requires full-bleed vertical macro zoom for maps', () => {
+test('shortsSceneContract uses supplied country geometry instead of invented waterway macro maps', () => {
  assert.match(shortsSceneContract, /NEVER draw a small circular globe/);
- assert.match(shortsSceneContract, /macro zoom/i);
+ assert.match(shortsSceneContract, /supplied map fits the named countries/i);
  assert.match(shortsDirectorContract, /MAP DISCIPLINE/);
 });
 
@@ -530,7 +530,7 @@ test('editorial balance avoids three consecutive unidentified videos and labels 
  assert.equal(balanced[4].label,'');
 });
 
-test('opening media and every still image receive one concise editorial identification',()=>{
+test('opening media is identified and still photographs stay composed',()=>{
  const plan=[
   {id:'s1',kind:'footage',treatment:'clean',start:0,end:6,heading:'Kaliningrad',location:'Kaliningrad, Russia'},
   {id:'s2',kind:'footage',treatment:'clean',start:6,end:12,heading:'Supporting streets'},

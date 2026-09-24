@@ -1,11 +1,13 @@
 import {AbsoluteFill,Img,OffthreadVideo,interpolate,staticFile,useCurrentFrame} from 'remotion';
 import type {FC} from 'react';
+import {ContextMap} from './ContextMap';
 
 type Asset={src:string;kind:string;trimStart?:number};
 type Scene={map?:any;asset?:Asset;durationInFrames?:number};
 
 export const ShortsBackdrop:FC<{scene:Scene;backgroundScene?:Scene|null;duration:number}>=({scene,backgroundScene,duration})=>{
  const frame=useCurrentFrame();
+ if(scene.map)return <ContextMap map={scene.map} duration={duration}/>;
  const asset=backgroundScene?.asset || scene?.asset;
  if(scene.map || !asset || !asset.src){
   const drift=interpolate(frame,[0,Math.max(1,duration)],[-3,3],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});

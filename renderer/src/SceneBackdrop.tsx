@@ -1,4 +1,4 @@
-import {AbsoluteFill,Img,OffthreadVideo,interpolate,staticFile,useCurrentFrame} from 'remotion';
+import {AbsoluteFill,Img,interpolate,staticFile,useCurrentFrame} from 'remotion';
 import type {FC} from 'react';
 import {ContextMap} from './ContextMap';
 

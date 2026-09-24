@@ -1,13 +1,23 @@
-# Programação visual pelo MiMo
+# Direção e animações — Atlas Visual V2
+O planejador prepara cenas sincronizadas com a narração. O modelo de motion configurado em Integrações (padrão do código: glm-5.3-flash) recebe direção global, contexto e cenas vizinhas e programa uma cena por vez em React/Remotion.
 
-Ao gerar uma nova produção automaticamente, os materiais e a narração são preparados como antes. Uma nova etapa usa OpenCode Go, modelo `mimo-v2.5` por padrão, para escrever TSX cena por cena. O campo **Modelo que programa as animações Remotion** em Integrações permite alterar esse modelo independentemente do planejador.
+## Regra editorial
+- Vídeo descritivo: pode tocar limpo, sem zoom artificial; identificação breve é opcional.
+- Fotografia: sempre movimento ou efeito. A IA escolhe pan, zoom, revelação, detalhe, máscara ou composição; não existe obrigação de efeito complexo.
+- Dados, datas, idade, dimensões e explicações narradas: animação pertinente ao fato falado, inclusive em cenas consecutivas.
+- As cotas decorativas são sugestões. O diretor pode justificar exceções com editorialReason; mapas com mapIntent distinto podem continuar a explicação.
+- Restrições factuais e de execução permanecem. A IA não inventa números, rotas, países, fontes ou arquivos.
 
-O contrato completo está em `lib/motion-author.mjs`. Primeiro, o modelo estuda a timeline inteira e cria uma bíblia visual compacta, separando obrigações factuais de oportunidades criativas. Depois programa uma cena por chamada, recebendo essa direção global, a timeline completa resumida, as cenas vizinhas e o estado visual entregue pela cena anterior. A IA continua decidindo movimentos, composição, tipografia e transições; continuidade é contexto, não uma obrigação de repetir layouts ou usar fades. Os componentes anteriores são ferramentas opcionais, e não templates completos.
+## Mapas
+Longos e Shorts compartilham Natural Earth e enquadramento responsivo. A ligação exige routes, routeFrom, routeTo e routeEvidence presente na narração/pesquisa; o caminho é uma conexão esquemática entre centros de países, identificado como tal, não uma rota navegável. A IA compõe overlays sem redesenhar a geografia.
 
-Restrições são de execução/fatos: código React determinístico, arquivos locais, sem rede, acesso ao servidor ou instalação de pacotes; números e locais fundamentados. A validação estrutural rejeita imports/APIs não permitidos e planos com lacunas de tempo. Isso não é uma prova de qualidade editorial nem um sandbox formal para código arbitrário.
+## Validação e recuperação
+São renderizados começo, meio e fim de cada cena. Isso verifica execução, não prova qualidade editorial ou correspondência perfeita com a fala. Uma falha permite reparo específico da cena; depois usa alternativa conservadora quando disponível, registrando revisão. Diagramas sem alternativa factual válida permanecem pendentes. Pausas naturais em vídeos não acionam bloqueio por falta de movimento.
 
-O robô tenta corrigir erros estruturais de cada cena até duas vezes. Cada resposta que chegou em JSON, inclusive uma tentativa inválida, fica preservada para diagnóstico. Erros de sintaxe retornam linha, coluna e o trecho próximo ao defeito. Uma falha de compilação/renderização, ou detecção de quadros praticamente estáticos por pelo menos 1,5 segundo, permite uma rodada de correção do código e nova renderização. Depois disso fica pendente com erro; não volta silenciosamente aos templates antigos. A detecção de movimento não comprova relevância, beleza ou ritmo: essas qualidades ainda dependem da avaliação do resultado.
+Cenas, respostas e direção ficam em renderer/src/generated/<runId>. Produções antigas não são regeneradas automaticamente. A preparação de mídia reutiliza trechos transcodificados e registra duração real; tempos de etapas ficam no estado da produção.
 
-Código, bíblia visual, estados de continuidade e tentativas ficam em `renderer/src/generated/<runId>/`. Versões de vídeos concluídos são preservadas. Uma falha afeta uma cena curta em vez de descartar um pacote de várias cenas.
-
-Implementado sem executar testes, geração, chamadas de produção ou renderização, conforme pedido de Daniel. O primeiro teste completo será iniciado por ele no painel.
+## Verificar e reverter
+- npm test
+- node renderer/node_modules/typescript/bin/tsc -p renderer/tsconfig.json
+- node scripts/check-visual-v2.mjs — integração real com amostras sintéticas, sem APIs pagas; saídas ignoradas em .temp.
+- CHECKPOINTS.md explica como restaurar Atlas Visual V1. ULTIMO_PASSO.md registra a versão ativa.

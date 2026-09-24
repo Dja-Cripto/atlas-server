@@ -1,5 +1,4 @@
 
-import React from 'react';
 import {AbsoluteFill, Audio, Loop, Composition, registerRoot, staticFile} from 'remotion';
 
 const Video = () => (

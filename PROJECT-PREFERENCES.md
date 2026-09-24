@@ -9,3 +9,5 @@
 - Não substituir locais específicos por imagens de outros lugares. Elementos gráficos devem ser componíveis, sem fundo obrigatório ou aspecto genérico.
 
 - Regra explícita de Daniel: toda correção deve alterar o comportamento geral do robô para as próximas produções. Vídeos já gerados são somente evidência de teste; não corrigir manifests, cenas ou arquivos de uma produção específica, nem renderizá-la novamente, salvo pedido explícito. Validar mudanças gerais com testes/fixtures, sem confundir ajuste manual com capacidade autônoma.
+
+- Regra visual esclarecida em 24/09/2026: vídeo real com narração descritiva pode ficar limpo, sem efeito adicional (identificação discreta opcional). Fotografia nunca deve ficar estática: sempre movimento ou efeito. Números, datas, idade, dimensões, comparações e informações explicativas narradas exigem uma animação relevante, mesmo sobre vídeo real e mesmo em cenas consecutivas. A IA escolhe a linguagem visual; evitar receitas rígidas ou efeitos decorativos obrigatórios.
