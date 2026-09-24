@@ -1,6 +1,6 @@
 # Estado atual do Atlas Studio no VPS
 
-**Atualizado em:** 24/09/2026, aproximadamente 14:00 (America/Bahia)
+**Atualizado em:** 24/09/2026, aproximadamente 14:20 (America/Bahia)
 
 ## Acesso e ambiente
 
@@ -21,9 +21,14 @@
 - Para futuros documentários, a primeira e a última cena recebem papéis explícitos de abertura e conclusão e passam pela direção visual específica, mesmo quando a mídia é vídeo. A abertura deve materializar a pergunta do assunto; o fim deve retomá-la ou concluir uma consequência com um gesto visual deliberado. O modelo escolhe imagem, tipografia e movimento por assunto, sem logo, vinheta ou cartão final fixo. Shorts mantêm entrada imediata.
 - O planejador de mídias passou a escolher material que suporte a pergunta inicial e o fechamento. O mapa Natural Earth, efeitos, concorrência e configuração de render permanecem iguais. As melhorias visuais não alteram os MP4s já concluídos.
 - A voz inglesa configurada foi mantida. O usuário preferiu a direção R e rejeitou S/T/U por sussurro ou respiração. O roteiro agora pede contrastes expressivos pontuais com tags Fish S2 sem comandos de sussurro ou respiração. Antes de cada trecho de TTS, o gerador aplica direção de abertura, corpo, fecho ou Short e remove tags que induzem voz soprosa. Assim, cada nova chamada de até 320 caracteres recebe direção.
+- O roteiro longo agora pede arco explícito: pergunta e consequências nos primeiros 2-3 takes, desenvolvimento causal com evidências, virada factual e resposta final honesta. As três primeiras cenas recebem direção visual específica; o Short continua com entrada imediata.
+- O planejador visual prioriza cenas compostas quando a narração contém quantidade, comparação ou mecanismo geográfico, preservando o limite de 40% de vídeo composto em vídeos curtos e 35% nos longos e evitando composições adjacentes. A regra de balanceamento deixou de rodar duas vezes; fotos permanecem compostas e mapas seguem a geometria real.
+- Nesta atualização, 81/81 testes passaram, sintaxe dos quatro módulos validada e diff sem erros. A melhora de retenção e o resultado visual ainda dependem de assistir a uma nova produção; nenhuma produção antiga foi reprocessada.
 - npm test: 80/80 aprovados; verificação de sintaxe e git diff --check aprovados. providers.mjs instalado no VPS; contêiner Atlas running healthy. Um teste pelo próprio providers.voice() gerou MP3 válido de 35,135 s e 562.200 bytes com a voz atual e vários trechos. A ausência de respiração audível e a qualidade dramática ainda dependem de escuta humana. A abertura e o fecho visual de uma produção futura também precisam ser avaliados no MP4.
 
 ## Próximo passo
+
+- Criar um novo teste curto e observar, com áudio e sem áudio, os três primeiros takes e um dado quantitativo narrado sobre vídeo. Confirmar se o gráfico aparece no momento certo, sem excesso de texto. Não habilitar publicação automática.
 
 - Ouvir a amostra temporária de narração R gerada pelo fluxo real no VPS em /srv/robo/portal-bot/data/atlas-storage/temp/voice-tests/output-production-path/voice.mp3 e confirmar se o contraste funciona sem sussurro ou respiração audível. Se necessário, ajustar somente as tags antes de iniciar outra produção longa.
 - Na próxima produção, conferir a abertura e o encerramento visual sem áudio e medir o custo extra. Manter a publicação automática desabilitada. Efeitos sonoros pontuais seguem pendentes até haver amostra aprovada.

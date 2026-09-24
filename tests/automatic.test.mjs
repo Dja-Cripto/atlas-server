@@ -353,11 +353,11 @@ test('documentary opening and closing receive authored scenes even with clean fo
   {id:'middle',asset:{kind:'video'},treatment:'clean'},
   {id:'last',asset:{kind:'video'},treatment:'clean'}
  ]);
- assert.deepEqual(scenes.map(scene=>scene.editorialRole),['opening','body','closing']);
+ assert.deepEqual(scenes.map(scene=>scene.editorialRole),['opening','openingDevelopment','closing']);
  assert.equal(usesCleanMediaFastPath(scenes[0]),false);
- assert.equal(usesCleanMediaFastPath(scenes[1]),true);
+ assert.equal(usesCleanMediaFastPath(scenes[1]),false);
  assert.equal(usesCleanMediaFastPath(scenes[2]),false);
- assert.equal(usesCleanMediaFastPath(scenes[1],true),false);
+ assert.equal(usesCleanMediaFastPath({...scenes[1],editorialRole:'body'}),true);
 });
 
 test('generateFallbackSceneCode produces valid Remotion component for long videos and shorts',async()=>{
@@ -404,10 +404,17 @@ test('visual treatment defaults real media to clean and reserves composed treatm
  assert.equal(scene.caption,'');
 });
 
+test('visual breathing keeps the narrated quantity over decorative footage within its budget',()=>{
+ const plan=Array.from({length:10},(_,index)=>({id:`s${index}`,kind:'footage',treatment:'composed',start:index*5,end:index*5+5,narration:index===7?'Four million gallons move through the canal.':'A view of the port.',heading:'Port'}));
+ const balanced=enforceVisualBreathing(plan,50);
+ assert.equal(balanced[7].treatment,'composed');
+ assert.ok(balanced.filter(scene=>scene.treatment==='composed').length<=4);
+});
+
 test('visual breathing prevents consecutive composed media and caps decorative overlays',()=>{
  const plan=Array.from({length:10},(_,index)=>({id:`s${index}`,kind:'footage',treatment:'composed',start:index*5,end:index*5+5,heading:'Detail',caption:'More information',location:'Alaska'}));
  const balanced=enforceVisualBreathing(plan,50);
- assert.ok(balanced.filter(scene=>scene.treatment==='composed').length<=3);
+ assert.ok(balanced.filter(scene=>scene.treatment==='composed').length<=4);
  assert.equal(balanced.some((scene,index)=>scene.treatment==='clean'&&balanced[index-1]?.treatment==='clean'&&balanced[index-2]?.treatment==='clean'),false);
  assert.equal(balanced.some((scene,index)=>scene.treatment==='composed'&&balanced[index-1]?.treatment==='composed'),false);
 });
