@@ -337,6 +337,20 @@ test('normalizeMotionCode unpacks bracketed [outRange, options] in interpolate c
  assert.match(normalized, /interpolate\(f, r, o, \{easing, extrapolateLeft: 'clamp', extrapolateRight: 'clamp'\}\)/);
 });
 
+test('documentary opening and closing receive authored scenes even with clean footage',async()=>{
+ const {withDocumentaryBookends,usesCleanMediaFastPath}=await import('../lib/motion-author.mjs');
+ const scenes=withDocumentaryBookends([
+  {id:'first',asset:{kind:'video'},treatment:'label'},
+  {id:'middle',asset:{kind:'video'},treatment:'clean'},
+  {id:'last',asset:{kind:'video'},treatment:'clean'}
+ ]);
+ assert.deepEqual(scenes.map(scene=>scene.editorialRole),['opening','body','closing']);
+ assert.equal(usesCleanMediaFastPath(scenes[0]),false);
+ assert.equal(usesCleanMediaFastPath(scenes[1]),true);
+ assert.equal(usesCleanMediaFastPath(scenes[2]),false);
+ assert.equal(usesCleanMediaFastPath(scenes[1],true),false);
+});
+
 test('generateFallbackSceneCode produces valid Remotion component for long videos and shorts',async()=>{
  const mod = await import('../lib/motion-author.mjs');
  assert.equal(typeof mod.generateFallbackSceneCode, 'function');
