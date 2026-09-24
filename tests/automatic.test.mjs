@@ -360,6 +360,48 @@ test('documentary opening and closing receive authored scenes even with clean fo
  assert.equal(usesCleanMediaFastPath({...scenes[1],editorialRole:'body'}),true);
 });
 
+test('diagram never reuses a blurred photograph or clip from a previous scene',()=>{
+ const scenes=sceneUnits({fps:30,duration:10,scenes:[
+  {id:'photo',start:0,end:5,kind:'photo',location:'Paris',asset:{kind:'image',src:'tower.jpg'}},
+  {id:'diagram',start:5,end:10,kind:'diagram',location:'Paris'}
+ ]});
+ assert.equal(scenes[1].backgroundIndex,undefined);
+});
+
+test('motion validation rejects duplicated video inside one scene',()=>{
+ const code=`import React from 'react';import {AbsoluteFill,OffthreadVideo,useCurrentFrame,staticFile} from 'remotion';
+ export default function Scene(){const frame=useCurrentFrame();return <AbsoluteFill><OffthreadVideo muted src={staticFile('one.mp4')}/><OffthreadVideo muted src={staticFile('one.mp4')}/>{frame}</AbsoluteFill>}`;
+ assert.throws(()=>validateMotionCode(code,{asset:{kind:'video'}}),/apenas um componente de vídeo/);
+});
+
+test('motion normalizer preserves forEach and accepts constant-bounded loops',()=>{
+ const code=`import React from 'react';import {AbsoluteFill,useCurrentFrame} from 'remotion';
+ const COLS=4;const dots=[];for(let c=0;c<COLS-1;c++)dots.push(c);
+ export default function Scene(){const frame=useCurrentFrame();dots.forEach((dot)=>dot+frame);return <AbsoluteFill>{frame}</AbsoluteFill>}`;
+ const normalized=normalizeMotionCode(code);
+ assert.match(normalized,/dots\.forEach/);
+ assert.doesNotThrow(()=>validateMotionCode(normalized));
+});
+
+test('short explanatory video keeps one diagram and removes planning captions from the other',()=>{
+ const plan=Array.from({length:5},(_,index)=>({id:`s${index}`,kind:index===2||index===4?'diagram':'footage',treatment:'composed',start:index*6,end:(index+1)*6,heading:index===4?'Molecular Cooling Dynamic':'Eiffel Tower',caption:index===4?'Animated diagram showing contraction':''}));
+ const limited=enforceExplanatoryScenes(plan,'Why the Eiffel Tower Grows in Summer',30);
+ assert.deepEqual(limited.map((scene,index)=>scene.kind==='diagram'?index:null).filter(index=>index!==null),[2]);
+ assert.equal(limited[4].kind,'footage');
+ assert.equal(limited[4].caption,'');
+});
+
+test('thermal diagram fallback animates atoms without displaying planning copy',async()=>{
+ const {generateFallbackSceneCode}=await import('../lib/motion-author.mjs');
+ const scene={kind:'diagram',title:'Eiffel Tower in Summer',narration:'Heat makes the atoms vibrate and expand.',heading:'Molecular Heating Dynamic',caption:'Animated visualization of atoms',durationInFrames:160};
+ const code=generateFallbackSceneCode(scene,false);
+ assert.match(code,/HEAT EXPANDS METAL/);
+ assert.match(code,/dots\.map/);
+ assert.doesNotMatch(code,/Molecular Heating Dynamic|Animated visualization of atoms/);
+ assert.doesNotThrow(()=>validateMotionCode(code,scene));
+ assert.throws(()=>generateFallbackSceneCode({kind:'diagram',title:'Unknown',narration:'An unspecified effect.'},false),/Diagrama sem animação/);
+});
+
 test('opposing-flow diagram fallback remains an animated explanation',async()=>{
  const {generateFallbackSceneCode}=await import('../lib/motion-author.mjs');
  const scene={kind:'diagram',title:'Why water flows in two directions',heading:'Opposing currents',narration:'Two currents run in opposite directions.',durationInFrames:150};
