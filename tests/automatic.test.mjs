@@ -5,7 +5,7 @@ import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPl
 import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,sampleTimelineForDirector,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
 import {candidatePool} from '../lib/auto-media.mjs';
 import {canReuseValidatedPreview} from '../lib/automatic.mjs';
-import {parseRelaxedJSON,splitScriptIntoTTSChunks} from '../lib/providers.mjs';
+import {parseRelaxedJSON,splitScriptIntoTTSChunks,directNarrationChunk} from '../lib/providers.mjs';
 test('completed preview can resume MP4 render only for the same run and scene count',()=>{
  const auto={preview:{ready:true,runId:'run-a'},previewValidation:{totalScenes:104}};
  assert.equal(canReuseValidatedPreview(auto,'run-a',104),true);
@@ -31,6 +31,15 @@ test('splitScriptIntoTTSChunks divides long narration by sentences without pitch
   assert.match(c,/[.!?]$/);
  });
  assert.equal(splitScriptIntoTTSChunks("Short script.",300).length,1);
+});
+test('voice direction keeps the approved contrast and removes breathy delivery cues',()=>{
+ const opening=directNarrationChunk('[whispering] The canal looks simple. But every ship climbs. Where does the water come from?',{opening:true,closing:true});
+ assert.match(opening,/^\[curious, intimate\]/);
+ assert.doesNotMatch(opening,/whisper|breath|inhale|exhale/i);
+ assert.match(opening,/\[with growing energy\]/);
+ assert.match(opening,/\[serious\]/);
+ assert.match(directNarrationChunk('The water runs low.',{closing:true}),/^\[strong, reflective\]/);
+ assert.match(directNarrationChunk('The ship climbs.',{short:true}),/^\[energetic, emphatic\]/);
 });
 test('automatic timeline follows spoken timestamps and covers pauses without gaps',()=>{
  const words=Array.from({length:30},(_,i)=>({word:' word'+i,start:i*.4,end:i*.4+.3}));const slots=audioSlots([{words}],12);
