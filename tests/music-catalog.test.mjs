@@ -75,5 +75,31 @@ test('selectBestMusic accurately selects appropriate tracks based on video theme
   assert.equal(malaccaShort.category, 'geopolitics');
   assert.equal(malaccaShort.defaultVolume, 0.06);
   assert.ok(!EXCLUDED_BEAT_TRACKS.has(malaccaShort.name + '.mp3'));
+
+  // 5. Monument / Ancient Empire video must select epic monumental and never rock
+  const epicResult = selectBestMusic({
+    title: 'The Rise and Fall of the Ancient Roman Empire and its Colosseum Monument',
+    script: 'Across centuries, ancient emperors built monumental structures of conquest and imperial power...',
+    isShort: false
+  });
+  assert.equal(epicResult.category, 'epic_monumental');
+  assert.ok(!EXCLUDED_BEAT_TRACKS.has(epicResult.name + '.mp3'));
+  assert.ok(!/fire_breather|demilitarized_zone|loitering|tidal_wave|2nd mix|sugar_zone|rock|punk|metal/i.test(epicResult.name));
+
+  // 6. Eiffel Tower video selects clean curiosity track without rock
+  const eiffelResult = selectBestMusic({
+    title: 'Why the Eiffel Tower Gets Slightly Taller in Summer',
+    script: 'Every summer, thermal expansion causes the tower structure to grow...',
+    isShort: false
+  });
+  assert.ok(!EXCLUDED_BEAT_TRACKS.has(eiffelResult.name + '.mp3'));
+  assert.ok(!/fire_breather|demilitarized_zone|loitering|tidal_wave|2nd mix|sugar_zone|rock|punk|metal/i.test(eiffelResult.name));
+
+  // Verify explicit blacklist contains all banned rock/metal/punk tracks
+  const banned = ['Fire_Breather.mp3', 'Demilitarized_Zone.mp3', 'Loitering.mp3', 'Tidal_Wave.mp3', '2nd Mix -.mp3', 'Sugar_Zone.mp3'];
+  for (const b of banned) {
+    assert.ok(EXCLUDED_BEAT_TRACKS.has(b), `Expected ${b} to be in EXCLUDED_BEAT_TRACKS`);
+  }
 });
+
 
