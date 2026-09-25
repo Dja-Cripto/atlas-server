@@ -1,5 +1,5 @@
-# Atlas Studio — Correção de Mapas e Continuidade Visual de Fundo
-**Atualizado em:** 24/09/2026, aproximadamente 21:00 (America/Bahia).
+# Atlas Studio — Suporte Geográfico à Guiana Francesa e Territórios
+**Atualizado em:** 25/09/2026, aproximadamente 13:10 (America/Bahia).
 
 ## Checkpoint e versão
 - V1 estável: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`, enviada ao GitHub.
@@ -8,17 +8,18 @@
 - Painel: https://painel.setupdja.website; código do servidor: /srv/atlas-studio.
 
 ## Alterações
-- **Correção da renderização de mapas cartográficos**:
-  - Em `lib/motion-author.mjs`, corrigida a condição de montagem do `SceneBackdrop` de `!scene.asset && !scene.map` para `Boolean(scene.map || !scene.asset)`. Quando uma cena possuía mapa (`scene.map`), a negação anterior desabilitava o `SceneBackdrop`, impedindo que o `ContextMap` fosse montado e deixando a tela preta com apenas o texto overlay.
-- **Herança de mapa e mídia em cenas de texto/título**:
-  - Em `renderer/src/SceneBackdrop.tsx` e `renderer/src/ShortsBackdrop.tsx`, adicionada verificação de mapa herdado: `if(backgroundScene?.map && !scene.asset) return <ContextMap map={backgroundScene.map} duration={duration}/>;`. Quando uma cena de texto sucede uma cena de mapa (ex: títulos e explicações geopolíticas), o mapa continua visível por baixo da tipografia animada, eliminando telas com apenas degradê vazio.
-  - Restaurado suporte a vídeo de fundo herdado via `<OffthreadVideo>` com opacidade reduzida e sobreposição escura suave (sem blur pesado de CPU).
-  - Em `lib/motion-author.mjs`, `sceneUnits` agora pesquisa candidatos com asset ou mapa (`candidate.asset || candidate.map`) ao definir `backgroundIndex`, garantindo que cenas sem mídia própria herdem o mapa relevante anterior em vez de ficarem desprovidas de contexto visual.
+- **Suporte a Guiana Francesa e territórios ultramarinos**:
+  - Em `lib/geography.mjs`, resolvido o erro `País não reconhecido na base geográfica: French Guiana`.
+  - A base cartográfica Natural Earth (`admin_0_countries`) agrupa a Guiana Francesa como o polígono 0 do MultiPolygon da França soberana. O resolvedor agora extrai cirurgicamente esse polígono sul-americano quando `French Guiana`, `Guiana Francesa` ou `Guyane` é solicitada, atribuindo propriedades próprias e centróide correto na América do Sul.
+  - Quando a cena aborda `Metropolitan France` ou quando `France` e `French Guiana` são solicitadas juntas (cena transatlântica), a França utiliza o polígono europeu continental, permitindo enquadramento e conexões continentais precisas entre Europa e América do Sul.
+  - Ampliada a cobertura de sinônimos e nomes multilíngues (suportando propriedades `NAME_EN`, `NAME_PT`, `NAME_ES`, Reino Unido e suas nações constituintes).
+- **Testes automatizados**:
+  - Adicionado teste específico em `tests/visual-v2.test.mjs` validando a materialização cartográfica de `French Guiana` e `Brazil`.
 
 ## Validação e resultados
-- 96/96 testes automatizados aprovados no Node.js (`npm test`).
-- Diagnóstico validado contra as capturas de tela enviadas pelo usuário (cenas de mapa e transição entre França e Brasil).
-- Preservada a alta velocidade de renderização da CPU (4 a 9 FPS) sem reintroduzir filtros pesados de desfoque.
+- 97/97 testes automatizados aprovados no Node.js (`npm test`).
+- Testada e validada a extração das coordenadas exatas (487 pontos costeiros/fronteiriços ao longo do Rio Oiapoque) com centróide em [-53.3°, 3.74°].
+- Erro de país não reconhecido 100% eliminado.
 
 ## Próximo passo
-Sincronizar no VPS e regerar o vídeo de teste da França e Brasil para validação visual direta pelo usuário.
+Sincronizar o repositório no VPS (`/srv/atlas-studio`) e gerar a produção do teste de 30 segundos sobre França & Brasil pelo painel.

@@ -68,3 +68,10 @@ test('descriptive video breathes but photos and consecutive narrated facts retai
  assert.equal(scenes[5].treatment,'composed');assert.equal(scenes[5].motionStyle,'auto');
  assert.throws(()=>validateMotionCode("import {Img} from 'remotion';export default function Still(){return <Img src='a.jpg'/>}",{asset:{kind:'image'}}),/Fotografias precisam/);
 });
+
+test('geography recognizes French Guiana and France as valid map territories',async()=>{
+ const scene=await materializeMap({id:'test',kind:'map',countries:['French Guiana','Brazil']},path.resolve('.'));
+ assert.equal(scene.map.features.length,2);
+ assert.equal(scene.map.features[0].properties.name,'French Guiana');
+ assert.equal(scene.map.features[1].properties.name,'Brazil');
+});
