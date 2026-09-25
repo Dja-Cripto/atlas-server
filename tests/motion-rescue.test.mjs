@@ -17,13 +17,13 @@ test('a timeout is retried, one failed photo uses animated reserve, repeated fai
  const calls=[];
  const setup=async(runId,doc=manifest)=>{const folder=path.join(root,'renderer/src/generated',runId);await mkdir(folder,{recursive:true});await writeFile(path.join(folder,'visual-bible.json'),JSON.stringify(normalizeVisualBible({},sceneUnits(doc))));return folder;};
  try{
-  globalThis.fetch=async(_url,options)=>{const model=JSON.parse(options.body).model;calls.push(model);if(calls.length===1)throw Error('synthetic timeout');return new Response('data: '+JSON.stringify({choices:[{delta:{content:JSON.stringify(result)}}]})+'\n\ndata: [DONE]\n\n',{status:200,headers:{'content-type':'text/event-stream'}});};
+  globalThis.fetch=async(_url,options)=>{const request=JSON.parse(options.body),model=request.model;assert.equal(request.reasoning_effort,'low');calls.push(model);if(calls.length===1)throw Error('synthetic timeout');return new Response('data: '+JSON.stringify({choices:[{delta:{content:JSON.stringify(result)}}]})+'\n\ndata: [DONE]\n\n',{status:200,headers:{'content-type':'text/event-stream'}});};
   const runId='success',folder=await setup(runId),j={id:'synthetic',title:manifest.title,auto:{runId},events:[]};
   await authorMotion({goKey:'fixture',motionModel:'glm-5.3-flash'},j,manifest,{root,log:()=>{}});
   const saved=JSON.parse(await readFile(path.join(folder,'scene-0.json'),'utf8'));
   assert.match(saved.code,/clipPath/);assert.deepEqual(calls,['glm-5.3-flash','glm-5.3-flash']);
   assert.equal((j.auto.visualFallbacks||[]).length,0);
-  calls.length=0;globalThis.fetch=async(_url,options)=>{calls.push(JSON.parse(options.body).model);throw Error('synthetic unavailable');};
+  calls.length=0;globalThis.fetch=async(_url,options)=>{const request=JSON.parse(options.body);assert.equal(request.reasoning_effort,'low');calls.push(request.model);throw Error('synthetic unavailable');};
   const blockedId='blocked',blockedFolder=await setup(blockedId),blocked={id:'synthetic-blocked',title:manifest.title,auto:{runId:blockedId},events:[]};
   const outcome=await authorMotion({goKey:'fixture',motionModel:'glm-5.3-flash'},blocked,manifest,{root,log:()=>{}}).then(value=>({ok:true,value}),error=>({ok:false,error:error.message}));
 
@@ -33,7 +33,11 @@ test('a timeout is retried, one failed photo uses animated reserve, repeated fai
   assert.equal(reserve.fallback,true);assert.match(reserve.code,/clipPath/);await transform(reserve.code,{loader:'tsx'});
   await access(path.join(blockedFolder,'index.tsx'));
   assert.deepEqual(blocked.auto.visualFallbacks,['shot-1']);
-  calls.length=0;
+  calls.length=0;globalThis.fetch=async(_url,options)=>{const request=JSON.parse(options.body);assert.equal(request.reasoning_effort,'low');calls.push(request.model);return new Response('data: '+JSON.stringify({choices:[{delta:{content:JSON.stringify(result)}}]})+'\n\ndata: [DONE]\n\n',{status:200,headers:{'content-type':'text/event-stream'}});};
+  await authorMotion({goKey:'fixture',motionModel:'glm-5.3-flash'},blocked,manifest,{root,log:()=>{}});
+  const replaced=JSON.parse(await readFile(path.join(blockedFolder,'scene-0.json'),'utf8'));
+  assert.equal(replaced.fallback,undefined);assert.deepEqual(blocked.auto.visualFallbacks,[]);assert.deepEqual(calls,['glm-5.3-flash']);
+  calls.length=0;globalThis.fetch=async(_url,options)=>{const request=JSON.parse(options.body);assert.equal(request.reasoning_effort,'low');calls.push(request.model);throw Error('synthetic unavailable');};
   const two={...manifest,duration:10,scenes:[scene,{...scene,id:'forest-2',start:5,end:10}]};
   const repeatId='repeat',repeatFolder=await setup(repeatId,two),repeat={id:'synthetic-repeat',title:two.title,auto:{runId:repeatId},events:[]};
   const repeated=await authorMotion({goKey:'fixture',motionModel:'glm-5.3-flash'},repeat,two,{root,log:()=>{}}).then(value=>({ok:true,value}),error=>({ok:false,error:error.message}));
@@ -55,5 +59,13 @@ test('provider inference_failed event is reported directly instead of retried as
   globalThis.fetch=async()=>{calls++;return new Response('data: {"error":{"code":"inference_failed"}}\n\n',{status:200,headers:{'content-type':'text/event-stream'}});};
   await assert.rejects(generateJSON({sceneProvider:'go',goKey:'fixture',goModel:'glm-5.3-flash',timeoutMs:1000},{id:'synthetic'},'synthetic prompt'),/inference_failed/);
   assert.equal(calls,1);
+ }finally{globalThis.fetch=originalFetch;}
+});
+
+test('timeout after HTTP 200 is identified as a stream timeout',async()=>{
+ const originalFetch=globalThis.fetch;
+ try{
+  globalThis.fetch=async()=>new Response(new ReadableStream({start(){}}),{status:200,headers:{'content-type':'text/event-stream'}});
+  await assert.rejects(generateJSON({sceneProvider:'go',goKey:'fixture',goModel:'glm-5.3-flash',timeoutMs:20},{id:'synthetic'},'synthetic prompt'),/durante o stream após HTTP 200/);
  }finally{globalThis.fetch=originalFetch;}
 });
