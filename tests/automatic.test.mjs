@@ -22,6 +22,12 @@ test('normalizeMotionCode injects muted on OffthreadVideo and Video to prevent a
  assert.equal(normalizeMotionCode(alreadyMuted),alreadyMuted);
  assert.doesNotMatch(normalizeMotionCode(alreadyMuted),/<OffthreadVideo muted muted/);
 });
+test('normalizeMotionCode strips endAt from OffthreadVideo and Video to prevent premature cuts to solid background',()=>{
+ const videoCode="import {OffthreadVideo,useCurrentFrame} from 'remotion';export default function Scene(){return <AbsoluteFill><OffthreadVideo muted src='a.mp4' startFrom={0} endAt={Math.min(8, (DUR / fps) + 0.5)} /></AbsoluteFill>;}";
+ const normalized=normalizeMotionCode(videoCode);
+ assert.doesNotMatch(normalized,/\bendAt=/);
+ assert.match(normalized,/<OffthreadVideo muted src='a\.mp4' startFrom=\{0\}\s*\/>/);
+});
 test('splitScriptIntoTTSChunks divides long narration by sentences without pitch drift or cutting mid-sentence',()=>{
  const longScript="Panama Canal is a vital maritime corridor connecting two oceans. It handles around five percent of global trade every single year. However, recent severe droughts have reduced water levels in Lake Gatún significantly. To solve this challenge, engineers proposed the Rio Indio reservoir project. This will guarantee water security for decades to come.";
  const chunks=splitScriptIntoTTSChunks(longScript,140);
