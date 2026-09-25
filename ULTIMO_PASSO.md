@@ -1,5 +1,5 @@
 # Atlas Studio — geração visual com GLM
-**Atualizado em:** 25/09/2026, aproximadamente 15:28 (America/Bahia).
+**Atualizado em:** 25/09/2026, aproximadamente 15:33 (America/Bahia).
 
 ## Versões
 - V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem `atlas-studio:visual-v1-checkpoint-2026-09-24` preservada no VPS.
@@ -12,10 +12,10 @@
 
 ## Alterações
 - O plano de cerca de um minuto aceita no máximo um mapa e não encadeia mapas, mesmo quando o modelo descreve intenções diferentes. Diagramas e gráficos viram explicações Remotion sobre vídeo real; títulos abstratos também passam pela busca de mídia.
-- A busca tenta outra fonte quando o arquivo escolhido é grande demais. Se a cena continuar sem material, a produção pausa antes da animação. Para vídeos com pelo menos 30 s e cinco cenas, o fluxo exige 80% de mídia real e 75% de vídeo, medidos antes de programar o Remotion.
+- A busca descarta cedo arquivos anunciados como grandes demais e tenta outra fonte. Se a cena continuar sem material, a produção pausa antes da animação. Para vídeos com pelo menos 30 s e cinco cenas, o fluxo exige 80% de mídia real e 75% de vídeo, medidos antes de programar o Remotion.
 - O código de cena com vídeo/foto selecionado deve exibir essa mídia. Nomes de países no mapa e no código só aparecem como destaque quando falados na cena; marcador de capítulo não narrado é rejeitado. A direção visual pede um foco por vez e preserva a liberdade de composição.
 - Permanecem: `reasoning_effort: low`, diagnóstico de timeout/validação, reparo de aspas simples no TSX, retomada de cenas de reserva, fotos sempre animadas e efeitos sobre dados narrados.
 
 ## Validação e próximo passo
 - 105/105 testes locais aprovados e TypeScript do renderizador aprovado. Teste de regressão reproduz a sequência problemática de nove cenas e verifica mapa único, explicações sobre vídeo e rótulos sincronizados com a fala.
-- Próximo passo: atualizar o VPS com esta versão após confirmar que não há produção ativa; gerar um novo vídeo de teste para verificar editorialmente a nova proporção de filmagem e os efeitos. O MP4 já concluído não foi alterado e ainda mostra o plano antigo.
+- VPS atualizado para o commit 4025a19; contêiner saudável, página inicial HTTP 200 e limitador de mapas confirmado no processo ativo. Não havia produção rodando na atualização. Próximo passo: o usuário gerar um novo vídeo pela página inicial e avaliar a proporção de filmagem e os efeitos. O MP4 anterior permanece inalterado com o plano antigo.
