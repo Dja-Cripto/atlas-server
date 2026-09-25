@@ -1,5 +1,5 @@
 # Atlas Studio — estado da geração visual
-**Atualizado em:** 25/09/2026, aproximadamente 17:35 (America/Bahia).
+**Atualizado em:** 25/09/2026, aproximadamente 19:07 (America/Bahia).
 
 ## Versões
 - V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem correspondente preservada no VPS.
@@ -13,8 +13,8 @@
 ## Alterações
 - A avaliação de cobertura agora distingue meta editorial de falha real. Proporção de vídeo abaixo de 75% ou mídia real abaixo de 80% gera aviso e métricas, não pausa automática. Cenas sem vídeo, foto, mapa ou gráfico válido continuam bloqueadas para reparo pontual.
 - O andamento registra quantos vídeos, fotografias e mapas foram selecionados e a cobertura temporal. Pesquisa, narração, plano e mídias salvos da produção atual são preservados para retomada.
-- Permanece a correção anterior do gerador para remover `endAt` de vídeos Remotion, que podia cortar o clipe em menos de um segundo. Essa correção foi validada em teste local, mas ainda precisa da próxima implantação no VPS.
+- Permanece a correção anterior do gerador para remover `endAt` de vídeos Remotion, que podia cortar o clipe em menos de um segundo. Essa correção e a avaliação de cobertura foram implantadas no VPS.
 
 ## Validação, limites e próximo passo
 - 108/108 testes locais aprovados; TypeScript do renderizador aprovado. Testes cobrem mistura real de vídeo/foto/mapa e bloqueio de cena efetivamente vazia.
-- Próximo passo: publicar esta correção e a de `endAt` no VPS, confirmar saúde do serviço e retomar a mesma produção. A qualidade editorial das 42 cenas ainda deve ser avaliada após programação e renderização.
+- VPS atualizado para o commit `425115e`; contêiner saudável e página inicial HTTP 200. A mesma produção foi retomada pela API do painel e passou da revisão visual em segundos, sem repetir pesquisa, narração ou busca de mídias. Está na etapa de programação visual pelo GLM. Próximo passo: acompanhar as 42 cenas, validar a prévia e avaliar editorialmente o MP4 final.
