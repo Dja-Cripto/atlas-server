@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,access,rm} from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import {authorMotion,normalizeVisualBible,sceneUnits} from '../lib/motion-author.mjs';
+import {authorMotion,normalizeVisualBible,sceneUnits,normalizeMotionCode,validateMotionCode} from '../lib/motion-author.mjs';
 import {motionModelForAttempt,compactRescueAssignment} from '../lib/motion-rescue.mjs';
 import {generateJSON} from '../lib/providers.mjs';
 import {transform} from '../renderer/node_modules/esbuild/lib/main.js';
@@ -68,4 +68,11 @@ test('timeout after HTTP 200 is identified as a stream timeout',async()=>{
   globalThis.fetch=async()=>new Response(new ReadableStream({start(){}}),{status:200,headers:{'content-type':'text/event-stream'}});
   await assert.rejects(generateJSON({sceneProvider:'go',goKey:'fixture',goModel:'glm-5.3-flash',timeoutMs:20},{id:'synthetic'},'synthetic prompt'),/durante o stream após HTTP 200/);
  }finally{globalThis.fetch=originalFetch;}
+});
+
+test('common broken quoted CSS border color is repaired without another model call',()=>{
+ const malformed="import {AbsoluteFill,useCurrentFrame} from 'remotion';export default function MotionScene(){const f=useCurrentFrame();return <AbsoluteFill style={{borderLeft: '4px solid '#D8842A',opacity:f>=0?1:0}}/>;}";
+ const repaired=normalizeMotionCode(malformed);
+ assert.match(repaired,/borderLeft: '4px solid #D8842A'/);
+ assert.doesNotThrow(()=>validateMotionCode(repaired));
 });
