@@ -5,7 +5,7 @@ import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPl
 import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,sampleTimelineForDirector,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
 import {candidatePool,meetsFullHd} from '../lib/auto-media.mjs';
 import {canReuseValidatedPreview} from '../lib/automatic.mjs';
-import {parseRelaxedJSON,splitScriptIntoTTSChunks,directNarrationChunk} from '../lib/providers.mjs';
+import {parseRelaxedJSON,splitScriptIntoTTSChunks,directNarrationChunk,narrationPauseSections} from '../lib/providers.mjs';
 test('completed preview can resume MP4 render only for the same run and scene count',()=>{
  const auto={preview:{ready:true,runId:'run-a'},previewValidation:{totalScenes:104}};
  assert.equal(canReuseValidatedPreview(auto,'run-a',104),true);
@@ -37,6 +37,11 @@ test('splitScriptIntoTTSChunks divides long narration by sentences without pitch
   assert.match(c,/[.!?]$/);
  });
  assert.equal(splitScriptIntoTTSChunks("Short script.",300).length,1);
+});
+test('narration pauses follow completed sentences and stay limited',()=>{
+ assert.deepEqual(narrationPauseSections('A thought ends. [PAUSE] Another begins.'),['A thought ends.','Another begins.']);
+ assert.deepEqual(narrationPauseSections('A thought continues [PAUSE] inside it.'),['A thought continues inside it.']);
+ assert.deepEqual(narrationPauseSections('One. [PAUSE] Two. [PAUSE] Three. [PAUSE] Four.',{maxPauses:2}),['One.','Two.','Three. Four.']);
 });
 test('voice direction keeps the approved contrast and removes breathy delivery cues',()=>{
  const opening=directNarrationChunk('[whispering] The canal looks simple. But every ship climbs. Where does the water come from?',{opening:true,closing:true});
