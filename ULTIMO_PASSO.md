@@ -1,32 +1,20 @@
-# Atlas Studio — Diagnóstico Visual e Correção Definitiva no Gerador
-**Atualizado em:** 25/09/2026, aproximadamente 16:15 (America/Bahia).
+# Atlas Studio — estado da geração visual
+**Atualizado em:** 25/09/2026, aproximadamente 17:35 (America/Bahia).
 
 ## Versões
-- V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem `atlas-studio:visual-v1-checkpoint-2026-09-24` preservada no VPS.
-- V2: branch `codex/atlas-visual-v2`. Procedimento de reversão em `CHECKPOINTS.md`.
-- Painel: https://painel.setupdja.website; código do servidor: /srv/atlas-studio.
+- V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem correspondente preservada no VPS.
+- V2: branch `codex/atlas-visual-v2`. Reversão descrita em `CHECKPOINTS.md`.
+- Painel: https://painel.setupdja.website; checkout do VPS: `/srv/atlas-studio`.
 
-## O que foi alterado e diagnosticado
-- **Avaliação quadro a quadro do vídeo de 1 min (*"Oymyakon"*, Job `bb9abbe3-1aa6-4da0-b3e2-15f340a4446c`)**:
-  - **Cena 0 (0:00 - 0:06.8)**: Drone real sobre o vale nevado com pergunta de abertura perfeitamente enquadrada.
-  - **Cena 1 (0:06.8 - 0:13.6)**: Movimento vertical mostrando a cordilheira, indicador discreto de altitude e a palavra *"Temperature"*.
-  - **Cena 2 (0:13.6 - 0:20.5) — O erro apontado pelo usuário**:
-    - O vídeo selecionado para o fundo (`ac1289e255c77a87712d.mp4`, 19.2 MB) era uma filmagem aérea impressionante de neblina e montanhas da Sibéria.
-    - O modelo GLM gerou `<OffthreadVideo ... endAt={Math.min(8, (DUR / fps) + 0.5)} />`. Como a cena tinha 204 quadros a 30 fps, a expressão resultou em `7.3`. No Remotion, a propriedade `endAt` é em **quadros**, e não em segundos. Com isso, o vídeo cortou abruptamente no quadro 7 (0,23s de cena), tornando-se transparente e expondo o fundo sólido `#142d32` com a animação vetorial do relevo por cima.
-  - **Cena 3 (0:20.5 - 0:26.5)**: Filmagem limpa de nevasca florestal em alta definição, respiro documental perfeito.
-  - **Cena 4 (0:26.5 - 0:33.5)**: Fotografia histórica de 6 de fevereiro de 1933 com efeito máquina de escrever e `-67°C` tipográfico sutil.
-  - **Cena 5 (0:33.5 - 0:40.4)**: Filmagem aérea em alta definição de toda a vila de Oymyakon, animando `-67.7°C` e o recorde histórico com transição perfeitamente contínua da cena anterior.
-  - **Cena 6 (0:40.4 - 0:44.9)**: Filmagem limpa em Full HD da vila siberiana em dia gelado.
-  - **Cena 7 (0:44.9 - 0:51.8)**: Filmagem documental com iluminação dourada e neve profunda.
-  - **Cena 8 (0:51.8 - 0:56.5)**: Crianças de trenó na neve com métrica suave de fechamento escolar aos `-52°C`.
-- **Correção definitiva implementada no gerador (`lib/motion-author.mjs`)**:
-  - `normalizeSceneCode` agora remove qualquer atributo `endAt` em `<OffthreadVideo>` e `<Video>`, pois o container `<Sequence>` do Remotion já controla com precisão a duração de cada cena.
-  - Atualização dos contratos/prompts (`sceneContract` e `shortsSceneContract`) proibindo expressamente o uso de `endAt`.
-  - Adicionado teste unitário cobrindo a remoção automática de `endAt`.
+## Diagnóstico atual
+- Produção `1c2c6f09-0d31-4f33-9822-0e5575fafad6`, *How Mongolia’s Nomadic Herders Follow the Seasons*, run `bc96184f-1b5d-473c-8bea-1ce1841b7db9`: 42 cenas planejadas, sem reparos de mídia pendentes. A busca cobriu 238,73 s de 252,6 s (94,5%) com vídeos ou fotografias reais; vídeos sozinhos cobriram 168,44 s (66,7%). Há 28 cenas de vídeo, 12 com fotografia e 2 mapas. A produção parou porque a meta rígida de 75% de vídeo foi tratada como erro, apesar de todas as cenas terem representação.
+- A busca já faz alternativas com material contextual e fotografia real quando a filmagem específica não serve. Essas fotos recebem efeito Remotion; não há necessidade de gerar imagens por IA nesta produção. Um assunto ou pessoa específica não deve ser representado falsamente por material apenas contextual.
 
-## Validação e Resultados
-- 106/106 testes unitários passando (`npm test`).
-- Diagnóstico comprovado pela extração direta dos quadros do vídeo final e inspeção do ativo de vídeo no servidor.
+## Alterações
+- A avaliação de cobertura agora distingue meta editorial de falha real. Proporção de vídeo abaixo de 75% ou mídia real abaixo de 80% gera aviso e métricas, não pausa automática. Cenas sem vídeo, foto, mapa ou gráfico válido continuam bloqueadas para reparo pontual.
+- O andamento registra quantos vídeos, fotografias e mapas foram selecionados e a cobertura temporal. Pesquisa, narração, plano e mídias salvos da produção atual são preservados para retomada.
+- Permanece a correção anterior do gerador para remover `endAt` de vídeos Remotion, que podia cortar o clipe em menos de um segundo. Essa correção foi validada em teste local, mas ainda precisa da próxima implantação no VPS.
 
-## Próximo passo recomendado
-- Realizar deploy das alterações para o servidor e gerar nova produção de validação para conferir a persistência contínua do vídeo na Cena 2.
+## Validação, limites e próximo passo
+- 108/108 testes locais aprovados; TypeScript do renderizador aprovado. Testes cobrem mistura real de vídeo/foto/mapa e bloqueio de cena efetivamente vazia.
+- Próximo passo: publicar esta correção e a de `endAt` no VPS, confirmar saúde do serviço e retomar a mesma produção. A qualidade editorial das 42 cenas ainda deve ser avaliada após programação e renderização.
