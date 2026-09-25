@@ -7,7 +7,7 @@ export const ContextMap:React.FC<{map:FeatureCollection & {atlasRoute?:{from:num
  useEffect(()=>{let live=true;fetch(staticFile('auto/world-background.json')).then(r=>{if(!r.ok)throw Error('Geographic basemap unavailable');return r.json();}).then(data=>{if(live){setWorld(data);continueRender(handle);}}).catch(cancelRender);return()=>{live=false;};},[handle]);
   const geometry=useMemo(()=>{
    const fit=geoMercator().fitExtent([[portrait?100:240,portrait?420:190],[width-(portrait?100:240),height-(portrait?400:200)]],map),center=fit.invert!([width/2,height/2])!,scale=Math.min(30000,fit.scale()),projection=geoMercator().center(center).scale(scale).translate([width/2,height/2]),path=geoPath(projection);
-   const focus=map.features.map(feature=>({path:path(feature)||'',point:projection(geoCentroid(feature))!,name:String(feature.properties?.name||''),focal:Boolean(feature.properties?.focal)}));
+   const focus=map.features.map(feature=>({path:path(feature)||'',point:projection(geoCentroid(feature))!,name:String(feature.properties?.name||''),focal:Boolean(feature.properties?.focal),spokenLabel:feature.properties?.spokenLabel!==false}));
    let route=null;
    if(map.atlasRoute&&focus[map.atlasRoute.from]&&focus[map.atlasRoute.to]){
     const p1=focus[map.atlasRoute.from].point,p2=focus[map.atlasRoute.to].point;
@@ -55,7 +55,7 @@ export const ContextMap:React.FC<{map:FeatureCollection & {atlasRoute?:{from:num
        <g opacity={fade}>
         <circle cx={pt[0]} cy={pt[1]} r={8} fill={feature.focal?'#ffd485':'#52b2a4'} fillOpacity={.35}/>
         <circle cx={pt[0]} cy={pt[1]} r={3.5} fill="#fff"/>
-        <text x={pt[0]} y={pt[1]-18} fill="#ffffff" stroke="#0c1922" strokeWidth={5} paintOrder="stroke" textAnchor="middle" fontSize={portrait?42:26} fontWeight={700} letterSpacing={2} style={{fontFamily:'"Helvetica Neue", Arial, sans-serif'}}>{feature.name.toUpperCase()}</text>
+        {feature.spokenLabel&&<text x={pt[0]} y={pt[1]-18} fill="#ffffff" stroke="#0c1922" strokeWidth={5} paintOrder="stroke" textAnchor="middle" fontSize={portrait?42:26} fontWeight={700} letterSpacing={2} style={{fontFamily:'"Helvetica Neue", Arial, sans-serif'}}>{feature.name.toUpperCase()}</text>}
        </g>
       </g>;
      })}

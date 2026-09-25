@@ -383,11 +383,12 @@ test('motion normalizer preserves forEach and accepts constant-bounded loops',()
  assert.doesNotThrow(()=>validateMotionCode(normalized));
 });
 
-test('short explanatory video keeps one diagram and removes planning captions from the other',()=>{
+test('short explanatory video places diagrams over footage and removes planning captions',()=>{
  const plan=Array.from({length:5},(_,index)=>({id:`s${index}`,kind:index===2||index===4?'diagram':'footage',treatment:'composed',start:index*6,end:(index+1)*6,heading:index===4?'Molecular Cooling Dynamic':'Eiffel Tower',caption:index===4?'Animated diagram showing contraction':''}));
  const limited=enforceExplanatoryScenes(plan,'Why the Eiffel Tower Grows in Summer',30);
- assert.deepEqual(limited.map((scene,index)=>scene.kind==='diagram'?index:null).filter(index=>index!==null),[2]);
- assert.equal(limited[4].kind,'footage');
+ assert.equal(limited.every(scene=>scene.kind==='footage'),true);
+ assert.equal(limited[2].treatment,'composed');
+ assert.equal(limited[4].treatment,'composed');
  assert.equal(limited[4].caption,'');
 });
 
@@ -456,10 +457,10 @@ test('visual treatment defaults real media to clean and reserves composed treatm
  assert.equal(scene.caption,'');
 });
 
-test('invisible geographic mechanism receives explanatory scenes while a visible landmark does not',()=>{
+test('invisible geographic mechanism keeps real footage available for explanatory overlays',()=>{
  const shots=Array.from({length:13},(_,index)=>({id:`s${index}`,start:index*5,end:(index+1)*5,kind:index===3?'photo':'footage',treatment:'clean',narration:index===3?'How can two currents move in opposite directions?':'Ocean water moves.',heading:'Coast'}));
  const explained=enforceExplanatoryScenes(shots,'Why water flows in two directions through the Strait of Gibraltar');
- assert.deepEqual(explained.map((scene,index)=>scene.kind==='diagram'?index:null).filter(index=>index!==null),[2,8]);
+ assert.equal(explained.every(scene=>scene.kind==='footage'||scene.kind==='photo'),true);
  assert.equal(shots[3].kind,'photo');
  assert.equal(enforceExplanatoryScenes(shots,'The Eiffel Tower')[3].kind,'photo');
  assert.equal(normalizeDirectionKind('schematic'),'diagram');
@@ -550,7 +551,7 @@ test('opening media is identified and still photographs stay composed',()=>{
 
 
 test('motion validation rejects bright blend flashes that wash out photographs',()=>{
- const code="import React from 'react';import {AbsoluteFill,useCurrentFrame} from 'remotion';export default function Scene(){const frame=useCurrentFrame();return <AbsoluteFill><AbsoluteFill style={{backgroundColor:'#fff',mixBlendMode:'screen',opacity:1.5}} />{frame}</AbsoluteFill>}";
+ const code="import React from 'react';import {AbsoluteFill,Img,useCurrentFrame} from 'remotion';export default function Scene(){const frame=useCurrentFrame();return <AbsoluteFill><Img src='a.jpg'/><AbsoluteFill style={{backgroundColor:'#fff',mixBlendMode:'screen',opacity:1.5}} />{frame}</AbsoluteFill>}";
  assert.throws(()=>validateMotionCode(code,{asset:{kind:'image'}}),/estourar|Opacidade/);
 });
 

@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,rm} from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import {materializeMap} from '../lib/geography.mjs';
-import {validateDirection,diversifyVisualPlan,enforceVisualBreathing} from '../lib/auto-plan.mjs';
+import {materializeMap,buildGeographicMap} from '../lib/geography.mjs';
+import {validateDirection,diversifyVisualPlan,enforceExplanatoryScenes,enforceVisualBreathing} from '../lib/auto-plan.mjs';
 import {repairVisuals} from '../lib/visual-repair.mjs';
 import {generateFallbackSceneCode,validateMotionCode} from '../lib/motion-author.mjs';
 import {recoverScene} from '../lib/scene-recovery.mjs';
@@ -29,9 +29,9 @@ test('missing media recovers into a materialized map; connections require explic
  }finally{await rm(root,{recursive:true,force:true});}
 });
 
-test('creative intent allows consecutive explanations and clean intentional holds',()=>{
+test('consecutive map intentions use film for the second explanation while clean video can hold',()=>{
  const plan=['Locate the border','Explain movement across that border'].map((mapIntent,i)=>validateDirection({id:'s'+i,start:i*5,end:i*5+5,narration:'Italy and Austria.'},{kind:'map',heading:'Border',countries:['Italy','Austria'],mapIntent},{}));
- assert.deepEqual(diversifyVisualPlan(plan,90).map(s=>s.kind),['map','map']);
+ assert.deepEqual(diversifyVisualPlan(plan,90).map(s=>s.kind),['map','footage']);
  const clean=Array.from({length:5},(_,i)=>({id:'s'+i,kind:'footage',treatment:'clean',motionStyle:'hold',editorialReason:'Observe the real subject',start:i*5,end:i*5+5,asset:{kind:'video'}}));
  assert.ok(enforceVisualBreathing(clean,30).slice(1).every(scene=>scene.treatment==='clean'));
  assert.equal(validateMotionCode("import {AbsoluteFill} from 'remotion';export default function Still(){return <AbsoluteFill><div>Observation</div></AbsoluteFill>}" ).includes('Observation'),true);
@@ -74,4 +74,39 @@ test('geography recognizes French Guiana and France as valid map territories',as
  assert.equal(scene.map.features.length,2);
  assert.equal(scene.map.features[0].properties.name,'French Guiana');
  assert.equal(scene.map.features[1].properties.name,'Brazil');
+});
+
+
+test('one-minute geography story uses one map and keeps data diagrams on real media',()=>{
+ const kinds=['map','map','footage','footage','diagram','map','diagram','footage','footage'];
+ const narrations=['Europe and Africa are 13 kilometers apart.','The Strait of Gibraltar is narrow.','Engineers propose a tunnel.','The reason lies beneath the waves.','The seabed reaches 900 meters.','The route detours west.','The underwater ridge is 300 meters deep.','The track extends to 28 kilometers.','The shortest route is unbuildable.'];
+ const plan=kinds.map((kind,index)=>({id:`shot-${index+1}`,kind,start:index*5,end:(index+1)*5,narration:narrations[index],countries:['Spain','Morocco'],mapIntent:kind==='map'?`Distinct proposal ${index}`:'',query:kind==='diagram'?'ocean bathymetry diagram':'Gibraltar coast'}));
+ const result=enforceExplanatoryScenes(diversifyVisualPlan(plan,52),'Gibraltar tunnel',52);
+ assert.deepEqual(result.map(scene=>scene.kind),['map','footage','footage','footage','footage','footage','footage','footage','footage']);
+ assert.equal(result[4].treatment,'composed');
+ assert.match(result[4].query,/documentary footage/);
+ assert.equal(result[6].treatment,'composed');
+ const editorial=enforceVisualBreathing(result,52);
+ assert.equal(editorial[1].treatment,'composed');
+ assert.equal(editorial[4].treatment,'composed');
+ assert.equal(editorial[5].treatment,'composed');
+ assert.equal(editorial[6].treatment,'composed');
+});
+
+test('map labels appear only when the country is spoken in that scene',()=>{
+ const feature=name=>({type:'Feature',properties:{ADMIN:name},geometry:{type:'Polygon',coordinates:[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}});
+ const world={type:'FeatureCollection',features:[feature('Spain'),feature('Morocco')]};
+ const broad=buildGeographicMap({countries:['Spain','Morocco'],narration:'Europe and Africa are close.'},world);
+ assert.deepEqual(broad.features.map(x=>x.properties.spokenLabel),[false,false]);
+ const named=buildGeographicMap({countries:['Spain','Morocco'],narration:'Spain and Morocco face each other.'},world);
+ assert.deepEqual(named.features.map(x=>x.properties.spokenLabel),[true,true]);
+});
+
+test('motion code must show selected footage and cannot label an unspoken country',()=>{
+ const noFilm="import {AbsoluteFill} from 'remotion';export default function Scene(){return <AbsoluteFill>Graphic</AbsoluteFill>}";
+ assert.throws(()=>validateMotionCode(noFilm,{asset:{kind:'video'}}),/não o mostra/);
+ const unspoken="import {AbsoluteFill} from 'remotion';export default function Scene(){return <AbsoluteFill><div>SPAIN</div></AbsoluteFill>}";
+ assert.throws(()=>validateMotionCode(unspoken,{countries:['Spain','Morocco'],narration:'Europe and Africa are 13 kilometers apart.'}),/ainda não narrado/);
+ const chapter="import {AbsoluteFill} from 'remotion';export default function Scene(){return <AbsoluteFill><div>CHAPTER ONE</div></AbsoluteFill>}";
+ assert.throws(()=>validateMotionCode(chapter,{narration:'Europe and Africa are close.'}),/capítulo não narrado/);
 });
