@@ -1,5 +1,5 @@
 # Atlas Studio — estado da geração visual
-**Atualizado em:** 25/09/2026, aproximadamente 19:07 (America/Bahia).
+**Atualizado em:** 25/09/2026, aproximadamente 19:10 (America/Bahia).
 
 ## Versões
 - V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem correspondente preservada no VPS.
@@ -17,4 +17,4 @@
 
 ## Validação, limites e próximo passo
 - 108/108 testes locais aprovados; TypeScript do renderizador aprovado. Testes cobrem mistura real de vídeo/foto/mapa e bloqueio de cena efetivamente vazia.
-- VPS atualizado para o commit `425115e`; contêiner saudável e página inicial HTTP 200. A mesma produção foi retomada pela API do painel e passou da revisão visual em segundos, sem repetir pesquisa, narração ou busca de mídias. Está na etapa de programação visual pelo GLM. Próximo passo: acompanhar as 42 cenas, validar a prévia e avaliar editorialmente o MP4 final.
+- VPS atualizado para o commit `425115e`; contêiner saudável e página inicial HTTP 200. A mesma produção foi retomada pela API do painel e passou da revisão visual em segundos, sem repetir pesquisa, narração ou busca de mídias. A direção global recebeu `server_error` do provedor e usou a direção segura prevista; as cenas 1 e 2 foram programadas com sucesso, sem reserva, e a cena 3 estava em andamento. Essa falha do provedor permanece como limitação separada da busca de mídia. Próximo passo: acompanhar as 42 cenas, validar a prévia e avaliar editorialmente o MP4 final.
