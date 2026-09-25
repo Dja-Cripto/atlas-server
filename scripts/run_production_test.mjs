@@ -12,8 +12,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const dir = process.env.ATLAS_DATA_DIR || path.join(root, 'data');
 const store = createStore(dir);
 
-const topicTitle = process.argv[2] || 'Why Iceland Has Zero Mosquitoes';
+const topicTitle = process.argv[2] || 'The Coldest Inhabited Place on Earth: Oymyakon';
 const targetDuration = Number(process.argv[3]) || 55; // ~1 minute target
+const shouldGenShort = process.argv[4] === '1'; // Default: only main video
 
 console.log(`Creating test production: "${topicTitle}" (~${targetDuration}s)...`);
 
@@ -25,7 +26,8 @@ const job = {
   title: topicTitle,
   minutes: 1,
   targetDuration: 55,
-  shortsCount: 1, // Generate exactly 1 short
+  skipThumbnail: true, // User requested no AI image generation call for thumbnail
+  shortsCount: shouldGenShort ? 1 : 0,
   completed: [],
   status: 'running',
   autoStage: 'research',
@@ -70,7 +72,7 @@ try {
   log(job, 'Iniciando pipeline automático do vídeo principal...');
   await automatic(s, job, { root, dir, log, store });
   
-  // Step 2: Finalize Main Package (Thumbnails, titles, descriptions)
+  // Step 2: Finalize Main Package (Thumbnails from video frame, titles, descriptions)
   console.log('\n--- ETAPA 2: PACOTE PRINCIPAL ---');
   log(job, 'Finalizando pacote do vídeo principal (capas e metadados)...');
   await finalizeMainPackage(s, job, { root, dir, log, store });
@@ -89,41 +91,39 @@ try {
   console.log(`  - Resolução: ${mainVideo?.width}x${mainVideo?.height}`);
   console.log(`  - Trilha selecionada: "${job.selectedMusic?.name}" (${job.selectedMusic?.categoryName})`);
 
-  // Step 3: Generate 1 Short
-  console.log('\n--- ETAPA 3: GERAÇÃO DO SHORT (1 MINUTO VERTICAL) ---');
-  log(job, 'Iniciando geração do Short vertical...');
-  await automaticShorts(s, job, { root, dir, log, store });
-  
-  console.log('\n--- ETAPA 4: RENDERIZAÇÃO DO SHORT ---');
-  log(job, 'Renderizando Short vertical em 1080x1920...');
-  await renderAllShortsMP4(s, job, { root, dir, log, store });
-  
-  const short0 = job.shorts?.items?.[0];
-  const shortPath = short0?.videoPath || path.join(dir, 'shorts', job.id, 'short-1.mp4');
-  const shortStats = await stat(shortPath);
-  const shortProbe = await verifyMedia(shortPath);
-  const shortDuration = parseFloat(shortProbe.format?.duration || 0);
-  const shortVideo = shortProbe.streams?.find(st => st.codec_type === 'video');
+  if (shouldGenShort) {
+    // Step 3: Generate 1 Short
+    console.log('\n--- ETAPA 3: GERAÇÃO DO SHORT (1 MINUTO VERTICAL) ---');
+    log(job, 'Iniciando geração do Short vertical...');
+    await automaticShorts(s, job, { root, dir, log, store });
+    
+    console.log('\n--- ETAPA 4: RENDERIZAÇÃO DO SHORT ---');
+    log(job, 'Renderizando Short vertical em 1080x1920...');
+    await renderAllShortsMP4(s, job, { root, dir, log, store });
+    
+    const short0 = job.shorts?.items?.[0];
+    const shortPath = short0?.videoPath || path.join(dir, 'shorts', job.id, 'short-1.mp4');
+    const shortStats = await stat(shortPath);
+    const shortProbe = await verifyMedia(shortPath);
+    const shortDuration = parseFloat(shortProbe.format?.duration || 0);
+    const shortVideo = shortProbe.streams?.find(st => st.codec_type === 'video');
 
-  console.log(`\n✓ Short vertical concluído:`);
-  console.log(`  - Arquivo: ${shortPath}`);
-  console.log(`  - Tamanho: ${(shortStats.size / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`  - Duração: ${shortDuration.toFixed(1)}s`);
-  console.log(`  - Resolução: ${shortVideo?.width}x${shortVideo?.height}`);
+    console.log(`\n✓ Short vertical concluído:`);
+    console.log(`  - Arquivo: ${shortPath}`);
+    console.log(`  - Tamanho: ${(shortStats.size / 1024 / 1024).toFixed(2)} MB`);
+    console.log(`  - Duração: ${shortDuration.toFixed(1)}s`);
+    console.log(`  - Resolução: ${shortVideo?.width}x${shortVideo?.height}`);
+  }
 
   job.status = 'review';
   store.put(job);
-  log(job, 'Produção de teste (Vídeo Principal + 1 Short) finalizada com 100% de sucesso!');
-  
-  console.log('\n=========================================');
-  console.log('PRODUÇÃO DE TESTE 100% CONCLUÍDA COM SUCESSO!');
-  console.log(`ID: ${job.id}`);
-  console.log('=========================================');
+  console.log('\n=== TESTE CONCLUÍDO COM SUCESSO ===');
+  process.exit(0);
+
 } catch (err) {
-  console.error('\n❌ Erro durante a produção de teste:', err);
+  console.error('\n❌ ERRO NA PRODUÇÃO DE TESTE:', err);
   job.status = 'error';
-  job.error = err.message || String(err);
-  log(job, `Erro na produção: ${job.error}`);
-  store.put(job);
+  job.error = err.message;
+  log(job, `Erro fatal na produção de teste: ${err.message}`);
   process.exit(1);
 }
