@@ -1,5 +1,5 @@
 # Atlas Studio — Benchmark de Modelos e Produção Noturna
-**Atualizado em:** 26/09/2026, aproximadamente 12:44 (America/Bahia).
+**Atualizado em:** 26/09/2026, aproximadamente 13:15 (America/Bahia).
 
 ## Versões
 - V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem preservada no VPS.
@@ -14,6 +14,7 @@
 ## Experimento separado
 - `PROXIMO_PASSO.md` registra o futuro teste de segundo modelo (Kimi K3 após três falhas do GLM, até duas tentativas; template limitado a cerca de 5%). Nada disso foi ativado no robô.
 - Um piloto isolado de 28 segundos sobre poeira do Saara e Amazônia foi gerado com as APIs já configuradas. O MP4 e mídias estão em `scratch/personality-pilot/`, ignorados pelo Git. O usuário não percebeu identidade própria na narração nem diferenciação visual. A proposta de personalidade permanece em discussão e foi retirada de `PROXIMO_PASSO.md`. A primeira versão do código visual exigiu reparo sintático no experimento.
+- Segundo piloto isolado de 28 segundos em `scratch/personality-pilot-v2/pilot-v2.mp4`: narração com ironia leve e virada “Yes, the desert”, voz Fish com direção seca, filmagem real de chuva, corte sincronizado ao Saara e encerramento “overseas supplier”. TSX gerado pelo GLM teve tempo de animação corrigido somente no piloto; MP4 contém vídeo e áudio e quadros-chave foram conferidos. Ainda aguarda avaliação do usuário; personalidade não foi aprovada nem adicionada ao `PROXIMO_PASSO.md`.
 
 ## Validação e próximo passo
 - 114/114 testes locais aprovados (`npm test`).
