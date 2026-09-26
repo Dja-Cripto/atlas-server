@@ -1,5 +1,5 @@
 # Atlas Studio — estado atual
-**Atualizado em:** 26/09/2026, aproximadamente 20:25 (America/Bahia).
+**Atualizado em:** 26/09/2026, aproximadamente 20:45 (America/Bahia).
 
 ## Versões
 - V2 funcional preservada na tag `atlas-visual-v2-checkpoint-2026-09-26` (commit `d64e2ea`); reversão em `CHECKPOINTS.md`.
@@ -15,11 +15,15 @@
 - A curva V3 permanece com música normalizada a 2,5% sob a voz, entrada breve de até 6% e redução nos primeiros 24 quadros. A correção principal deste teste foi garantir que o processo local novo realmente use essa curva.
 - Permanecem as correções anteriores de mapas com localização específica e gráficos que preservam a filmagem visível.
 
+## Correção da seleção de mídia (Japão/terremotos)
+- A direção visual deixou país/local vazios em quase todas as 9 cenas; a busca então consultou termos genéricos e aceitou praias/cidades sem evidência do Japão. A revisão por IA chegou a chamar uma costa genérica de Monte Fuji. O catálogo de fontes, porém, ofereceu vídeos identificados de Tóquio/Shibuya e fotos documentadas do terremoto de Tōhoku.
+- A busca agora herda o país do título mesmo quando a direção omite o campo. Cenas de abertura e cenas que nomeiam país, lugar ou terremoto exigem evidência no título/metadados da mídia; palavras usadas apenas na busca não comprovam identidade. Lugares específicos como Sendai exigem correspondência própria. A chave de cache mudou para não reutilizar as escolhas genéricas anteriores.
+- Vídeo identificado continua prioritário. Quando uma cena específica não encontra filmagem adequada, o gerador procura fotografias documentadas/licenciadas e aplica a composição animada de imagem da V3. Cenas amplas sem identidade específica ainda podem usar vídeo contextual. Busca de eventos passou a cobrir 2011 e termos de terremoto.
+
 ## Validação e limites
-- `npm test`: 125/125 aprovados. Testes verificam a seleção sem horror para temas documentais e a categoria de horror apenas quando explícita.
-- O MP4 original conserva som alto e a faixa errada. Foi criada uma cópia reversível com a mesma imagem/narração, `video-fc65875f-fb00-4def-a2cf-6616a7756187.mp4`, usando `Liquid Time` normalizada a 2,5%. A cópia é acessível pela rota `/outputs/5672d344-f644-48c2-b5a1-a36211d89a23/video-fc65875f-fb00-4def-a2cf-6616a7756187.mp4` (HTTP 200). A voz tem média -20,0 dB e o áudio misturado também -20,0 dB, sinal de que a trilha não elevou o nível global; ainda precisa de escuta humana. O projeto não foi sobrescrito.
-- Arquivos locais de benchmark e demais alterações paralelas não foram incluídos nesta correção.
+- `npm test`: 128/128 aprovados, incluindo regressões para abertura no Japão, terremoto de 2011, Sendai e cenas genéricas.
+- O vídeo já renderizado não muda; a correção vale para novas produções. Metadados de fornecedores podem ser incompletos; se não houver mídia identificável, a recuperação do gerador continua necessária. Google Imagens não é fonte automática de licença; fotografias vêm das fontes licenciadas já configuradas.
 - Fallback de roteiro Luna para Gemini segue não implementado após rejeição pela revisão automática de autorização; falha do Luna nessa etapa pausa a produção com estado salvo.
 
 ## Próximo passo recomendado
-Ouvir a cópia corrigida e, numa nova produção V3, conferir no código gerado que a curva de volume nova entrou e que a trilha escolhida vem da lista revisada. Ajustar pelo resultado auditivo, não só por porcentagens.
+Gerar novamente um vídeo curto sobre lugar/evento específico pela interface e conferir se a abertura e as cenas de fato trazem mídia identificável; avaliar eventual ampliação das fontes licenciadas conforme os resultados.
