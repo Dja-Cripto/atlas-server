@@ -51,9 +51,11 @@ test('selectBestMusic accurately selects appropriate tracks based on video theme
     script: 'Deep beneath the mountains lie military installations kept classified for decades...',
     isShort: false
   });
-  assert.equal(darkResult.category, 'mystery_dark');
+  assert.equal(darkResult.category, 'curiosity_flow');
   assert.equal(darkResult.defaultVolume, 0.06);
-  assert.ok(!EXCLUDED_BEAT_TRACKS.has(darkResult.name + '.mp3'));
+  assert.ok(!/horror|fright|haunt|sinister|devil|terror/i.test(darkResult.name));
+  const explicitHorror = selectBestMusic({title:'Horror special',script:'A fictional horror story.',category:'mystery_dark'});
+  assert.equal(explicitHorror.category, 'mystery_dark');
 
   // 3. YouTube Shorts / Curiosity Flow (inherits documentary theme without aggressive beats)
   const shortResult = selectBestMusic({
@@ -103,3 +105,14 @@ test('selectBestMusic accurately selects appropriate tracks based on video theme
 });
 
 
+
+test('ordinary documentary music is curated by subject and never selects horror or unreviewed tracks',()=>{
+ const japan=selectBestMusic({title:'Why Does Japan Have So Many Earthquakes?',script:'Tectonic plates move under the Pacific coast.'});
+ assert.match(japan.name,/Liquid Time/);
+ for(const title of ['The Forbidden Brazilian Island','Earthquake disaster in Japan','Why is this place forbidden?']){
+  const chosen=selectBestMusic({title,script:'A factual geography documentary.'});
+  assert.ok(!/horror|fright|haunt|sinister|devil|terror|nightmare/i.test(chosen.name));
+  assert.ok(chosen.reason.includes('revisada'));
+  assert.ok(chosen.alternatives.every(item=>!/horror|fright|haunt|sinister|devil|terror/i.test(item.name)));
+ }
+});
