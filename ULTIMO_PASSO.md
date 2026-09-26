@@ -1,20 +1,22 @@
-# Atlas Studio — Agendamento de Produção Noturna e Suporte ao Hub
-**Atualizado em:** 25/09/2026, aproximadamente 21:28 (America/Bahia).
+# Atlas Studio — Continuidade da produção
+**Atualizado em:** 26/09/2026, aproximadamente 11:40 (America/Bahia).
 
 ## Versões
 - V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem preservada no VPS.
 - V2: branch `codex/atlas-visual-v2`. Reversão em `CHECKPOINTS.md`.
 
 ## Estado relevante
-- Avaliação detalhada do vídeo de 4m12s da Mongólia entregue ao criador (gancho forte, roteiro com arco narrativo das 4 estações e tensão econômica, imagens reais com alta coerência como a van russa 4x4 e Ulaanbaatar).
-- Configuração de publicação para o YouTube verificada: workflow no n8n está ativo (`youTubeOAuth2Api`), e a chave de publicação automática permanece desligada no painel conforme solicitado para testes manuais futuros.
+- A produção longa *Iceland: The Country Where Earth Is Still Being Created* tem 106 cenas e parou na revisão visual de `shot-79`, antes das animações e antes dos Shorts. As demais 105 cenas estavam resolvidas; roteiro, narração e mídias ficam preservados para retomada.
+- A busca encontrou milhares de candidatos, mas a recuperação armazenada sugeriu `kind: "video"`; a revisão aceitava apenas `footage`. Era um erro de normalização, não evidência de que não existe mídia para o tema.
 
-## Ajustes desta revisão
-- **Suporte ao criador no store (`lib/store.mjs`)**: Adicionado o método `create` em `createStore`, permitindo que o agendador autônomo e o Hub de pautas instanciem novos jobs com segurança sem erros de execução.
-- **Pauta agendada para a virada**: Tema selecionado para o canal: *"Why 90% of Australia Is Completely Empty"* (5 minutos, com geração automática dos 5 Shorts verticais habilitada).
-- **Garantia de disparo**: Configurado para início automático às 23:45 (America/Bahia) pelo agendador autônomo do container Docker `atlas-studio`. Fila e parâmetros validados diretamente dentro do container.
+## Correção
+- A revisão visual passou a aceitar aliases de mídia que já são aceitos no planejamento, mantendo a exigência de um arquivo real validado.
+- Quando uma cena falha, o robô tenta reaproveitar mídia já revisada do mesmo local antes de repetir buscas; a seleção passa novamente pela revisão visual e não aceita vídeo mais curto que a cena.
+- Se a mídia real continuar indisponível, o modelo de imagem já configurado cria uma ilustração editorial Full HD para aquela cena. Ela recebe animação, não é apresentada como registro do local exato e não entra na contagem de fotografia real. Se a imagem também falhar na geração/validação, a cena segue bloqueada para evitar quadro vazio.
+- A mesma recuperação vale para Shorts; eles podem consultar a mídia já salva do vídeo principal e não avançam com cena sem mídia ou ilustração.
+- O vídeo principal continua independente dos Shorts. Os Shorts só podem começar após o MP4 principal estar pronto e validado.
 
 ## Validação e próximo passo
-- 109/109 testes unitários locais aprovados (`npm test`).
-- Verificação direta via Docker no VPS: `autoRunTime: "23:45"`, `enabled: true`, 1 pauta na fila com `generateShorts: true`.
-- Próximo passo: O robô iniciará a produção às 23:45; Daniel revisará o vídeo principal e os 5 Shorts amanhã pelo painel web.
+- 113/113 testes locais aprovados; testes novos cobrem o alias `video`, mídia do mesmo local, duração insuficiente e ilustração sem inflar a contagem de mídia real. Sintaxe e `git diff --check` aprovados.
+- Limitação: a adequação artística da mídia recuperada ou da ilustração para `shot-79` ainda depende da execução real durante a retomada; nenhuma cena vazia será liberada.
+- Próximo passo: publicar esta correção no VPS e retomar apenas a produção interrompida da Islândia, preservando as 106 cenas já planejadas.

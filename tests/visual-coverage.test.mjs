@@ -23,3 +23,14 @@ test('an unfilled scene remains a hard production blocker',()=>{
  assert.deepEqual(result.missing,['unfilled']);
  assert.equal(result.advisory,null);
 });
+
+test('generated illustrations fill a scene but are never counted as real photography',()=>{
+ const result=assessVisualCoverage([
+  {id:'real',start:0,end:5,asset:{kind:'video'}},
+  {id:'illustrated',start:5,end:10,asset:{kind:'image',representationRole:'illustrative'}}
+ ],10);
+ assert.deepEqual(result.missing,[]);
+ assert.equal(result.illustrationScenes,1);
+ assert.equal(result.photoScenes,0);
+ assert.equal(result.ratio,.5);
+});
