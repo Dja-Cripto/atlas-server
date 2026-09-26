@@ -623,3 +623,10 @@ test('motion validator ignores country names in footage credits but blocks unspo
  assert.doesNotThrow(()=>validateMotionCode(credit,scene));
  assert.throws(()=>validateMotionCode(credit.replace('Footage: Pexels · Iceland','ICELAND'),scene),/ainda não narrado/);
 });
+
+test('normalizer repairs a dotted const declaration from generated Short code',()=>{
+ const malformed="import {AbsoluteFill,Img,useCurrentFrame} from 'remotion';const.charcoal = '#141210';export default function Scene(){const frame=useCurrentFrame();return <AbsoluteFill><Img src='photo.jpg'/><div style={{color:charcoal}}>{frame}</div></AbsoluteFill>}";
+ const code=normalizeMotionCode(malformed,{asset:{kind:'image',src:'photo.jpg'}});
+ assert.match(code,/const charcoal =/);
+ assert.doesNotThrow(()=>validateMotionCode(code,{asset:{kind:'image',src:'photo.jpg'}}));
+});
