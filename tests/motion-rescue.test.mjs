@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,readFile,access,rm} from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import {authorMotion,normalizeVisualBible,sceneUnits,normalizeMotionCode,validateMotionCode} from '../lib/motion-author.mjs';
+import {authorMotion,normalizeVisualBible,sceneUnits,normalizeMotionCode,normalizeMotionResult,validateMotionCode} from '../lib/motion-author.mjs';
 import {motionModelForAttempt,compactRescueAssignment} from '../lib/motion-rescue.mjs';
 import {generateJSON} from '../lib/providers.mjs';
 import {transform} from '../renderer/node_modules/esbuild/lib/main.js';
@@ -36,14 +36,14 @@ test('a timeout is retried, one failed photo uses animated reserve, repeated fai
   calls.length=0;globalThis.fetch=async(_url,options)=>{const request=JSON.parse(options.body);assert.equal(request.reasoning_effort,'low');calls.push(request.model);return new Response('data: '+JSON.stringify({choices:[{delta:{content:JSON.stringify(result)}}]})+'\n\ndata: [DONE]\n\n',{status:200,headers:{'content-type':'text/event-stream'}});};
   await authorMotion({goKey:'fixture',motionModel:'glm-5.3-flash'},blocked,manifest,{root,log:()=>{}});
   const replaced=JSON.parse(await readFile(path.join(blockedFolder,'scene-0.json'),'utf8'));
-  assert.equal(replaced.fallback,undefined);assert.deepEqual(blocked.auto.visualFallbacks,[]);assert.deepEqual(calls,['glm-5.3-flash']);
+  assert.equal(replaced.fallback,true);assert.deepEqual(blocked.auto.visualFallbacks,['shot-1']);assert.deepEqual(calls,[]);
   calls.length=0;globalThis.fetch=async(_url,options)=>{const request=JSON.parse(options.body);assert.equal(request.reasoning_effort,'low');calls.push(request.model);throw Error('synthetic unavailable');};
   const two={...manifest,duration:10,scenes:[scene,{...scene,id:'forest-2',start:5,end:10}]};
   const repeatId='repeat',repeatFolder=await setup(repeatId,two),repeat={id:'synthetic-repeat',title:two.title,auto:{runId:repeatId},events:[]};
   const repeated=await authorMotion({goKey:'fixture',motionModel:'glm-5.3-flash'},repeat,two,{root,log:()=>{}}).then(value=>({ok:true,value}),error=>({ok:false,error:error.message}));
-  assert.equal(repeated.ok,false);assert.match(repeated.error,/Falha recorrente/);
-  assert.equal((repeat.auto.visualFallbacks||[]).length,1);
-  await assert.rejects(access(path.join(repeatFolder,'index.tsx')));
+  assert.equal(repeated.ok,true);
+  assert.equal((repeat.auto.visualFallbacks||[]).length,2);
+  await access(path.join(repeatFolder,'index.tsx'));
  }finally{globalThis.fetch=originalFetch;await rm(root,{recursive:true,force:true});}
 });
 test('rescue schedule keeps the selected model first and strips irrelevant timeline context',()=>{
@@ -75,4 +75,10 @@ test('common broken quoted CSS border color is repaired without another model ca
  const repaired=normalizeMotionCode(malformed);
  assert.match(repaired,/borderLeft: '4px solid #D8842A'/);
  assert.doesNotThrow(()=>validateMotionCode(repaired));
+});
+
+test('invalid beat timing is rebuilt from a valid scene intent without another model call',()=>{
+ const result={intent:'Reveal the glacial valley',beats:[{start:0,end:1,action:'Opening'}],code:'valid-code'};
+ normalizeMotionResult(result,6,30);
+ assert.deepEqual(result.beats,[{start:0,end:6,action:'Reveal the glacial valley'}]);
 });
