@@ -10,11 +10,24 @@
 
 ## Atlas Visual V2 — liberdade visual
 
-- Desenvolvimento na branch `codex/atlas-visual-v2`.
+- Checkpoint funcional criado em 26/09/2026: tag atlas-visual-v2-checkpoint-2026-09-26, commit d64e2eaa0bbbc9751e9d9d9196ded0234e463c5f, enviado ao GitHub.
+- Desenvolvimento original na branch codex/atlas-visual-v2; a V3 parte desse checkpoint. Benchmarks locais ainda não consolidados não fazem parte da tag.
 - Preservar liberdade de composição, vídeos descritivos limpos e pausas intencionais; fotografias sempre animadas. Não exigir efeitos em todas as cenas.
 - Correções devem valer para novas produções; não reescrever projetos ou renders antigos.
 - Consulte `ULTIMO_PASSO.md` para validação e estado da implantação.
 
+## Atlas Visual V3 — planejamento
+
+- Branch de trabalho: codex/atlas-visual-v3, criada a partir do checkpoint V2.
+- Escopo aprovado e ordem de implementação em PROXIMO_PASSO.md.
+- Antes de liberar a V3, validar uma produção completa, incluindo roteiro, cenas, áudio, Shorts e custo real do GPT-6 Luna. A V2 permanece disponível pela tag, independentemente dos resultados da V3.
+
+## Como retornar à V2
+
+1. Preservar o estado e os dados das produções; não usar reset destrutivo nem apagar arquivos de produção.
+2. Selecionar a tag atlas-visual-v2-checkpoint-2026-09-26 em checkout ou worktree separado, localmente e no servidor.
+3. Recriar/reiniciar apenas o serviço do gerador com esse código; conferir os mounts do código e a saúde do painel. Banco, credenciais, mídias e vídeos permanecem intactos.
+4. Registrar no ULTIMO_PASSO.md qual versão ficou ativa após a reversão.
 ## Como retornar à V1
 
 1. Não interromper uma produção em execução. Guardar o estado atual em commit/branch antes de trocar de versão.
