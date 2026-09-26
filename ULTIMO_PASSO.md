@@ -17,8 +17,8 @@
 
 ## Correção da seleção de mídia (Japão/terremotos)
 - A direção visual deixou país/local vazios em quase todas as 9 cenas; a busca então consultou termos genéricos e aceitou praias/cidades sem evidência do Japão. A revisão por IA chegou a chamar uma costa genérica de Monte Fuji. O catálogo de fontes, porém, ofereceu vídeos identificados de Tóquio/Shibuya e fotos documentadas do terremoto de Tōhoku.
-- A busca agora herda o país do título mesmo quando a direção omite o campo. Cenas de abertura e cenas que nomeiam país, lugar ou terremoto exigem evidência no título/metadados da mídia; palavras usadas apenas na busca não comprovam identidade. Lugares específicos como Sendai exigem correspondência própria. A chave de cache mudou para não reutilizar as escolhas genéricas anteriores.
-- Vídeo identificado continua prioritário. Quando uma cena específica não encontra filmagem adequada, o gerador procura fotografias documentadas/licenciadas e aplica a composição animada de imagem da V3. Cenas amplas sem identidade específica ainda podem usar vídeo contextual. Busca de eventos passou a cobrir 2011 e termos de terremoto.
+- A busca agora herda o país do título mesmo quando a direção omite o campo. Cenas de abertura e cenas que nomeiam país, lugar, terremoto ou ano exigem evidência no título/metadados da mídia; palavras usadas apenas na busca não comprovam identidade. Lugares específicos como Sendai exigem correspondência própria. A chave de cache mudou para não reutilizar as escolhas genéricas anteriores.
+- Vídeo identificado é buscado antes de fotos em cenas planejadas como filmagem. Quando uma cena específica não encontra filmagem adequada, o gerador procura fotografias documentadas/licenciadas e aplica a composição animada de imagem da V3. Cenas amplas sem identidade específica ainda podem usar vídeo contextual. Busca de eventos passou a cobrir 2011 e termos de terremoto.
 
 ## Validação e limites
 - `npm test`: 128/128 aprovados, incluindo regressões para abertura no Japão, terremoto de 2011, Sendai e cenas genéricas.

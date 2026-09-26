@@ -19,8 +19,9 @@ test('an earthquake claim needs event evidence, and named Sendai stays specific'
  const identity=mediaIdentity(scene,title);
  assert.equal(identity.eventRequired,true);
  assert.equal(identity.namedPlace,'Sendai');
+ assert.equal(identity.eventYear,'2011');
  const pool=candidatePool({...scene,...identity},[
-  candidate(1,'Japan coast'),candidate(2,'2011 Tohoku earthquake damage in Japan','Wikimedia Commons'),
+  candidate(1,'Japan coast'),candidate(2,'2011 Tohoku earthquake damage in Japan','Wikimedia Commons'),candidate(4,'2018 Sendai earthquake aftermath in Japan','Wikimedia Commons'),
   candidate(3,'2011 Sendai earthquake aftermath in Japan','Wikimedia Commons')
  ]);
  assert.deepEqual(pool.map(item=>item.id),[3]);
