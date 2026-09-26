@@ -11,6 +11,10 @@
 - Avaliados roteiros e cenas do Remotion entre GPT-6 Luna, DeepSeek-V4 Flash e GLM-5.3-Flash.
 - A composição `Benchmark-GPT-6-Luna` foi integrada ao Remotion Root (`renderer/src/Root.tsx`) permitindo visualização ao vivo no navegador sem necessidade de renderizar MP4.
 
+## Experimento separado
+- `PROXIMO_PASSO.md` registra o futuro teste de segundo modelo (Kimi K3 após três falhas do GLM, até duas tentativas; template limitado a cerca de 5%) e a hipótese de personalidade editorial. Nada disso foi ativado no robô.
+- Um piloto isolado de 28 segundos sobre poeira do Saara e Amazônia foi gerado com as APIs já configuradas. O MP4 e mídias estão em `scratch/personality-pilot/`, ignorados pelo Git. Roteiro factual, mas a assinatura autoral ainda ficou sutil; aguarda avaliação do usuário. A primeira versão do código visual exigiu reparo sintático no experimento.
+
 ## Validação e próximo passo
 - 114/114 testes locais aprovados (`npm test`).
 - Renderizados quadros da cena gerada pelo GPT-6 Luna demonstrando obediência total ao layout, mapa vetorial SVG animado e safe zone.
