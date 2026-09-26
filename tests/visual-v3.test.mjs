@@ -1,7 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {enforceVisualBreathing} from '../lib/auto-plan.mjs';
-import {usesCleanMediaFastPath,generateCleanMediaSceneCode,validateMotionCode} from '../lib/motion-author.mjs';
+import {enforceVisualBreathing,enforceExplanatoryScenes} from '../lib/auto-plan.mjs';
+import {buildGeographicMap} from '../lib/geography.mjs';
+import {usesCleanMediaFastPath,generateCleanMediaSceneCode,validateMotionCode,v3MusicLevels} from '../lib/motion-author.mjs';
 import {v3DirectionPrompt} from '../lib/v3-direction.mjs';
 import {goResponseText} from '../lib/providers.mjs';
 
@@ -44,4 +45,24 @@ test('Luna uses Go Responses and records tokens without persisting prompt text',
   assert.equal(job.modelUsage[0].outputTokens,5);
   assert.equal(JSON.stringify(job.modelUsage).includes('Return READY'),false);
  }finally{globalThis.fetch=original;}
+});
+test('V3 pinpoints a verified island and avoids a country-only map for unknown small places',()=>{
+ const island={id:'map',kind:'map',narration:'Ilha da Queimada Grande lies off the coast.',heading:'The forbidden island',countries:['Brazil'],location:'São Paulo, Brazil',start:5,end:10};
+ const [located]=enforceExplanatoryScenes([island],'The Forbidden Brazilian Island Where No Human Can Step');
+ assert.equal(located.kind,'map');
+ assert.equal(located.mapFocus.label,'ILHA DA QUEIMADA GRANDE');
+ const world={features:[{type:'Feature',geometry:{type:'Polygon',coordinates:[[[-48,-26],[-44,-26],[-44,-22],[-48,-22],[-48,-26]]]},properties:{ADMIN:'Brazil'}}]};
+ const materialized=buildGeographicMap(located,world);
+ assert.ok(Math.abs(materialized.atlasPoint.lat+24.4611)<0.001);
+ assert.ok(Math.abs(materialized.atlasPoint.lon+46.6868)<0.001);
+ const [unknown]=enforceExplanatoryScenes([{...island,narration:'A different island lies off the coast.'}], 'A different Brazilian island');
+ assert.equal(unknown.kind,'footage');
+ assert.equal(unknown.mapUnlocated,true);
+});
+
+test('V3 normalized music stays clearly behind narration after a short opening taper',()=>{
+ assert.equal(v3MusicLevels.normalized.voice,0.025);
+ assert.ok(v3MusicLevels.normalized.voice+v3MusicLevels.normalized.openingLift<=0.060001);
+ assert.ok(v3MusicLevels.normalized.data<v3MusicLevels.normalized.voice);
+ assert.ok(v3MusicLevels.normalized.short<=v3MusicLevels.normalized.voice);
 });

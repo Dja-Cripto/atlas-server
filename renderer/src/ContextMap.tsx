@@ -2,7 +2,7 @@ import React,{useEffect,useMemo,useState} from 'react';
 import {AbsoluteFill,continueRender,delayRender,cancelRender,staticFile,useCurrentFrame,useVideoConfig,interpolate,Easing} from 'remotion';
 import {geoMercator,geoPath,geoCentroid,geoBounds} from 'd3-geo';
 import type {FeatureCollection} from 'geojson';
-export const ContextMap:React.FC<{map:FeatureCollection & {atlasRoute?:{from:number;to:number}|null};duration:number}>=({map,duration})=>{
+export const ContextMap:React.FC<{map:FeatureCollection & {atlasRoute?:{from:number;to:number}|null;atlasPoint?:{lon:number;lat:number;label:string;source:string}|null};duration:number}>=({map,duration})=>{
  const f=useCurrentFrame();const {width,height}=useVideoConfig();const portrait=height>width;const [world,setWorld]=useState<FeatureCollection|null>(null);const [handle]=useState(()=>delayRender('Loading geographic basemap'));
  useEffect(()=>{let live=true;fetch(staticFile('auto/world-background.json')).then(r=>{if(!r.ok)throw Error('Geographic basemap unavailable');return r.json();}).then(data=>{if(live){setWorld(data);continueRender(handle);}}).catch(cancelRender);return()=>{live=false;};},[handle]);
   const geometry=useMemo(()=>{
@@ -22,7 +22,8 @@ export const ContextMap:React.FC<{map:FeatureCollection & {atlasRoute?:{from:num
     const [[w,s],[e,n]]=geoBounds(feature);
     return e>=west-lonPad&&w<=east+lonPad&&n>=south-latPad&&s<=north+latPad;
    });
-   return {worldPaths:nearby.map(feature=>path(feature)||''),focus,route};
+   const pin=map.atlasPoint?projection([map.atlasPoint.lon,map.atlasPoint.lat]):null;
+   return {worldPaths:nearby.map(feature=>path(feature)||''),focus,route,pin};
   },[map,world,width,height,portrait]);
   const p=interpolate(f,[0,Math.max(45,duration*.8)],[0,1],{extrapolateRight:'clamp',easing:Easing.out(Easing.quad)}),zoom=.94+.06*p;
   return <AbsoluteFill style={{background:'#0c1922',overflow:'hidden'}}>
@@ -46,6 +47,18 @@ export const ContextMap:React.FC<{map:FeatureCollection & {atlasRoute?:{from:num
        <path d={geometry.route.d} fill="none" stroke="#ffd485" strokeWidth={3.5} pathLength={1} strokeDasharray="1 1" strokeDashoffset={1-rProgress} strokeLinecap="round"/>
        <circle cx={px} cy={py} r={6} fill="#ffd485"/>
        <circle cx={px} cy={py} r={14} fill="#ffd485" fillOpacity={.25}/>
+      </g>;
+     })()}
+     {geometry.pin&&map.atlasPoint&&(()=>{
+      const [x,y]=geometry.pin;
+      const reveal=interpolate(f,[4,22],[0,1],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
+      const labelX=Math.max(170,Math.min(width-390,x+25));
+      const labelY=Math.max(100,Math.min(height-100,y-34));
+      return <g opacity={reveal}>
+       <circle cx={x} cy={y} r={24+8*Math.sin(f/9)} fill="none" stroke="#ffd485" strokeWidth={4}/>
+       <circle cx={x} cy={y} r={8} fill="#ffd485" stroke="#0c1922" strokeWidth={3}/>
+       <path d={`M${x+12} ${y-12} L${labelX} ${labelY+8}`} fill="none" stroke="#ffd485" strokeWidth={3}/>
+       <text x={labelX} y={labelY} fill="#fff" stroke="#0c1922" strokeWidth={5} paintOrder="stroke" fontSize={portrait?31:28} fontWeight={700}>{map.atlasPoint.label}</text>
       </g>;
      })()}
      {geometry.focus.map((feature,i)=>{

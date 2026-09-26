@@ -1,21 +1,21 @@
 # Atlas Studio — estado atual
-**Atualizado em:** 26/09/2026, aproximadamente 19:25 (America/Bahia).
+**Atualizado em:** 26/09/2026, aproximadamente 19:55 (America/Bahia).
 
 ## Versões
 - V2 funcional preservada na tag `atlas-visual-v2-checkpoint-2026-09-26` (commit `d64e2ea`); reversão em `CHECKPOINTS.md`.
-- V3 na branch `codex/atlas-visual-v3`. Novos projetos usam V3; projetos anteriores seguem V2.
+- V3 na branch `codex/atlas-visual-v3`. Projetos existentes seguem sua versão; correções deste registro beneficiam as próximas produções V3.
 
-## Último vídeo V3 e correção
-- O teste de 1 minuto sobre o Canal do Panamá renderizou em Full HD: 52,7 s, MP4 `video-448d6c5f-64e7-47ec-a9e6-f7de9e7cc6d9.mp4`, 103,4 MB. A primeira cena usa filmagem real do canal; a narração mostrou a personalidade editorial desejada.
-- Daniel relatou que a trilha competiu com a voz e que a abertura visual ficou fraca. Inspeção do arquivo confirmou: voz média -20 dB, trilha normalizada média -18 dB antes da mixagem; no gerador V3 a música tocava a 28% pelos primeiros 75 quadros (2,5 s), mesmo com a fala já iniciada. O primeiro quadro útil mostrou uma tomada ampla com “85 FEET” pequeno à esquerda e pouca evolução nos segundos seguintes.
-- O gerador V3 agora mistura a trilha normalizada a 7,5% sob a voz, com início breve a 11% e redução progressiva nos primeiros 24 quadros; dados usam 5%. Shorts V3 também passam a 7,5%. A música original e o vídeo já renderizado não foram alterados.
-- A direção V3 e o contrato de autoria da primeira cena agora pedem filmagem real ativa, um foco legível e evolução visual nos primeiros 2–3 s, rejeitando conceitualmente tomada ampla quase imóvel com mero número lateral. Não impõem título ou layout fixo. O primeiro quadro continua obrigado a ser vídeo real relevante.
+## Último feedback e correções no gerador V3
+- Daniel aprovou a melhora da narração, mas relatou música ainda alta, mapa do Brasil sem apontar a ilha narrada e algumas explicações gráficas cobrindo demais o vídeo. Os exemplos de gráfico dividido com filmagem permanecem a referência positiva.
+- Trilha normalizada: volume base sob a voz reduzido de 7,5% para 2,5%; introdução começa brevemente em até 6% e recua nos primeiros 24 quadros. Cenas de dados usam 1,8%; Shorts V3 usam 2,5%. Música continua normalizada numa cópia por produção; o vídeo já renderizado não foi alterado.
+- Mapas de ilhas e outros lugares pequenos exigem localização específica. A Ilha da Queimada Grande, São Paulo, recebe ponto e legenda sobre o mapa com coordenadas aproximadas do plano de manejo do ICMBio (centro dos limites: 24,4611° S, 46,6868° O). Se um lugar pequeno não tem ponto verificado, a cena passa a buscar filmagem/fotografia do assunto, em vez de mostrar somente o país.
+- A direção e o contrato Remotion V3 agora pedem explicações compactas ao lado, acima ou abaixo do assunto em vídeo, preservando a filmagem legível. Explicações complexas podem usar composição própria ou fotografia suavizada/escurecida; evitar desfoque CSS de tela inteira, custoso no renderizador. Não há template fixo para todos os gráficos.
 
-## Validação e limites
-- `npm test`: 122/122 aprovados após a correção; sintaxe e `git diff --check` aprovados. A nova mixagem e o novo gancho ainda precisam ser ouvidos/vistos num próximo render completo.
-- O teste de duração de 60 s produziu 52,7 s, dentro da faixa V3 atual de ±15%. Qualidade de abertura e clareza do áudio dependem de revisão humana; não declarar aprovação final só pelo teste automatizado.
-- Resultados locais de benchmark e alterações paralelas em `.gitignore`, arquivos de inicialização, `lib/automatic.mjs`, `lib/providers.mjs`, interface e `renderer/src/Root.tsx` não integram esta correção; preservar sem descartá-los.
+## Validação e limitações
+- `npm test`: 124/124 aprovados; teste específico cobre mapa com ponto, alternativa sem ponto e teto de música V3. O componente cartográfico alterado passou na checagem de tipos isolada.
+- A checagem de tipos completa do renderer ainda encontra erros em arquivos locais de benchmark paralelos, não relacionados ao mapa. Esses arquivos e outras alterações paralelas permanecem fora desta correção.
+- A qualidade visual da nova sobreposição e a inteligibilidade do novo mix precisam ser verificadas em um vídeo gerado após reiniciar o servidor. O último vídeo pronto não contém essas correções.
 - Fallback de roteiro Luna para Gemini segue não implementado após rejeição pela revisão automática de autorização; falha do Luna nessa etapa pausa a produção com estado salvo.
 
 ## Próximo passo recomendado
-Gerar outro vídeo curto pela página inicial com o código atualizado e verificar, com áudio ligado e desligado, a força dos 3 primeiros segundos e a inteligibilidade da voz no início, meio e fim. Ajustar novamente somente se a mixagem ou a abertura ainda competir com o conteúdo.
+Gerar um novo vídeo V3 pela página inicial e ouvir início, meio e fim com volume normal de reprodução; conferir se a música é discreta, se mapas localizam o lugar mencionado e se gráficos sobre vídeo preservam o assunto visível.
