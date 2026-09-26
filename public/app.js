@@ -532,8 +532,11 @@ function automaticPanel(j){
  const shortsFinished=Boolean(j.shorts?.finished&&(j.shorts?.items||[]).length>0&&(j.shorts?.items||[]).every(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url));
  const shortsItems=(j.shorts?.items||[]).filter(x=>x?.finished&&x?.renderedMp4&&x?.mp4Url);
  const stageName=stageTitles[j.auto?.stage]||j.auto?.stage||'Pronto para iniciar';
- const shortsStageTitles={curiosities:'Extraindo curiosidades do vídeo principal',script:'Gerando roteiro do Short',voice:'Gerando narração do Short',transcription:'Transcrevendo para sincronização',direction:'Dirigindo cenas do Short',assets:'Selecionando mídia para o Short','motion-code':'GLM programando cenas verticais','preview-validation':'Validando composição do Short',done:'Todos os 5 Shorts prontos'};
+ const shortsStageTitles={curiosities:'Extraindo curiosidades do vídeo principal',script:'Gerando roteiro do Short',voice:'Gerando narração do Short',transcription:'Transcrevendo para sincronização',direction:'Dirigindo cenas do Short',assets:'Selecionando mídia para o Short','motion-code':'Programando cenas verticais','preview-validation':'Validando composição do Short',done:'Todos os 5 Shorts prontos'};
 
+  const modelUsage=(j.modelUsage||[]).filter(item=>item.model==='gpt-6-luna');
+  const lunaCost=modelUsage.reduce((sum,item)=>sum+(Number(item.estimatedUsd)||0),0);
+  const routing=j.auto?.visualRouting;
   const totalScenesCount=j.automaticPlan?.shots?.length||j.scenes?.length||69;
   const mainVideoCard=`
   <section class="panel" style="margin-bottom:24px;border:1px solid ${hasFinalVideo?'#a8efbe':isRenderRunning?'#0288d1':autoFinished?'#2e7d32':'var(--line)'};">
@@ -578,6 +581,15 @@ function automaticPanel(j){
      <div style="font-size:12px;"><b>3. Cenas & Mídias:</b> ${j.scenes||j.auto?.mediaCoverage?'<span style="color:var(--green)">✓ '+totalScenesCount+' Cenas programadas</span>':'<span style="color:var(--muted)">Pendente</span>'}</div>
      <div style="font-size:12px;"><b>4. Efeitos Visuais (MP4):</b> ${hasFinalVideo?'<span style="color:var(--green);font-weight:700;">✓ 100% Renderizado</span>':isRenderRunning?`<span style="color:#0288d1;font-weight:700;display:inline-flex;align-items:center;gap:4px;"><span class="pulse-dot" style="background:#0288d1;"></span> Renderizando (${renderPct}%)</span>`:'<span style="color:#2e7d32;font-weight:600;">✓ Pronto (Remotion Studio)</span>'}</div>
     </div>
+
+    ${j.productionVersion==='v3'?`
+     <div style="margin:0 0 18px;padding:14px;border:1px solid #c7ded3;border-radius:8px;background:#f3faf6;font-size:12px;line-height:1.7;">
+      <b>Atlas Visual V3</b> · Roteiro e cenas explicativas com GPT-6 Luna; filmagens simples usam componentes locais.
+      <div>Chamadas Luna: <b>${modelUsage.length}</b> · consumo estimado: <b>US$ ${lunaCost.toFixed(4)}</b> (confira a cobrança no OpenCode).</div>
+      ${routing?`<div>Mídias/cenas: ${routing.videoScenes} vídeos, ${routing.imageScenes} imagens · ${routing.lunaScenes} planejadas para autoria visual · ${routing.localScenes} com tratamento local.</div>`:''}
+      ${j.narrationDurationCheck?`<div>Narração: ${(j.narrationDurationCheck.actualSeconds/60).toFixed(1)} min para ${(j.narrationDurationCheck.requestedSeconds/60).toFixed(1)} min pedidos · ${j.narrationDurationCheck.passed?'duração aprovada':'revisão necessária'}.</div>`:''}
+      ${j.modelWarnings?.length?`<div>Alertas de modelo: ${j.modelWarnings.length}. Consulte os eventos da produção.</div>`:''}
+     </div>`:''}
 
     ${isRenderRunning?`
      <div style="margin:16px 0;padding:16px;background:#f0f9ff;border:2px solid #0288d1;border-radius:10px;">

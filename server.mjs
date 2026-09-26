@@ -107,9 +107,19 @@ async function run(j,action,options={}){
    j.completed=[...new Set([...j.completed,'automatic','render'])];
    j.auto={...j.auto,finished:true,stage:'done',progress:100};
    store.put(j);
+   if(j.productionVersion==='v3'&&j.generateShorts){
+    j.status='running';j.current='shorts';store.put(j);
+    log(j,'Vídeo principal pronto. Iniciando automaticamente os Shorts solicitados.');
+    while(!j.shorts?.finished){
+     const result=await automaticShorts(s,j,{root,dir,log,store});
+     store.put(j);
+     if(result.finished)break;
+    }
+    j.completed=[...new Set([...j.completed,'shorts'])];
+   }
    j.status='review';
    store.put(j);
-   log(j,'Vídeo principal completo e disponível para revisão. Shorts aguardam ação do usuário.');
+   log(j,j.generateShorts&&j.productionVersion==='v3'?'Vídeo principal e Shorts finalizados.':'Vídeo principal completo e disponível para revisão.');
   }
   if(action==='shorts'){
    await finalizeMainPackage(s,j,{root,dir,log});
@@ -186,6 +196,7 @@ async function runAutomaticForJob(jobId,topic=null){
  if(!j)return;
  try{
   await run(j,'automatic',{generateShorts:true});
+  if(j.status==='error')throw new Error(j.error||'Produção interrompida; cenas prontas preservadas.');
   try{ scheduleJob(store,j.id); }catch{}
   try{
    const tempJobDir=path.join(root,'.temp',j.id);
@@ -358,6 +369,7 @@ const server=http.createServer(async(req,res)=>{
     title:b.title.trim(),
     notes:String(b.notes||'').trim(),
     minutes:Number(b.minutes),
+    productionVersion:'v3',editorialVersion:'observant-dry-v1',
     generateShorts:Boolean(b.generateShorts),
     shortsCount:b.generateShorts?5:0,
     status:'draft',

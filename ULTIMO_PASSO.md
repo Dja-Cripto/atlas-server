@@ -1,22 +1,23 @@
-# Atlas Studio — Benchmark de Modelos e Produção Noturna
-**Atualizado em:** 26/09/2026, aproximadamente 13:15 (America/Bahia).
+# Atlas Studio — estado atual
+**Atualizado em:** 26/09/2026, aproximadamente 17h (America/Bahia).
 
-## Versões
-- V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem preservada no VPS.
-- V2: branch `codex/atlas-visual-v2`. Reversão em `CHECKPOINTS.md`.
+## Versões e recuperação
+- V2 funcional preservada na tag `atlas-visual-v2-checkpoint-2026-09-26` (commit `d64e2ea`). Instruções de reversão em `CHECKPOINTS.md`.
+- V3 desenvolvida na branch `codex/atlas-visual-v3`. Novos projetos recebem V3; projetos antigos sem versão explícita continuam no fluxo V2. Plano de produto em `PROXIMO_PASSO.md`.
 
-## Estado relevante
-- A produção agendada da madrugada (*Why 90% of Australia Is Completely Empty*) foi disparada pontualmente e finalizou com sucesso total: vídeo longo de 5 minutos (555 MB MP4), narração completa e capa em alta resolução (2.1 MB) disponíveis em modo de revisão sem publicação automática.
-- Realizado o benchmark dos modelos do plano OpenCode Go em pasta isolada (`testes_benchmark/`) sem alterar o robô de produção.
-- Avaliados roteiros e cenas do Remotion entre GPT-6 Luna, DeepSeek-V4 Flash e GLM-5.3-Flash.
-- A composição `Benchmark-GPT-6-Luna` foi integrada ao Remotion Root (`renderer/src/Root.tsx`) permitindo visualização ao vivo no navegador sem necessidade de renderizar MP4.
+## Implementado na V3
+- Roteiro, revisão de duração, planejamento e autoria Remotion das cenas selecionadas usam GPT-6 Luna pelo endpoint Responses do OpenCode Go. Pesquisa factual e geração de imagens permanecem nos provedores existentes. Uso de tokens e custo estimado são registrados sem salvar prompts ou credenciais no painel.
+- Direção editorial curiosa, observadora e ocasionalmente sarcástica, sem piadas obrigatórias; imagens e filmagens explicativas seguem para autoria visual, enquanto filmagens descritivas podem usar componentes locais de legenda variada ou ficar limpas. Primeiros segundos e encerramento recebem autoria; a abertura exige vídeo real relevante.
+- Até três tentativas Luna e duas GLM por cena complexa. Após falha, cena local sobre a mídia selecionada, limitada a cerca de 5% das cenas; cenas concluídas são preservadas. A recuperação de validação também tenta ambos os modelos antes da reserva.
+- Narração V3 é medida após síntese e, se ficar fora da faixa de aproximadamente 87% a 107% do tempo pedido, roteiro e voz podem ser revisados até duas vezes antes das cenas. Se ainda falhar, a produção pausa. A trilha é normalizada numa cópia por produção e mixada com volume V3 específico, sem alterar a música original.
+- Shorts pedidos entram automaticamente após o vídeo principal e prosseguem um a um, com retomada; falha da produção automática agora aparece como erro para alertas. O painel mostra duração, roteamento visual, reservas e consumo Luna.
+- Tamanho/compactação do MP4 continua adiado até medir upload real, conforme decisão de Daniel.
 
-## Experimento separado
-- `PROXIMO_PASSO.md` registra o futuro teste de segundo modelo (Kimi K3 após três falhas do GLM, até duas tentativas; template limitado a cerca de 5%). Nada disso foi ativado no robô.
-- Um piloto isolado de 28 segundos sobre poeira do Saara e Amazônia foi gerado com as APIs já configuradas. O MP4 e mídias estão em `scratch/personality-pilot/`, ignorados pelo Git. O usuário não percebeu identidade própria na narração nem diferenciação visual. A proposta de personalidade permanece em discussão e foi retirada de `PROXIMO_PASSO.md`. A primeira versão do código visual exigiu reparo sintático no experimento.
-- Segundo piloto isolado de 28 segundos em `scratch/personality-pilot-v2/pilot-v2.mp4`: narração com ironia leve e virada “Yes, the desert”, voz Fish com direção seca, filmagem real de chuva, corte sincronizado ao Saara e encerramento “overseas supplier”. TSX gerado pelo GLM teve tempo de animação corrigido somente no piloto; MP4 contém vídeo e áudio e quadros-chave foram conferidos. Ainda aguarda avaliação do usuário; personalidade não foi aprovada nem adicionada ao `PROXIMO_PASSO.md`.
+## Validação e limites
+- `npm test`: 122/122 aprovados. Cena real gerada por Luna via OpenCode Go passou no validador Remotion; teste mínimo de autenticação e normalização de áudio também passaram.
+- Ainda falta o teste de produção completa pela página inicial, que Daniel fará. A qualidade editorial, sincronização, duração final, mixagem no MP4 e Shorts automáticos precisam ser conferidos nesse teste; não declarar a V3 aprovada em produção antes disso.
+- Benchmark local de modelos e materiais em `testes_benchmark/` e `renderer/src/benchmarks*/` permanecem fora desta entrega; relatório anterior identificou Qwen 3.7 Plus e DeepSeek V4.1 Flash como alternativas futuras para autoria visual. Não trocar o modelo principal antes do teste real V3.
+- Fallback de roteiro Luna para Gemini não foi implementado: a revisão automática de autorização rejeitou o envio adicional do roteiro ao Gemini nessa condição. Falha do Luna nessa etapa pausa a produção com estado preservado.
 
-## Validação e próximo passo
-- 114/114 testes locais aprovados (`npm test`).
-- Renderizados quadros da cena gerada pelo GPT-6 Luna demonstrando obediência total ao layout, mapa vetorial SVG animado e safe zone.
-- Próximo passo: Daniel avaliará os roteiros gerados e a cena do Remotion para decidirmos juntos sobre a adoção oficial do GPT-6 Luna ou DeepSeek para a esteira principal.
+## Próximo passo recomendado
+Daniel inicia uma nova produção V3 pela página inicial e verifica abertura em vídeo real, duração da voz, legibilidade/ritmo das cenas, música e geração automática dos Shorts. Corrigir no gerador qualquer falha observada antes de promover V3 para produção estável.
