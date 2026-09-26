@@ -16,4 +16,5 @@
 
 ## Validação e próximo passo
 - 114/114 testes locais aprovados, incluindo recuperação de plano de tempo inválido e retomada de cenas de reserva. `git diff --check` aprovado.
-- Correção publicada no VPS (commit `82f2a56`), serviço reiniciado e produção retomada. As cenas prontas foram reutilizadas; a cena 57 passou e o robô avançou para a cena 58 sem aumentar as três reservas existentes. A conclusão do vídeo ainda não foi validada.`n- Próximo passo: acompanhar as demais cenas, a renderização do MP4 e os Shorts; revisar o resultado pelo painel.
+- Correção publicada no VPS (commit `82f2a56`), serviço reiniciado e produção retomada. As cenas prontas foram reutilizadas; a cena 57 passou e o robô avançou para a cena 58 sem aumentar as três reservas existentes. A conclusão do vídeo ainda não foi validada.
+- Próximo passo: acompanhar as demais cenas, a renderização do MP4 e os Shorts; revisar o resultado pelo painel.
