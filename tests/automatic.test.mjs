@@ -609,3 +609,17 @@ test('motion validation rejects animated opacity above one',()=>{
  const code="import React from 'react';import {AbsoluteFill,useCurrentFrame,interpolate} from 'remotion';export default function Scene(){const frame=useCurrentFrame();const veil=interpolate(frame,[0,45],[0.55,1.55]);return <AbsoluteFill><AbsoluteFill style={{opacity:veil}} />{frame}</AbsoluteFill>}";
  assert.throws(()=>validateMotionCode(code,{asset:{kind:'image'}}),/Opacidade animada/);
 });
+
+test('normalizer removes unsupported style fields without breaking generated TSX',()=>{
+ const code="import {AbsoluteFill,OffthreadVideo} from 'remotion';export default function Scene(){return <AbsoluteFill><OffthreadVideo src='film.mp4'/><AbsoluteFill style={{backgroundColor:'#123',opacity:0.4,mixBlendMode:'overlay',backdropFilter:'blur(2px)'}} /></AbsoluteFill>}";
+ const normalized=normalizeMotionCode(code,{asset:{kind:'video',src:'film.mp4'}});
+ assert.doesNotMatch(normalized,/mixBlendMode|backdropFilter|,\s*,/);
+ assert.doesNotThrow(()=>validateMotionCode(normalized,{asset:{kind:'video',src:'film.mp4'}}));
+});
+
+test('motion validator ignores country names in footage credits but blocks unspoken headlines',()=>{
+ const credit="import {AbsoluteFill,OffthreadVideo} from 'remotion';export default function Scene(){return <AbsoluteFill><OffthreadVideo src='film.mp4'/><div>Footage: Pexels · Iceland</div></AbsoluteFill>}";
+ const scene={asset:{kind:'video'},countries:['Iceland'],narration:'The island is pulling apart.'};
+ assert.doesNotThrow(()=>validateMotionCode(credit,scene));
+ assert.throws(()=>validateMotionCode(credit.replace('Footage: Pexels · Iceland','ICELAND'),scene),/ainda não narrado/);
+});
