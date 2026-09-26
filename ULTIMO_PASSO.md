@@ -1,12 +1,12 @@
 # Atlas Studio — Continuidade da produção
-**Atualizado em:** 26/09/2026, aproximadamente 11:40 (America/Bahia).
+**Atualizado em:** 26/09/2026, aproximadamente 11:50 (America/Bahia).
 
 ## Versões
 - V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem preservada no VPS.
 - V2: branch `codex/atlas-visual-v2`. Reversão em `CHECKPOINTS.md`.
 
 ## Estado relevante
-- A produção longa *Iceland: The Country Where Earth Is Still Being Created* tem 106 cenas e parou na revisão visual de `shot-79`, antes das animações e antes dos Shorts. As demais 105 cenas estavam resolvidas; roteiro, narração e mídias ficam preservados para retomada.
+- A produção longa *Iceland: The Country Where Earth Is Still Being Created* tem 106 cenas. Ao retomar no VPS, `shot-79` recebeu vídeo real contextual de costa vulcânica e ondas; a revisão visual terminou sem pendências e o robô avançou para programar as animações. O MP4 principal e os Shorts ainda não estavam concluídos nesta atualização.
 - A busca encontrou milhares de candidatos, mas a recuperação armazenada sugeriu `kind: "video"`; a revisão aceitava apenas `footage`. Era um erro de normalização, não evidência de que não existe mídia para o tema.
 
 ## Correção
@@ -18,5 +18,5 @@
 
 ## Validação e próximo passo
 - 113/113 testes locais aprovados; testes novos cobrem o alias `video`, mídia do mesmo local, duração insuficiente e ilustração sem inflar a contagem de mídia real. Sintaxe e `git diff --check` aprovados.
-- Limitação: a adequação artística da mídia recuperada ou da ilustração para `shot-79` ainda depende da execução real durante a retomada; nenhuma cena vazia será liberada.
-- Próximo passo: publicar esta correção no VPS e retomar apenas a produção interrompida da Islândia, preservando as 106 cenas já planejadas.
+- Validação real no VPS: `shot-79` resolvida com vídeo Pexels contextual, sem ilustração gerada; revisão visual sem pendências. A adequação artística do resultado completo ainda depende da renderização e revisão do vídeo.
+- Próximo passo: acompanhar a programação, validação e renderização das 106 cenas; revisar o MP4 pelo painel quando estiver pronto. Os Shorts continuam dependentes da finalização do vídeo principal.
