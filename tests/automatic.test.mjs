@@ -630,3 +630,11 @@ test('normalizer repairs a dotted const declaration from generated Short code',(
  assert.match(code,/const charcoal =/);
  assert.doesNotThrow(()=>validateMotionCode(code,{asset:{kind:'image',src:'photo.jpg'}}));
 });
+
+test('normalizer repairs the Remotion frame hook without allowing arbitrary require',()=>{
+ const malformed="import {AbsoluteFill,OffthreadVideo} from 'remotion';export default function Scene(){const frame=require('remotion').useCurrentFrame();return <AbsoluteFill><OffthreadVideo src='clip.mp4'/>{frame}</AbsoluteFill>}";
+ const code=normalizeMotionCode(malformed,{asset:{kind:'video',src:'clip.mp4'}});
+ assert.doesNotMatch(code,/require\(/);
+ assert.match(code,/useCurrentFrame/);
+ assert.doesNotThrow(()=>validateMotionCode(code,{asset:{kind:'video',src:'clip.mp4'}}));
+});
