@@ -1,20 +1,19 @@
-# Atlas Studio — estado da geração visual
-**Atualizado em:** 25/09/2026, aproximadamente 21:00 (America/Bahia).
+# Atlas Studio — Agendamento de Produção Noturna e Suporte ao Hub
+**Atualizado em:** 25/09/2026, aproximadamente 21:23 (America/Bahia).
 
 ## Versões
-- V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem correspondente preservada no VPS.
-- V2: branch `codex/atlas-visual-v2`. Reversão descrita em `CHECKPOINTS.md`.
+- V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem preservada no VPS.
+- V2: branch `codex/atlas-visual-v2`. Reversão em `CHECKPOINTS.md`.
 
 ## Estado relevante
-- O vídeo *How Mongolia’s Nomadic Herders Follow the Seasons* concluiu 42 cenas. O usuário e avaliações externas consideraram boa a correspondência entre narração e mídia, os gráficos e a estabilidade visual. Restaram ajustes pontuais de ritmo e dos momentos de abertura e encerramento.
-- A correção anterior da busca mantém vídeo/fotografia reais como prioridade e trata as metas de proporção como orientação editorial, sem bloquear uma produção que já tem representação válida. A correção de `endAt` continua preservada.
+- Avaliação detalhada do vídeo de 4m12s da Mongólia entregue ao criador (gancho forte, roteiro com arco narrativo das 4 estações e tensão econômica, imagens reais com alta coerência como a van russa 4x4 e Ulaanbaatar).
+- Configuração de publicação para o YouTube verificada: workflow no n8n está ativo (`youTubeOAuth2Api`), e a chave de publicação automática permanece desligada no painel conforme solicitado para testes manuais futuros.
 
 ## Ajustes desta revisão
-- O roteiro pede `[PAUSE]` apenas após uma explicação encerrada; a geração de voz aceita a pausa explícita somente depois de frase completa e no máximo três vezes. O silêncio adicionado caiu de 2,5 s para 0,9 s. A espera inicial caiu para 0,7 s, e a cauda final ficou em 2,3 s.
-- A direção da primeira cena exige um foco visual central ou próximo do centro, com assunto real e um gancho legível quando fizer sentido, sem se limitar a legenda de canto. A última cena deve concluir visualmente o raciocínio. A composição do vídeo longo aplica fade curto para preto e reduz a música no fim. Shorts e cenas intermediárias não receberam mudança de estilo.
-- As alterações atuam no gerador para as próximas produções; nenhum arquivo do vídeo já concluído foi substituído.
+- **Suporte ao criador no store (`lib/store.mjs`)**: Adicionado o método `create` em `createStore`, permitindo que o agendador autônomo e o Hub de pautas instanciem novos jobs com segurança sem erros de execução.
+- **Pauta agendada para a virada**: Tema selecionado para o canal: *"Why 90% of Australia Is Completely Empty"* (5 minutos, com geração automática dos 5 Shorts verticais habilitada).
+- **Garantia de disparo**: Configurado para início automático às 23:45 / 00:00 pelo agendador do servidor, com monitoramento ativo.
 
-## Validação, limitações e próximo passo
-- 109/109 testes locais aprovados. Ensaio sintético em Remotion renderizou vídeo horizontal e vertical com sucesso após o ajuste final.
-- A verificação geral de estilo do renderizador ainda acusa 171 erros em cenas geradas/ignoradas e arquivos existentes; não são introduzidos por esta revisão. A duração de pausas naturais produzidas pelo Fish Audio e o resultado artístico da nova abertura ainda precisam ser observados em um vídeo novo.
-- Próximo passo: gerar uma nova produção curta pelo painel e avaliar a primeira cena, o silêncio entre ideias e os segundos finais antes de ampliar qualquer outra mudança.
+## Validação e próximo passo
+- 109/109 testes unitários locais aprovados (`npm test`).
+- Próximo passo: O robô iniciará a produção durante a madrugada; Daniel revisará o vídeo principal e os 5 Shorts amanhã pelo painel web.
