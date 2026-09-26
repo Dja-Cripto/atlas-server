@@ -1,20 +1,17 @@
-# Atlas Studio — Continuidade da produção
-**Atualizado em:** 26/09/2026, aproximadamente 15:10 (America/Bahia).
+# Atlas Studio — Benchmark de Modelos e Produção Noturna
+**Atualizado em:** 26/09/2026, aproximadamente 12:44 (America/Bahia).
 
 ## Versões
 - V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem preservada no VPS.
 - V2: branch `codex/atlas-visual-v2`. Reversão em `CHECKPOINTS.md`.
 
 ## Estado relevante
-- A produção longa *Iceland: The Country Where Earth Is Still Being Created* tem 106 cenas. A busca visual foi concluída e a programação parou na cena 57; as 56 anteriores foram preservadas. O MP4 e os Shorts ainda não estavam concluídos.
-- A cena 57 recebeu código do GLM, mas três respostas falharam em validações diferentes. A última falhou apenas no plano de tempos da animação. O bloqueio final foi causado pelo limite rígido de três cenas de reserva, já consumido pelas cenas 1, 6 e 26.
-
-## Correção
-- Planos de tempo inválidos retornados pelo modelo são reconstruídos localmente a partir da intenção da cena; o código visual ainda precisa passar por todas as validações técnicas e factuais.
-- A reserva visual pode cobrir até 5% das cenas, com mínimo de duas (seis em 106), e até três cenas consecutivas. Exceder o limite pausa a produção e mantém as cenas já prontas.
-- Na retomada, cenas de reserva já validadas são reutilizadas e continuam contabilizadas no limite; o robô não repete chamadas do modelo nem reinicia a contagem para elas.
+- A produção agendada da madrugada (*Why 90% of Australia Is Completely Empty*) foi disparada pontualmente e finalizou com sucesso total: vídeo longo de 5 minutos (555 MB MP4), narração completa e capa em alta resolução (2.1 MB) disponíveis em modo de revisão sem publicação automática.
+- Realizado o benchmark dos modelos do plano OpenCode Go em pasta isolada (`testes_benchmark/`) sem alterar o robô de produção.
+- Avaliados roteiros e cenas do Remotion entre GPT-6 Luna, DeepSeek-V4 Flash e GLM-5.3-Flash.
+- A composição `Benchmark-GPT-6-Luna` foi integrada ao Remotion Root (`renderer/src/Root.tsx`) permitindo visualização ao vivo no navegador sem necessidade de renderizar MP4.
 
 ## Validação e próximo passo
-- 114/114 testes locais aprovados, incluindo recuperação de plano de tempo inválido e retomada de cenas de reserva. `git diff --check` aprovado.
-- Correção publicada no VPS (commit `82f2a56`), serviço reiniciado e produção retomada. As cenas prontas foram reutilizadas; a cena 57 passou e o robô avançou para a cena 58 sem aumentar as três reservas existentes. A conclusão do vídeo ainda não foi validada.
-- Próximo passo: acompanhar as demais cenas, a renderização do MP4 e os Shorts; revisar o resultado pelo painel.
+- 114/114 testes locais aprovados (`npm test`).
+- Renderizados quadros da cena gerada pelo GPT-6 Luna demonstrando obediência total ao layout, mapa vetorial SVG animado e safe zone.
+- Próximo passo: Daniel avaliará os roteiros gerados e a cena do Remotion para decidirmos juntos sobre a adoção oficial do GPT-6 Luna ou DeepSeek para a esteira principal.
