@@ -1,5 +1,5 @@
 # Atlas Studio — Agendamento de Produção Noturna e Suporte ao Hub
-**Atualizado em:** 25/09/2026, aproximadamente 21:23 (America/Bahia).
+**Atualizado em:** 25/09/2026, aproximadamente 21:28 (America/Bahia).
 
 ## Versões
 - V1 funcional: tag `atlas-visual-v1-checkpoint-2026-09-24`, commit `78b60db`; imagem preservada no VPS.
@@ -12,8 +12,9 @@
 ## Ajustes desta revisão
 - **Suporte ao criador no store (`lib/store.mjs`)**: Adicionado o método `create` em `createStore`, permitindo que o agendador autônomo e o Hub de pautas instanciem novos jobs com segurança sem erros de execução.
 - **Pauta agendada para a virada**: Tema selecionado para o canal: *"Why 90% of Australia Is Completely Empty"* (5 minutos, com geração automática dos 5 Shorts verticais habilitada).
-- **Garantia de disparo**: Configurado para início automático às 23:45 / 00:00 pelo agendador do servidor, com monitoramento ativo.
+- **Garantia de disparo**: Configurado para início automático às 23:45 (America/Bahia) pelo agendador autônomo do container Docker `atlas-studio`. Fila e parâmetros validados diretamente dentro do container.
 
 ## Validação e próximo passo
 - 109/109 testes unitários locais aprovados (`npm test`).
-- Próximo passo: O robô iniciará a produção durante a madrugada; Daniel revisará o vídeo principal e os 5 Shorts amanhã pelo painel web.
+- Verificação direta via Docker no VPS: `autoRunTime: "23:45"`, `enabled: true`, 1 pauta na fila com `generateShorts: true`.
+- Próximo passo: O robô iniciará a produção às 23:45; Daniel revisará o vídeo principal e os 5 Shorts amanhã pelo painel web.
