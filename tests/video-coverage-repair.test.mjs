@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {eligibleForVideoUpgrade,photoStreaks,unfilmedRuns,repairVideoCoverage} from '../lib/video-coverage-repair.mjs';
-import {mediaSearchVariants} from '../lib/auto-media.mjs';
+import {candidatePool,commonsVideoCandidates,mediaSearchVariants} from '../lib/auto-media.mjs';
 
 const photo={kind:'image',representationRole:'contextual'};
 const video={kind:'video',representationRole:'contextual',duration:6};
@@ -19,6 +19,15 @@ test('generic country scene searches broad relevant footage after country-specif
  assert.ok(generic.some(query=>query==='coast documentary footage'));
  const specific=mediaSearchVariants({topicCountry:'Netherlands',identityRequired:true,query:'Oosterscheldekering barrier',heading:'The barrier',narration:'The barrier protects Zeeland.'});
  assert.ok(!specific.some(query=>query==='coast documentary footage'));
+});
+
+test('Commons video search accepts licensed Full HD film and rejects low resolution or unclear rights',()=>{
+ const page=(id,width,license)=>({pageid:id,title:'File:Maeslantkering film.webm',videoinfo:[{url:'https://upload.wikimedia.org/example.webm',descriptionurl:'https://commons.wikimedia.org/wiki/File:Example.webm',thumburl:'https://thumb.wikimedia.org/example.jpg',width,height:1080,mime:'video/webm',metadata:[{name:'playtime_seconds',value:72}],extmetadata:{LicenseShortName:{value:license},ImageDescription:{value:'Maeslantkering in Rotterdam, Netherlands'}}}]});
+ const result=commonsVideoCandidates({a:page(1,1920,'CC BY 3.0'),b:page(2,640,'CC BY 3.0'),c:page(3,1920,'All rights reserved')});
+ assert.equal(result.length,1);
+ assert.equal(result[0].duration,72);
+ assert.equal(result[0].files[0].width,1920);
+ assert.equal(candidatePool({topicCountry:'Netherlands',identityRequired:true,namedPlace:'Maeslantkering',narration:'The Maeslantkering protects Rotterdam.'},result).length,1);
 });
 
 test('recovery upgrades longest eligible photos, persists progress and respects locked scenes',async()=>{
