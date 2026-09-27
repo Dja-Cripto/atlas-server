@@ -1,16 +1,17 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {eligibleForVideoUpgrade,photoStreaks,repairVideoCoverage} from '../lib/video-coverage-repair.mjs';
+import {eligibleForVideoUpgrade,photoStreaks,unfilmedRuns,repairVideoCoverage} from '../lib/video-coverage-repair.mjs';
 import {mediaSearchVariants} from '../lib/auto-media.mjs';
 
 const photo={kind:'image',representationRole:'contextual'};
 const video={kind:'video',representationRole:'contextual',duration:6};
 
-test('generic real photos can become video; archival and illustrated scenes stay intact',()=>{
+test('generic photos and illustrations can become video; specific historical photos stay intact',()=>{
  assert.equal(eligibleForVideoUpgrade({heading:'A Dutch canal',narration:'Water moves through the city.',query:'Netherlands canal',asset:photo},'The Netherlands'),true);
  assert.equal(eligibleForVideoUpgrade({kind:'photo',heading:'The barrier',narration:'The barrier holds the sea.',query:'Oosterscheldekering',asset:{...photo,representationRole:'exact-location'}},'The Netherlands'),false);
  assert.equal(eligibleForVideoUpgrade({heading:'The 1953 flood photograph',narration:'The 1953 flood was devastating.',query:'1953 archival flood',asset:photo},'The Netherlands'),false);
- assert.equal(eligibleForVideoUpgrade({heading:'A canal',asset:{...photo,representationRole:'illustrative'}},'The Netherlands'),false);
+ assert.equal(eligibleForVideoUpgrade({heading:'A canal',asset:{...photo,representationRole:'illustrative'}},'The Netherlands'),true);
+ assert.equal(eligibleForVideoUpgrade({heading:'A 1953 flood photograph',asset:{...photo,representationRole:'illustrative'}},'The Netherlands'),false);
 });
 
 test('generic country scene searches broad relevant footage after country-specific queries',()=>{
@@ -50,4 +51,16 @@ test('a relevant photo sequence is kept when video coverage already meets the ta
  assert.deepEqual(calls,[]);
  assert.equal(result.maxPhotoStreak,5);
  assert.equal(result.upgraded,0);
+});
+
+test('a long interval without film is repaired by screen time, preserving specific photos',async()=>{
+ const scenes=[...Array.from({length:5},(_,i)=>({id:'p'+i,start:i*20,end:(i+1)*20,kind:'photo',heading:'Coastal history',query:'coast',narration:'The coast changes.',asset:i===2?{...photo,representationRole:'exact-location'}:photo})),
+  {id:'v',start:100,end:120,asset:video}];
+ assert.equal(unfilmedRuns(scenes)[0].seconds,100);
+ const queried=[];
+ const result=await repairVideoCoverage(scenes,{title:'A coast',duration:120,target:.1,findVideo:async scene=>{queried.push(scene.id);return video;}});
+ assert.equal(result.maxUnfilmedSeconds,60);
+ assert.equal(result.upgraded,1);
+ assert.ok(!queried.includes('p2'));
+ assert.equal(result.scenes[2].asset.kind,'image');
 });
