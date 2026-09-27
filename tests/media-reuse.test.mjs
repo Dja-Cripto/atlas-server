@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {reusableMediaCandidates} from '../lib/auto-media.mjs';
+import {reusableMediaCandidates,reusableAssetFromCache} from '../lib/auto-media.mjs';
 
 test('failed late shot can consider already reviewed media from the same place',()=>{
  const scene={id:'shot-79',query:'surtsey island aerial coastline',location:'Surtsey',start:483,end:490};
@@ -17,4 +17,13 @@ test('failed late shot can consider already reviewed media from the same place',
  };
  assert.deepEqual(reusableMediaCandidates(scene,media,cache).map(x=>x.url),[media[0].url]);
  assert.deepEqual(reusableMediaCandidates(scene,media,cache,new Set([media[0].url])),[]);
+});
+test('reviewed asset can cover a second scene at the same place and subject, but not a different event',()=>{
+ const asset={src:'auto/run/barrier.mp4',kind:'video',width:1920,height:1080,duration:8,credit:{url:'https://example.org/barrier'}};
+ const cache={'shot-1|Oosterscheldekering open storm surge barrier|Oosterscheldekering, Netherlands|footage':asset};
+ const scene={id:'shot-2',query:'Oosterscheldekering storm surge barrier gates',location:'Oosterscheldekering, Netherlands',start:8,end:14,reuseExistingMedia:true};
+ assert.equal(reusableAssetFromCache(scene,cache),asset);
+ assert.equal(reusableAssetFromCache({...scene,query:'1953 flood aftermath'},cache),null);
+ assert.equal(reusableAssetFromCache({...scene,location:'Rotterdam, Netherlands'},cache),null);
+ assert.equal(reusableAssetFromCache({...scene,end:20},cache),null);
 });
