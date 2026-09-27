@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {eligibleForVideoUpgrade,repairVideoCoverage} from '../lib/video-coverage-repair.mjs';
+import {eligibleForVideoUpgrade,photoStreaks,repairVideoCoverage} from '../lib/video-coverage-repair.mjs';
 import {mediaSearchVariants} from '../lib/auto-media.mjs';
 
 const photo={kind:'image',representationRole:'contextual'};
@@ -36,4 +36,17 @@ test('recovery upgrades longest eligible photos, persists progress and respects 
  assert.equal(result.scenes[0].asset.kind,'image');
  assert.equal(result.scenes[2].asset.kind,'video');
  assert.equal(saved.length,1);
+});
+
+test('recovery breaks long photo sequences even after duration target is reached',async()=>{
+ const scenes=[
+  {id:'v',start:0,end:6,asset:video},
+  ...[0,1,2,3,4].map(i=>({id:'p'+i,start:6+i*2,end:8+i*2,heading:'Coast',query:'coast',narration:'Waves on the coast.',asset:photo}))
+ ];
+ assert.equal(photoStreaks(scenes)[0].length,5);
+ const calls=[];
+ const result=await repairVideoCoverage(scenes,{title:'A coast',duration:16,target:.3,findVideo:async scene=>{calls.push(scene.id);return video;}});
+ assert.equal(calls[0],'p2');
+ assert.equal(result.maxPhotoStreak,2);
+ assert.equal(result.upgraded,1);
 });
