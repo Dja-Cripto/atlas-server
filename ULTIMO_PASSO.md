@@ -1,9 +1,11 @@
 # Atlas Studio — estado atual
-**Atualizado em:** 27/09/2026, aproximadamente 11:15 (America/Bahia).
+**Atualizado em:** 27/09/2026, aproximadamente 11:00 (America/Bahia).
 
 ## Versões
 - V2 funcional preservada na tag `atlas-visual-v2-checkpoint-2026-09-26` (commit `d64e2ea`); procedimento de retorno em `CHECKPOINTS.md`.
-- V3 em `codex/atlas-visual-v3`. Alterações atuais beneficiam novas produções; vídeos já renderizados são preservados.
+- V3 em `codex/atlas-visual-v3`. Alterações atuais beneficiam novas produções.
+- V3 publicada na VPS `/srv/atlas-studio` a partir do commit `b483252` em 27/09/2026. O serviço Docker `atlas-studio` está saudável e o painel público respondeu HTTP 200. A imagem anterior foi marcada `atlas-studio:v2-checkpoint-2026-09-27`.
+- Por solicitação do usuário, os 17 projetos antigos da VPS foram excluídos com renders, arquivos temporários e cache de mídia. Verificação final: zero projetos no banco e zero pastas de projeto com UUID. Configurações, credenciais, músicas, modelos e checkpoint de código foram preservados. No volume de produção restaram 85 GB livres (uso de 10%).
 
 ## Estado validado da V3
 - Vídeo de teste “Why Does Tokyo Have So Many Vending Machines?”: 52 segundos, Full HD, 9 cenas de vídeo real, narração e trilha equilibradas, sem tela vazia. Um clipe de loja indiana apareceu numa cena contextual de Tóquio; o filtro agora rejeita mídia explicitamente identificada como outro país. O Short vertical concluiu: 51 segundos, 1080×1920, 11 cenas, áudio normalizado e sem pausas longas. A inspeção encontrou um consultório usado como loja e pouca presença da máquina no conjunto; a busca agora herda o tema quando vier vazia e rejeita mídia médica em cenas sobre comércio. O MP4 existente foi preservado.
@@ -19,8 +21,8 @@
 ## Validação e limites
 - Suíte `npm test`: testes de regressão aprovados. Testes específicos cobrem sequência, horário diário, música sem normalização, mídia de país errado/consultório e agendamento incompleto.
 - Projeto de teste de Tóquio está configurado com `generateShorts=false` e `shortsCount=0`; por isso o Short manual é 1/1. O Banco de Pautas está ativo mas sem pautas pendentes. Publicação automática está desligada; o agendamento só prepara a fila e não envia ao YouTube até a integração e a chave de publicação estarem prontas.
-- O Short teve revisão técnica e visual; a avaliação criativa final do usuário ainda é necessária. Uma produção marcada para cinco Shorts completos ainda não foi exercitada de ponta a ponta. Deploy/integrações no servidor ainda não foram verificados nesta máquina. Fallback do roteiro Luna para Gemini continua não implementado após rejeição anterior da revisão automática de autorização.
+- O Short teve revisão técnica e visual; a avaliação criativa final do usuário ainda é necessária. Uma produção marcada para cinco Shorts completos ainda não foi exercitada de ponta a ponta. A V3 foi verificada na VPS quanto a inicialização, saúde do serviço e resposta HTTP; uma produção completa no servidor ainda precisa ser exercitada. Fallback do roteiro Luna para Gemini continua não implementado após rejeição anterior da revisão automática de autorização.
 - Arquivos de benchmark e alterações paralelas fora desta revisão não foram incorporados ao snapshot.
 
 ## Próximo passo recomendado
-Gerar um novo Short pela interface para avaliar ritmo, clareza no celular e custo/tempo de autoria; depois enviar a V3 ao servidor, configurar pautas e publicação conforme desejado e validar uma produção marcada para cinco Shorts de ponta a ponta.
+Gerar uma nova produção pela interface pública para avaliar a V3 no servidor; revisar ritmo do Short e validar uma produção marcada para cinco Shorts de ponta a ponta. Configurar pautas e publicação quando desejado.
