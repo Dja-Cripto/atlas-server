@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {audioSlots,validateDirection,safeDirection,hasLocation,diversifyVisualPlan,enforceExplanatoryScenes,normalizeDirectionKind,enforceVisualBreathing,normalizeVisualTreatment} from '../lib/auto-plan.mjs';
 import {cleanPromptSequence,normalizeBeats,normalizeMotionCode,normalizeMotionResult,validateMotionCode,sceneUnits,normalizeVisualBible,validateVisualBible,sampleTimelineForDirector,shortsSceneContract,shortsDirectorContract,generateCleanMediaSceneCode} from '../lib/motion-author.mjs';
-import {candidatePool,meetsFullHd} from '../lib/auto-media.mjs';
+import {candidatePool,meetsFullHd,mediaSearchVariants} from '../lib/auto-media.mjs';
 import {canReuseValidatedPreview} from '../lib/automatic.mjs';
 import {parseRelaxedJSON,splitScriptIntoTTSChunks,directNarrationChunk,narrationPauseSections} from '../lib/providers.mjs';
 test('completed preview can resume MP4 render only for the same run and scene count',()=>{
@@ -478,6 +478,8 @@ test('invisible geographic mechanism keeps real footage available for explanator
 });
 
 test('visual media must reach Full HD in both dimensions',()=>{
+ assert.equal(meetsFullHd(null),false);
+ assert.equal(meetsFullHd(undefined),false);
  assert.equal(meetsFullHd({width:1920,height:1080}),true);
  assert.equal(meetsFullHd({width:1366,height:720}),false);
  assert.equal(meetsFullHd({width:1880,height:1253}),false);
@@ -485,6 +487,11 @@ test('visual media must reach Full HD in both dimensions',()=>{
  const scene={location:'',query:'sea'};
  const candidates=[{id:'low',source:'Pexels',files:[{width:1366,height:720}]},{id:'hd',source:'Pexels',files:[{width:1920,height:1080}]}];
  assert.deepEqual(candidatePool(scene,candidates).map(candidate=>candidate.id),['hd']);
+});
+
+test('media search adds a country-specific subject query for long documentary scenes',()=>{
+ const variants=mediaSearchVariants({topicCountry:'Netherlands',location:'Oosterscheldekering, Zeeland, Netherlands',query:'Oosterscheldekering storm surge barrier open gates documentary footage',heading:'The barrier opens',narration:'The storm surge barrier normally stays open.'});
+ assert.ok(variants.includes('Netherlands storm surge barrier'));
 });
 
 test('contextual footage with a narrated mechanism gets an explanatory effect',()=>{
