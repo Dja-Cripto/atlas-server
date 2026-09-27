@@ -44,3 +44,12 @@ test('contextual Tokyo footage never borrows an explicitly Indian shop',()=>{
  const pool=candidatePool({...scene,...identity},[candidate(1,'Busy Indian grocery store interior'),candidate(2,'Small neighborhood store')]);
  assert.deepEqual(pool.map(item=>item.id),[2]);
 });
+
+test('Tokyo in a title identifies Japan and retail does not accept medical footage',()=>{
+ const identity=mediaIdentity({heading:'Street shop',narration:'A conventional shop needs a room.'},'Why Does Tokyo Have So Many Vending Machines?');
+ assert.equal(identity.topicCountry,'Japan');
+ const pool=candidatePool({heading:'Street shop',narration:'A conventional shop needs a room.',...identity},[
+  candidate(1,'Woman at dentist reception desk'),candidate(2,'Small neighborhood store')
+ ]);
+ assert.deepEqual(pool.map(item=>item.id),[2]);
+});

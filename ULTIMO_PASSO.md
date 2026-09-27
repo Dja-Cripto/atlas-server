@@ -6,16 +6,16 @@
 - V3 em `codex/atlas-visual-v3`. Alterações atuais beneficiam novas produções; vídeos já renderizados são preservados.
 
 ## Estado validado da V3
-- Vídeo de teste “Why Does Tokyo Have So Many Vending Machines?”: 52 segundos, Full HD, 9 cenas de vídeo real, narração e trilha equilibradas, sem tela vazia. Um clipe de loja indiana apareceu numa cena contextual de Tóquio; o filtro agora rejeita mídia explicitamente identificada como outro país. O Short vertical desse projeto estava em renderização durante esta revisão e ainda exige inspeção visual após concluir.
+- Vídeo de teste “Why Does Tokyo Have So Many Vending Machines?”: 52 segundos, Full HD, 9 cenas de vídeo real, narração e trilha equilibradas, sem tela vazia. Um clipe de loja indiana apareceu numa cena contextual de Tóquio; o filtro agora rejeita mídia explicitamente identificada como outro país. O Short vertical concluiu: 51 segundos, 1080×1920, 11 cenas, áudio normalizado e sem pausas longas. A inspeção encontrou um consultório usado como loja e pouca presença da máquina no conjunto; a busca agora herda o tema quando vier vazia e rejeita mídia médica em cenas sobre comércio. O MP4 existente foi preservado.
 - Música documental e de Shorts usa lista revisada, sem rock/horror por padrão. Faixas são normalizadas antes da mistura; se a normalização falhar, a cópia é descartada para manter voz limpa, nunca uma trilha desequilibrada.
 - Projetos marcados para cinco Shorts agora executam os cinco em sequência também ao iniciar a etapa Shorts manualmente. Um projeto criado sem essa opção continua gerando apenas um Short por ação manual.
 - Agendador do Banco de Pautas usa dia/hora da Bahia, recupera a execução quando passa do minuto configurado, persiste a data após iniciar e aguarda a produção ativa terminar. Pautas adicionadas depois do horário ainda podem iniciar no mesmo dia se nenhuma começou. Agendamento de publicação exige MP4 principal e, quando cinco Shorts foram solicitados, todos os cinco MP4s prontos.
 
 ## Validação e limites
-- Suíte `npm test`: 133 testes aprovados. Testes específicos cobrem sequência, horário diário, música sem normalização, mídia de país errado e agendamento incompleto.
+- Suíte `npm test`: 133 testes aprovados. Testes específicos cobrem sequência, horário diário, música sem normalização, mídia de país errado/consultório e agendamento incompleto.
 - Projeto de teste de Tóquio está configurado com `generateShorts=false` e `shortsCount=0`; por isso o Short manual é 1/1. O Banco de Pautas está ativo mas sem pautas pendentes. Publicação automática está desligada; o agendamento só prepara a fila e não envia ao YouTube até a integração e a chave de publicação estarem prontas.
-- O Short precisa de revisão do MP4 final. Deploy/integrações no servidor ainda não foram verificados nesta máquina. Fallback do roteiro Luna para Gemini continua não implementado após rejeição anterior da revisão automática de autorização.
+- O Short teve revisão técnica e visual; a avaliação criativa final do usuário ainda é necessária. Uma produção marcada para cinco Shorts completos ainda não foi exercitada de ponta a ponta. Deploy/integrações no servidor ainda não foram verificados nesta máquina. Fallback do roteiro Luna para Gemini continua não implementado após rejeição anterior da revisão automática de autorização.
 - Arquivos de benchmark e alterações paralelas fora desta revisão não foram incorporados ao snapshot.
 
 ## Próximo passo recomendado
-Assim que o Short terminar, conferir proporção vertical, legendas, mídias e áudio. Depois enviar a V3 ao servidor, configurar pautas e publicação conforme desejado e fazer uma produção marcada para cinco Shorts, verificando a sequência completa e a fila de agendamento.
+Após a avaliação criativa do Short pelo usuário, enviar a V3 ao servidor, configurar pautas e publicação conforme desejado e fazer uma produção marcada para cinco Shorts, verificando a sequência completa e a fila de agendamento.

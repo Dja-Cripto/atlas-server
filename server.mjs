@@ -100,7 +100,7 @@ async function run(j,action,options={}){
  j.status='running';
  j.error=null;
  j.current=action;
- log(j,labels[action]+' iniciada.');
+ log(j,(action==='shorts'&&!j.generateShorts?'Geração de Short':labels[action])+' iniciada.');
  try{
   if(action==='automatic'){
    await automatic(s,j,{root,dir,log,store});
@@ -177,7 +177,7 @@ async function run(j,action,options={}){
   }
   if(action!=='shorts'||j.shorts?.finished)j.completed=[...new Set([...j.completed,action])];
   j.status='review';
-  log(j,labels[action]+' concluída.');
+  log(j,(action==='shorts'&&!j.generateShorts?'Geração de Short':labels[action])+' concluída.');
  }catch(e){
   j.status='error';
   j.error=safeError(e,s);
