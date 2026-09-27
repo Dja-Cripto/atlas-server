@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {eligibleForVideoUpgrade,repairVideoCoverage} from '../lib/video-coverage-repair.mjs';
+import {mediaSearchVariants} from '../lib/auto-media.mjs';
 
 const photo={kind:'image',representationRole:'contextual'};
 const video={kind:'video',representationRole:'contextual',duration:6};
@@ -9,6 +10,13 @@ test('generic real photos can become video; archival and illustrated scenes stay
  assert.equal(eligibleForVideoUpgrade({heading:'A Dutch canal',narration:'Water moves through the city.',query:'Netherlands canal',asset:photo},'The Netherlands'),true);
  assert.equal(eligibleForVideoUpgrade({heading:'The 1953 flood photograph',narration:'The 1953 flood was devastating.',query:'1953 archival flood',asset:photo},'The Netherlands'),false);
  assert.equal(eligibleForVideoUpgrade({heading:'A canal',asset:{...photo,representationRole:'illustrative'}},'The Netherlands'),false);
+});
+
+test('generic country scene searches broad relevant footage after country-specific queries',()=>{
+ const generic=mediaSearchVariants({topicCountry:'Netherlands',identityRequired:false,query:'Netherlands coast',heading:'The coast',narration:'Waves strike the coast.'});
+ assert.ok(generic.some(query=>query==='coast documentary footage'));
+ const specific=mediaSearchVariants({topicCountry:'Netherlands',identityRequired:true,query:'Oosterscheldekering barrier',heading:'The barrier',narration:'The barrier protects Zeeland.'});
+ assert.ok(!specific.some(query=>query==='coast documentary footage'));
 });
 
 test('recovery upgrades longest eligible photos, persists progress and respects locked scenes',async()=>{
