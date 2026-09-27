@@ -1,5 +1,5 @@
 # Atlas Studio — estado atual
-**Atualizado em:** 27/09/2026, aproximadamente 10:45 (America/Bahia).
+**Atualizado em:** 27/09/2026, aproximadamente 11:15 (America/Bahia).
 
 ## Versões
 - V2 funcional preservada na tag `atlas-visual-v2-checkpoint-2026-09-26` (commit `d64e2ea`); procedimento de retorno em `CHECKPOINTS.md`.
@@ -11,11 +11,16 @@
 - Projetos marcados para cinco Shorts agora executam os cinco em sequência também ao iniciar a etapa Shorts manualmente. Um projeto criado sem essa opção continua gerando apenas um Short por ação manual.
 - Agendador do Banco de Pautas usa dia/hora da Bahia, recupera a execução quando passa do minuto configurado, persiste a data após iniciar e aguarda a produção ativa terminar. Pautas adicionadas depois do horário ainda podem iniciar no mesmo dia se nenhuma começou. Agendamento de publicação exige MP4 principal e, quando cinco Shorts foram solicitados, todos os cinco MP4s prontos.
 
+## Ritmo exclusivo dos Shorts
+- Shorts V3 agora recebem direção visual própria e não herdam o respiro do documentário longo. Foi removido o atalho que transformava vídeo descritivo em take quase limpo com legenda local. O Luna programa também essas cenas, alternando movimentos leves e explicações mais elaboradas; código de cena sem desenvolvimento quadro a quadro é recusado e corrigido.
+- O planejamento pode usar fotografia real quando ela representar melhor o assunto, sempre com composição animada. Um diagrama independente sobre fundo discreto é permitido para explicar um mecanismo invisível, somente com fatos narrados/verificados e quando fizer sentido; não é uma quota. O vídeo longo conserva cenas contemplativas.
+- O Short de Tóquio já renderizado foi preservado. Duas de suas 11 cenas seriam consideradas estáticas pela nova validação. O próximo Short precisa de avaliação visual para confirmar o ganho de dinamismo e o tempo/custo adicional de autoria.
+
 ## Validação e limites
-- Suíte `npm test`: 133 testes aprovados. Testes específicos cobrem sequência, horário diário, música sem normalização, mídia de país errado/consultório e agendamento incompleto.
+- Suíte `npm test`: testes de regressão aprovados. Testes específicos cobrem sequência, horário diário, música sem normalização, mídia de país errado/consultório e agendamento incompleto.
 - Projeto de teste de Tóquio está configurado com `generateShorts=false` e `shortsCount=0`; por isso o Short manual é 1/1. O Banco de Pautas está ativo mas sem pautas pendentes. Publicação automática está desligada; o agendamento só prepara a fila e não envia ao YouTube até a integração e a chave de publicação estarem prontas.
 - O Short teve revisão técnica e visual; a avaliação criativa final do usuário ainda é necessária. Uma produção marcada para cinco Shorts completos ainda não foi exercitada de ponta a ponta. Deploy/integrações no servidor ainda não foram verificados nesta máquina. Fallback do roteiro Luna para Gemini continua não implementado após rejeição anterior da revisão automática de autorização.
 - Arquivos de benchmark e alterações paralelas fora desta revisão não foram incorporados ao snapshot.
 
 ## Próximo passo recomendado
-Após a avaliação criativa do Short pelo usuário, enviar a V3 ao servidor, configurar pautas e publicação conforme desejado e fazer uma produção marcada para cinco Shorts, verificando a sequência completa e a fila de agendamento.
+Gerar um novo Short pela interface para avaliar ritmo, clareza no celular e custo/tempo de autoria; depois enviar a V3 ao servidor, configurar pautas e publicação conforme desejado e validar uma produção marcada para cinco Shorts de ponta a ponta.
