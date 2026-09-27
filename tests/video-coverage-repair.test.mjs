@@ -8,6 +8,7 @@ const video={kind:'video',representationRole:'contextual',duration:6};
 
 test('generic real photos can become video; archival and illustrated scenes stay intact',()=>{
  assert.equal(eligibleForVideoUpgrade({heading:'A Dutch canal',narration:'Water moves through the city.',query:'Netherlands canal',asset:photo},'The Netherlands'),true);
+ assert.equal(eligibleForVideoUpgrade({kind:'photo',heading:'The barrier',narration:'The barrier holds the sea.',query:'Oosterscheldekering',asset:{...photo,representationRole:'exact-location'}},'The Netherlands'),false);
  assert.equal(eligibleForVideoUpgrade({heading:'The 1953 flood photograph',narration:'The 1953 flood was devastating.',query:'1953 archival flood',asset:photo},'The Netherlands'),false);
  assert.equal(eligibleForVideoUpgrade({heading:'A canal',asset:{...photo,representationRole:'illustrative'}},'The Netherlands'),false);
 });
@@ -38,7 +39,7 @@ test('recovery upgrades longest eligible photos, persists progress and respects 
  assert.equal(saved.length,1);
 });
 
-test('recovery breaks long photo sequences even after duration target is reached',async()=>{
+test('a relevant photo sequence is kept when video coverage already meets the target',async()=>{
  const scenes=[
   {id:'v',start:0,end:6,asset:video},
   ...[0,1,2,3,4].map(i=>({id:'p'+i,start:6+i*2,end:8+i*2,heading:'Coast',query:'coast',narration:'Waves on the coast.',asset:photo}))
@@ -46,7 +47,7 @@ test('recovery breaks long photo sequences even after duration target is reached
  assert.equal(photoStreaks(scenes)[0].length,5);
  const calls=[];
  const result=await repairVideoCoverage(scenes,{title:'A coast',duration:16,target:.3,findVideo:async scene=>{calls.push(scene.id);return video;}});
- assert.equal(calls[0],'p2');
- assert.equal(result.maxPhotoStreak,2);
- assert.equal(result.upgraded,1);
+ assert.deepEqual(calls,[]);
+ assert.equal(result.maxPhotoStreak,5);
+ assert.equal(result.upgraded,0);
 });
