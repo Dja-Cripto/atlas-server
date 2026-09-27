@@ -44,7 +44,7 @@ test('calculateNextAvailableDate allocates consecutive days without collisions',
     assert.equal(day1.shorts.length, 5);
 
     // Schedule job 1
-    const j1 = { id: 'job-1', title: 'Video 1', status: 'review' };
+    const j1 = { id: 'job-1', title: 'Video 1', status: 'review', renders:[{url:'/outputs/job-1/video.mp4'}] };
     store.put(j1);
     scheduleJob(store, 'job-1', { slots: day1 });
 
@@ -54,7 +54,7 @@ test('calculateNextAvailableDate allocates consecutive days without collisions',
     assert.equal(day2.nextDate, '2026-09-19');
 
     // Schedule job 2
-    const j2 = { id: 'job-2', title: 'Video 2', status: 'review' };
+    const j2 = { id: 'job-2', title: 'Video 2', status: 'review', renders:[{url:'/outputs/job-2/video.mp4'}] };
     store.put(j2);
     scheduleJob(store, 'job-2', { slots: day2 });
 
@@ -73,4 +73,17 @@ test('calculateNextAvailableDate allocates consecutive days without collisions',
     store.close();
     fs.rmSync(tmp, { recursive: true, force: true });
   }
+});
+
+test('schedule refuses a marked production until the long video and every requested Short are ready',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'atlas-schedule-ready-'));
+ const store=createStore(dir);
+ try{
+  const job=store.create({title:'Tokyo shops',generateShorts:true,shortsCount:5});
+  assert.throws(()=>scheduleJob(store,job.id),/Renderize/);
+  job.renders=[{url:'/outputs/video.mp4'}];store.put(job);
+  assert.throws(()=>scheduleJob(store,job.id),/Shorts solicitados/);
+  job.shorts={finished:true,items:Array.from({length:5},(_,i)=>({renderedMp4:true,mp4Url:`/shorts/${i}.mp4`}))};store.put(job);
+  assert.equal(scheduleJob(store,job.id).shorts.length,5);
+ }finally{store.close();fs.rmSync(dir,{recursive:true,force:true});}
 });

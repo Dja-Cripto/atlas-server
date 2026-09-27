@@ -13,11 +13,12 @@ import {createEditPlan} from './lib/storyboard.mjs';
 import {mergeMedia,recordThumbnail,selectThumbnail,assignClip} from './lib/editing.mjs';
 import {automatic,preflight,renderFinalMP4,exportCapCut,finalizeMainPackage} from './lib/automatic.mjs';
 import {automaticShorts,renderAllShortsMP4} from './lib/shorts.mjs';
+import {runRequestedShorts} from './lib/short-sequence.mjs';
 import {launchCapCut} from './lib/capcut.mjs';
 import {getScheduleSettings,saveScheduleSettings,listScheduleQueue,listHistory,calculateNextAvailableDate,scheduleJob,unscheduleJob} from './lib/schedule.mjs';
 import {getPublishingSettings,savePublishingSettings,dispatchPublicationQueue} from './lib/publishing.mjs';
 import {transcriptToVtt} from './lib/captions.mjs';
-import {loadTopicsData,saveTopicsData,addTopic,addBulkTopics,parseBulkText,updateTopic,deleteTopic,dismissAlert,addAlert,processNextTopicInQueue} from './lib/topics.mjs';
+import {loadTopicsData,saveTopicsData,addTopic,addBulkTopics,parseBulkText,updateTopic,deleteTopic,dismissAlert,addAlert,processNextTopicInQueue,dailyTopicTick} from './lib/topics.mjs';
 
 const root=path.dirname(fileURLToPath(import.meta.url));
 const dir=process.env.ATLAS_DATA_DIR||path.join(root,'data');
@@ -110,11 +111,7 @@ async function run(j,action,options={}){
    if(j.productionVersion==='v3'&&j.generateShorts){
     j.status='running';j.current='shorts';store.put(j);
     log(j,'Vídeo principal pronto. Iniciando automaticamente os Shorts solicitados.');
-    while(!j.shorts?.finished){
-     const result=await automaticShorts(s,j,{root,dir,log,store});
-     store.put(j);
-     if(result.finished)break;
-    }
+    await runRequestedShorts(()=>automaticShorts(s,j,{root,dir,log,store}),{all:true,persist:()=>store.put(j)});
     j.completed=[...new Set([...j.completed,'shorts'])];
    }
    j.status='review';
@@ -123,7 +120,7 @@ async function run(j,action,options={}){
   }
   if(action==='shorts'){
    await finalizeMainPackage(s,j,{root,dir,log});
-   const result=await automaticShorts(s,j,{root,dir,log,store});
+   const result=await runRequestedShorts(()=>automaticShorts(s,j,{root,dir,log,store}),{all:j.generateShorts,persist:()=>store.put(j)});
    if(result.finished)j.completed=[...new Set([...j.completed,'shorts'])];
    j.status='review';
    store.put(j);
@@ -774,24 +771,15 @@ const server=http.createServer(async(req,res)=>{
 const bindHost=process.env.HOST||'0.0.0.0';
 server.listen(port,bindHost,()=>console.log(`Atlas Studio: http://${bindHost}:${port}`));
 
-let lastAutoRunDate='';
+let topicTickRunning=false;
 setInterval(async()=>{
+ if(topicTickRunning)return;
+ topicTickRunning=true;
  try{
-  const data=loadTopicsData(dir);
-  if(!data.settings?.enabled)return;
-  const now=new Date();
-  const todayYMD=now.toISOString().slice(0,10);
-  const curTime=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Bahia'});
-  const targetTime=data.settings.autoRunTime||'00:00';
-  if(curTime===targetTime&&lastAutoRunDate!==todayYMD){
-   lastAutoRunDate=todayYMD;
-   console.log(`[Agendador Autônomo] Horário ${curTime} atingido. Processando próxima pauta da fila para Daniel...`);
-   const s={...providers.defaults,...store.settings()};
-   await processNextTopicInQueue(store,s.geminiKey,runAutomaticForJob);
-  }
- }catch(e){
-  console.error('[Agendador Autônomo Erro]',e);
- }
+  const s={...providers.defaults,...store.settings()};
+  await dailyTopicTick({store,dir,geminiKey:s.geminiKey,runProductionFn:runAutomaticForJob});
+ }catch(e){console.error('[Agendador Autônomo Erro]',e);}
+ finally{topicTickRunning=false;}
 },40000);
 
 

@@ -37,3 +37,10 @@ test('generic scenery may use contextual video, while search query alone cannot 
  assert.equal(hasCountryEvidence({...candidate(3,'Open ocean'),queries:['Japan coastline']},'Japan'),false);
  assert.equal(hasEventEvidence(candidate(4,'2011 Tohoku earthquake aftermath'),'earthquake'),true);
 });
+
+test('contextual Tokyo footage never borrows an explicitly Indian shop',()=>{
+ const scene={heading:'Tiny retail',narration:'Tokyo turns small spaces into shops.',kind:'footage'};
+ const identity=mediaIdentity(scene,title);
+ const pool=candidatePool({...scene,...identity},[candidate(1,'Busy Indian grocery store interior'),candidate(2,'Small neighborhood store')]);
+ assert.deepEqual(pool.map(item=>item.id),[2]);
+});
