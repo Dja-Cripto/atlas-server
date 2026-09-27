@@ -36,3 +36,11 @@ test('one missing scene becomes an animated illustration without discarding othe
  assert.equal(result.scenes[1].asset.representationRole,'illustrative');
  assert.equal(result.scenes[1].missingVisual,undefined);
 });
+test('large media outage does not turn an entire documentary into generated illustrations',async()=>{
+ const missing=Array.from({length:10},(_,index)=>({...scene,id:`shot-${index+1}`}));
+ let generated=0;
+ const result=await repairVisuals(missing,{research:{},propose:async()=>{throw Error('Search unavailable');},materialize:async()=>null,illustrate:async()=>{generated++;return {kind:'image',representationRole:'illustrative',src:'illustration.jpg',width:1920,height:1080};}});
+ assert.equal(generated,2);
+ assert.equal(result.pending.length,8);
+ assert.equal(result.scenes.filter(item=>item.asset?.representationRole==='illustrative').length,2);
+});
