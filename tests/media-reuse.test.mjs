@@ -22,8 +22,10 @@ test('reviewed asset can cover a second scene at the same place and subject, but
  const asset={src:'auto/run/barrier.mp4',kind:'video',width:1920,height:1080,duration:8,credit:{url:'https://example.org/barrier'}};
  const cache={'shot-1|Oosterscheldekering open storm surge barrier|Oosterscheldekering, Netherlands|footage':asset};
  const scene={id:'shot-2',query:'Oosterscheldekering storm surge barrier gates',location:'Oosterscheldekering, Netherlands',start:8,end:14,reuseExistingMedia:true};
- assert.equal(reusableAssetFromCache(scene,cache),asset);
+ assert.equal(reusableAssetFromCache(scene,cache)?.src,asset.src);
+ assert.equal(reusableAssetFromCache(scene,cache)?.representationRole,'exact-location');
  assert.equal(reusableAssetFromCache({...scene,query:'1953 flood aftermath'},cache),null);
- assert.equal(reusableAssetFromCache({...scene,location:'Rotterdam, Netherlands'},cache),null);
+ assert.equal(reusableAssetFromCache({...scene,location:'Rotterdam, Netherlands'},cache)?.representationRole,'contextual');
+ assert.equal(reusableAssetFromCache({...scene,location:'Tokyo, Japan'},cache),null);
  assert.equal(reusableAssetFromCache({...scene,end:20},cache),null);
 });
