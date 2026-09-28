@@ -1,36 +1,38 @@
 # Atlas Studio — estado atual
 
-Atualizado em 28/09/2026, aproximadamente 14:45 (America/Bahia).
+Atualizado em 28/09/2026, aproximadamente 15:25 (America/Bahia).
 
 ## Último trabalho
-- **Correção da descoberta e seleção de mídia (`lib/auto-plan.mjs`, `lib/auto-media.mjs`)**:
-  - `hasLocation` reformulado para rejeitar animais/aves (`phasianus`, `birds`, `galliformes`) em correspondências geográficas e exigir validação de termos compostos, eliminando vídeos de faisão ave em "Pheasant Island".
-  - `candidatePool` ampliado para até 18 candidatos com intercalação de exatas e contextuais, avaliados em lotes sucessivos de 6 via `chooseBatch` sem descarte cego de candidatos remanescentes.
-  - `reusableMediaCandidates` e `reusableAssetFromCache`: corrigida a checagem de reuso (`!candidate.files?.length`), impedindo que fotografias contornassem limites de uso; bloqueada repetição consecutiva da mesma imagem.
-  - Adicionadas variantes de busca por entidades locais e idiomas regionais (*Isla de los Faisanes*, *Île des Faisans*, *Konpantzia*, *Bidasoa*, *Hendaye*, *Irun*).
-  - Geração de capas mantida desativada temporariamente para testes (`thumbnailGenerationDisabled`).
+- **Pré-pesquisa econômica de viabilidade (`lib/topic-presearch.mjs`)**:
+  - Delineamento narrativo em 4 blocos estruturados via IA sob teto rígido de US$ 0,10 por tema (custo real observado de ~$0,000135 por avaliação).
+  - Consulta de acervo em fontes abertas e gratuitas (Wikimedia Commons para fotos e vídeos, Pexels e Library of Congress) com deduplicação atômica de mídias.
+  - Critérios de suficiência para vídeos longos de 10 a 15 minutos (mínimo de 600 segundos): exigência de filmagem real de abertura (duração >= 6s), no mínimo 20 mídias distintas e cobertura de blocos essenciais.
+  - Temas com material insuficiente são marcados com `insufficient`, sem travar a fila, registrando as lacunas e persistindo o inventário em `data/presearch/${topicId}.json`.
+- **Fila única persistente, trava do worker e agendamento às 00:00 (`lib/topics.mjs`)**:
+  - Implementada trava única por lease persistido em disco (`data/worker.lease`) com renovação periódica e expiração automática, impedindo concorrência entre requisições manuais e o disparo diário.
+  - Disparo idempotente diário às 00:00 (America/Bahia) com limite agregado de até 10 temas e US$ 1,00 diário de pré-avaliação.
+  - Avanço automático na fila quando um tema é insuficiente ou duplicado até encontrar um tema aprovado para o dia.
+  - Semeado banco com as 5 ideias editoriais iniciais aprovadas (`v3-japan-earthquake-design`, `v3-netherlands-water-life`, `v3-singapore-water`, `v3-panama-canal-journey`, `v3-mongolia-seasons`).
+  - Alerta persistente emitido para temas com acervo insuficiente: *"Daniel, o tema [título] não teve conteúdo suficiente para um vídeo de 10 minutos."*
+- **Interface e visibilidade no Hub e Banco de Pautas (`public/app.js`, `public/style.css`)**:
+  - Badges e filtros para os novos estados (`pre_evaluating`, `insufficient`, `inconclusive`, `approved`).
+  - Exibição de métricas da pré-pesquisa (vídeos, fotos e custo de token em cada pauta).
+  - Botão de reavaliação manual para pautas marcadas como insuficientes ou inconclusivas.
+- **Suíte de testes automatizados (`tests/topic-presearch.test.mjs`)**:
+  - Testes unitários para cálculo de custo de tokens, deduplicação, semeadura idempotente e concorrência com lease de worker.
 
 ## Estado verificado
-- **Produção teste de 1 minuto validada com 100% de sucesso**:
-  - Job `5423368f-44bc-4d10-8f23-6284f1d8f0b9` (Run `d679d649-9b9c-4fb0-ab5d-fcee9fc2c6b6`): 56,7 s, 1080p Full HD (1.699 quadros), 131,95 MB.
-  - **100% de cobertura com mídias reais**: 4 vídeos reais distintos (abertura aérea do Rio Bidasoa em 1080p por Marc Espejo, tomadas de Irún e Hendaye por Quahadi, e tomada aérea por Marian Croitoru) e 6 fotografias autênticas (Ignacio Gavira, Iñaki LL [fotos de 2025 de ângulos distintos] e monumento do Tratado dos Pireneus de 1659 por Tangopaso).
-  - **Zero fotos duplicadas em loop**: o problema de repetição da mesma imagem entre os segundos 12 e 50 foi completamente resolvido.
-  - **Zero falsos-positivos de aves**: nenhuma mídia de pássaros foi selecionada.
-  - **Geração de capas**: pulada com sucesso sem travar a finalização do pacote.
-  - Todos os 161 testes automatizados passando (`npm test`).
+- **165 testes automatizados passando com 100% de sucesso (`npm test`)**:
+  - 165 pass, 0 fail.
+- **Servidor ativo e operacional (`http://localhost:4310`)**:
+  - Endpoints `/api/topics` e `/api/hub` respondendo com 200 OK e 5 pautas na fila.
+  - Disparo automático ativo para 00:00 (America/Bahia).
+  - Geração de capas mantida desativada (`thumbnailGenerationDisabled: true`) para economia de testes.
+  - Publicação automática mantida pausada.
 
-## Limitações e observações abertas
-- Temas hiperlocais (como a Ilha dos Faisões, um pedaço de terra de 200m) têm acervo público factual finito na internet, sendo adequados para vídeos de 1 a 2 minutos, mas insuficientes para vídeos longos de 10 a 15 minutos sem repetição.
-- Temas longos exigirão uma etapa prévia de mensuração de inventário para garantir que haja material antes de produzir o vídeo completo.
+## Erros ou limitações que continuam abertos
+- A publicação e a geração de capas continuam deliberadamente desligadas durante o período de testes.
+- A aprovação de mídia na pré-pesquisa é uma estimativa fundamentada de acervo público; a adequação editorial final ocorre durante o download e montagem das cenas.
 
 ## Próximo passo recomendado
-- Implementar a etapa de **pré-validação de inventário de mídia** para a fila de agendamento automático da meia-noite:
-  - Avaliar o volume de mídias reais encontradas para o tema antes de roteirizar/narrar;
-  - Se o acervo for insuficiente para a duração mínima de 10 minutos (10-15 min), avançar automaticamente para o próximo tema da lista.
-
-## Plano seguinte aprovado — 28/09/2026
-- PROXIMO_PASSO.md foi substituído pelo escopo atual: pré-pesquisa econômica para no mínimo dez minutos, principal de 10–15 min, cinco Shorts sequenciais, banco com cinco sugestões, fila única manual/agendada à meia-noite America/Bahia e avisos persistentes.
-- Resultado curto aprovado por Daniel; não reabrir reconstrução visual/busca já realizada como tarefa automática. Afirmar insuficiência de temas somente após avaliação, não pelo caráter hiperlocal.
-- Capas e publicação devem permanecer desligadas. Dois dias de teste não autorizam postagem automática ao final.
-- Esta atualização é somente documental: não foram inseridas ideias no banco ativo, criados agendamentos, alterado código ou implantado servidor. Próximo executor implementa/valida e depois atualiza servidor conforme plano.
-- Validação desta etapa: revisão do documento contra o pedido; sem testes ou chamadas pagas. O próximo passo recomendado acima é substituído pelo plano completo em PROXIMO_PASSO.md.
+- Daniel pode acompanhar o ciclo automático da meia-noite ou disparar uma produção manual no painel para validar a geração completa de 10-15 minutos e os 5 Shorts sequenciais no novo fluxo.

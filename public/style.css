@@ -909,9 +909,13 @@ dialog.theater-modal.vertical-mode .theater-video-wrapper video{aspect-ratio:9/1
 }
 
 .topic-badge.pending { background: #eaf3ee; color: #216b51; }
+.topic-badge.pre_evaluating { background: #e0f2fe; color: #0369a1; }
+.topic-badge.approved { background: #dcfce7; color: #15803d; }
 .topic-badge.running { background: #e8f0fb; color: #1b5797; }
 .topic-badge.completed { background: #e6f4ea; color: #137333; }
 .topic-badge.skipped_duplicate { background: #fff8e1; color: #b78103; }
+.topic-badge.insufficient { background: #fef2f2; color: #b91c1c; }
+.topic-badge.inconclusive { background: #fef9c3; color: #854d0e; }
 .topic-badge.error { background: #fbeee8; color: #b25d3b; }
 
 .topic-actions {

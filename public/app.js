@@ -243,24 +243,39 @@ function overview(){
 
 function topicsPage(){
  const queue=topicsData.queue||[];
- const pending=queue.filter(t=>t.status==='pending');
+ const pending=queue.filter(t=>t.status==='pending'||t.status==='pre_evaluating'||t.status==='inconclusive');
+ const insufficient=queue.filter(t=>t.status==='insufficient');
  const skipped=queue.filter(t=>t.status==='skipped_duplicate');
  const completed=queue.filter(t=>t.status==='completed');
 
  const filteredQueue = topicsFilter === 'pending'
    ? pending
+   : topicsFilter === 'insufficient'
+   ? insufficient
    : topicsFilter === 'completed'
    ? completed
    : topicsFilter === 'skipped'
    ? skipped
    : queue;
 
- return heading('Banco de Pautas & Fila Automática','Insira seus temas e acompanhe o que já foi produzido e o que está por vir.')+
+ const topicStatusLabels = {
+   pending: 'Na Fila',
+   pre_evaluating: 'Pré-avaliando...',
+   approved: 'Aprovado (10-15m)',
+   running: 'Produzindo',
+   completed: '✓ Já Produzido',
+   insufficient: 'Acervo Insuficiente',
+   inconclusive: 'Inconclusivo',
+   skipped_duplicate: 'Pulado (Duplicado)',
+   error: 'Erro'
+ };
+
+ return heading('Banco de Pautas & Fila Automática','Insira seus temas e acompanhe a pré-avaliação econômica de acervo e produção.')+
   hubAlerts()+
   `<div class="stats">${[
    ['A Fazer (Na Fila)',pending.length,'Aguardando produção noturna','⏳'],
+   ['Acervo Insuficiente',insufficient.length,'Menos de 10 min de material','⚠️'],
    ['Já Produzidos',completed.length,'Vídeos e Shorts já gerados','✓'],
-   ['Pulados por Duplicidade',skipped.length,'Alertas de semelhança emitidos','💡'],
    ['Horário do Disparo',topicsData.settings?.autoRunTime||'00:00','Horário de Brasília (BRT)','⚙']
   ].map(([label,n,sub,icon])=>`<div class="stat"><div class="stat-top">${label}<span class="stat-icon">${icon}</span></div><div class="stat-value">${n}</div><small>${sub}</small></div>`).join('')}</div>
 
@@ -268,6 +283,9 @@ function topicsPage(){
    <div class="topics-filter-bar" style="display:flex;gap:6px;background:#f0f4f1;padding:4px;border-radius:8px;">
     <button type="button" class="topics-filter-btn ${topicsFilter==='pending'?'active':''}" data-topics-filter="pending" style="padding:6px 14px;border-radius:6px;border:none;background:${topicsFilter==='pending'?'#fff':'none'};color:${topicsFilter==='pending'?'#176b52':'#6b7570'};font-weight:600;font-size:12px;cursor:pointer;box-shadow:${topicsFilter==='pending'?'0 1px 4px rgba(0,0,0,0.06)':'none'};">
      ⏳ A Fazer (${pending.length})
+    </button>
+    <button type="button" class="topics-filter-btn ${topicsFilter==='insufficient'?'active':''}" data-topics-filter="insufficient" style="padding:6px 14px;border-radius:6px;border:none;background:${topicsFilter==='insufficient'?'#fff':'none'};color:${topicsFilter==='insufficient'?'#176b52':'#6b7570'};font-weight:600;font-size:12px;cursor:pointer;box-shadow:${topicsFilter==='insufficient'?'0 1px 4px rgba(0,0,0,0.06)':'none'};">
+     ⚠️ Insuficiente (${insufficient.length})
     </button>
     <button type="button" class="topics-filter-btn ${topicsFilter==='completed'?'active':''}" data-topics-filter="completed" style="padding:6px 14px;border-radius:6px;border:none;background:${topicsFilter==='completed'?'#fff':'none'};color:${topicsFilter==='completed'?'#176b52':'#6b7570'};font-weight:600;font-size:12px;cursor:pointer;box-shadow:${topicsFilter==='completed'?'0 1px 4px rgba(0,0,0,0.06)':'none'};">
      ✓ Já Produzidos (${completed.length})
@@ -295,20 +313,27 @@ function topicsPage(){
         ${esc(t.title)}
        </h3>
        <p>${esc(t.description || 'Sem descrição específica')} · ${t.minutes} min · +5 Shorts ${t.processedAt ? `· Processado em ${new Date(t.processedAt).toLocaleDateString('pt-BR')}` : ''}</p>
+       ${t.presearch ? `
+        <div class="hub-alert-advice" style="margin-top:6px;font-size:11px;">
+         <b>Pré-pesquisa:</b> ${t.presearch.mediaSummary?.uniqueVideos || 0} vídeos, ${t.presearch.mediaSummary?.uniquePhotos || 0} fotos (${t.presearch.costUsd ? '$' + Number(t.presearch.costUsd).toFixed(4) : '$0.00'})
+         ${t.presearch.gaps?.length ? `<br><span style="color:#b91c1c;">Lacunas: ${esc(t.presearch.gaps.join(' · '))}</span>` : ''}
+        </div>
+       ` : ''}
        ${t.duplicateInfo?.advice ? `<div class="hub-alert-advice" style="margin-top:8px;"><b>Conselho do Robô:</b> “${esc(t.duplicateInfo.advice)}”</div>` : ''}
       </div>
       <div class="topic-meta" style="display:flex;align-items:center;gap:10px;">
-       <span class="topic-badge ${t.status}">${t.status==='pending'?'Na Fila':t.status==='running'?'Produzindo':t.status==='completed'?'✓ Já Produzido':t.status==='skipped_duplicate'?'Pulado (Duplicado)':t.status}</span>
+       <span class="topic-badge ${t.status}">${topicStatusLabels[t.status] || t.status}</span>
        ${t.status === 'completed' && t.jobId ? `
         <button type="button" class="secondary" style="padding:6px 12px;font-size:11px;font-weight:600;" data-open-job="${t.jobId}" data-open-tab="final">🎬 Abrir Vídeo ↗</button>
-       ` : t.status === 'pending' ? `
-        <button type="button" class="secondary" style="padding:6px 12px;font-size:11px;" data-run-specific-topic="${t.id}" title="Produzir este tema agora">▶ Produzir Agora</button>
+       ` : (t.status === 'pending' || t.status === 'insufficient' || t.status === 'inconclusive') ? `
+        <button type="button" class="secondary" style="padding:6px 12px;font-size:11px;" data-run-specific-topic="${t.id}" title="${t.status==='pending'?'Produzir este tema agora':'Reavaliar este tema'}">${t.status==='pending'?'▶ Produzir':'🔄 Reavaliar'}</button>
        ` : ''}
        <button type="button" class="text-btn" data-delete-topic="${t.id}" title="Excluir pauta">🗑</button>
       </div>
      </div>
     `).join('') : empty(
       topicsFilter === 'pending' ? 'Nenhuma pauta pendente para fazer' :
+      topicsFilter === 'insufficient' ? 'Nenhuma pauta marcada como insuficiente' :
       topicsFilter === 'completed' ? 'Nenhuma pauta foi produzida ainda' :
       topicsFilter === 'skipped' ? 'Nenhuma pauta foi pulada por duplicidade' :
       'Seu banco de pautas está vazio',
