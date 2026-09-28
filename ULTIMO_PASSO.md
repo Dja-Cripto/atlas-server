@@ -1,29 +1,28 @@
 # Atlas Studio — estado atual
-**Atualizado em:** 28/09/2026, aproximadamente 11:00 (America/Bahia).
 
-## Eliminação do Template Split-Screen e Implementação da Hierarquia de Relevância Visual
-- **Fim do split-screen artificial:** O gerador visual (`lib/motion-author.mjs` e `lib/v3-direction.mjs`) agora proíbe categoricamente encolher fotos ou vídeos em caixas flutuantes divididas com o fundo exposto. Toda mídia documental passa a ocupar obrigatoriamente 100% da tela (1920x1080 full-bleed com `objectFit: 'cover'`) e movimento sutil de câmera (Ken Burns).
-- **Overlays integrados sobre a imagem:** Explicações causais, esquemas SVG e dados devem ser renderizados exclusivamente como camadas translúcidas ou minimalistas sobre a mídia em tela cheia, preservando a estética de documentários modernos (Vox / Johnny Harris / Bloomberg).
-- **Hierarquia editorial e preservação de fotos relevantes:** No reparador automático (`lib/video-coverage-repair.mjs`), a substituição de mídias não força vídeos genéricos apenas para quebrar sequências de fotos. O critério passa a ser a **redundância visual real** (ex.: mídias ou tratamentos idênticos em cenas adjacentes). Fotos excelentes e pertinentes para a narração são sempre preservadas.
-- **Buscas em camadas simplificadas e validação de relevância:** `lib/auto-media.mjs` agora inclui `cleanSearchQuery` e `buildTieredVideoQueries`, eliminando termos que quebravam as buscas nas APIs (como "documentary footage", "official", "real footage") e testando queries curtas de 2 a 4 termos essenciais. O avaliador visual foi instruído a rejeitar vídeos contextuais desconexos, preferindo manter uma boa foto a usar um vídeo irrelevante.
-- **Auditoria semântica no revisor:** `lib/editorial-review.mjs` ganhou as funções `isSplitScreenLayout` e `detectVisualRedundancy`, detectando caixas parciais desnecessárias e repetição de estruturas entre cenas vizinhas sem depender de coordenadas fixas.
-- **Neutralidade do backdrop de contingência:** `renderer/src/SceneBackdrop.tsx` e `renderer/src/ShortsBackdrop.tsx` tiveram seus gradientes esverdeados substituídos por tons neutros cinematográficos profundos (`#090b0d` / `#181d21`) com vinheta suave e opacidade limpa.
+Atualizado em 28/09/2026, aproximadamente 13:30 (America/Bahia).
 
-## O que foi alterado no gerador (permanente para as próximas produções)
-1. `lib/motion-author.mjs`: `sceneContract` e `directorContract` atualizados para exigir mídia full-bleed e overlays integrados, banindo split-screen boxes.
-2. `lib/v3-direction.mjs`: `v3DirectionPrompt` atualizado para exigir queries concisas de 2-4 palavras e montagem full-bleed com overlays.
-3. `lib/auto-media.mjs`: adicionados `cleanSearchQuery` e `buildTieredVideoQueries`; refinado o prompt do `choose` para barrar vídeos irrelevantes.
-4. `lib/video-coverage-repair.mjs`: ordenação de candidatos prioriza a eliminação de redundâncias visuais reais antes de qualquer critério numérico.
-5. `lib/editorial-review.mjs`: implementados `isSplitScreenLayout` e `detectVisualRedundancy` dentro de `reviewAuthoredBlocks`.
-6. `renderer/src/SceneBackdrop.tsx` & `renderer/src/ShortsBackdrop.tsx`: paleta de contingência atualizada para carvão/ardósia neutro.
-7. `tests/editorial-review.test.mjs`: novos testes unitários adicionados para validação de split-screens desnecessários e redundância visual.
+## Último trabalho
+- Implementadas todas as diretrizes do `PROXIMO_PASSO.md` no pipeline do gerador:
+  - `lib/opening-recovery.mjs`: suporte a queries contextuais/regionais e relaxamento de filtros estritos (`narrativeRole = 'context'`, subject neutro) para vídeos de abertura quando a localidade exata é uma micro-ilha/marco sem stock direto, garantindo abertura em filmagem real e contextual legítima.
+  - `lib/automatic.mjs`: remoção da regra que deletava vídeo contextual ao retomar produção; exclusão explícita de mídias de cenas adjacentes na etapa de materialização de visuais; inserção de loop de reparo pre-continuidade (`detectConsecutiveMedia`) para eliminar mídias repetidas consecutivas.
+  - `lib/motion-author.mjs` e `lib/v3-direction.mjs`: remoção de obrigação de tela cheia/Ken Burns em 100% das fotos; introdução de layout de enquadramento documental (`contain` com moldura e cards de métricas) sem deformação ou zoom forçado; permissão para fotos descansarem sem animação agressiva contínua.
+  - `lib/auto-media.mjs`: trava de uso único para imagens de evidência (`maxAllowed = 1`), impedindo repetição da mesma foto ao longo da linha do tempo.
+  - `lib/visual-continuity.mjs`: ajustes na tolerância de pacing e diversidade de mídia.
+- Atualizado `PROXIMO_PASSO.md` com status de implementação e recomendações seguintes.
 
-## Validação e Resultados
-- **160 testes unitários aprovados (`npm test`)** sem qualquer quebra ou regressão no pipeline.
-- Detecção e aprovação de layouts testadas com sucesso: layouts em tela cheia com overlays aprovados; caixas divididas rejeitadas.
+## Validação e resultado
+- Testes automatizados executados via `npm test`: 161 testes passaram com 0 falhas.
+- Produção de teste de 1 minuto executada com sucesso (`df6fb0ba-7683-413f-a4df-0747ccc938e0`, Pheasant Island, 56.70s, 1920x1080):
+  - Cena 1 (abertura): Filmagem aérea real de ilha fluvial (`Pexels:5664876`) com card documental cinematográfico.
+  - Cena 2: Filmagem real do Rio Bidasoa (`Wikimedia Commons:132520796`) com escala geográfica Hendaye-Irun.
+  - Cena 3: Foto real (`Wikimedia Commons:11260833`) com layout contido (`contain`), moldura arquitetural e régua de escala métrica, sem zoom forçado.
+  - Mídias consecutivas: Zero repetições consecutivas de imagens ou vídeos.
+  - Render Remotion: 100% concluído no arquivo `video-12e0e521-ea8f-499f-afc8-47c8e174b15a.mp4`.
 
-## Erros ou Limitações Abertos
-- Nenhum erro de pipeline ou técnico em aberto no gerador.
+## Limitações abertas
+- Na renderização sem aceleração de GPU (CPU ARM64), cenas com overlays SVG complexos ou filtros exigem render com concorrência moderada.
+- Produções longas (>5 min) devem continuar monitorando a taxa de acerto de vídeos em queries geográficas obscuras.
 
-## Próximo Passo Recomendado
-- O usuário iniciar uma nova produção curta ou rodar um teste no painel para validar a nova estética cinematográfica full-bleed e a ausência do template repetitivo.
+## Próximo passo recomendado
+- Realizar teste de produção completa com duração média (3 a 5 minutos) com Shorts habilitados para validar o pipeline fim a fim em escala real.
