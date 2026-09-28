@@ -16,7 +16,7 @@ export const ShortsBackdrop:FC<{scene:Scene;backgroundScene?:Scene|null;duration
   return <AbsoluteFill
     style={{
       overflow: "hidden",
-      background: "radial-gradient(ellipse at 50% 40%, #162a26 0%, #0c1816 65%, #070e0d 100%)",
+      background: "radial-gradient(ellipse at 50% 45%, #181d21 0%, #0d1012 60%, #060809 100%)",
     }}
   >
    <AbsoluteFill
@@ -32,9 +32,9 @@ export const ShortsBackdrop:FC<{scene:Scene;backgroundScene?:Scene|null;duration
  }
 
  const scale=interpolate(frame,[0,Math.max(1,duration)],[1.02,1.06],{extrapolateLeft:'clamp',extrapolateRight:'clamp'});
- const style={width:'100%',height:'100%',objectFit:'cover' as const,opacity:0.22,scale};
- return <AbsoluteFill style={{overflow:'hidden',backgroundColor:'#0a1412'}}>
+ const style={width:'100%',height:'100%',objectFit:'cover' as const,opacity:0.85,scale};
+ return <AbsoluteFill style={{overflow:'hidden',backgroundColor:'#090b0d'}}>
   {asset.kind==='video'?<OffthreadVideo muted src={staticFile(asset.src)} startFrom={Math.round((asset.trimStart||0)*30)} style={style}/>:<Img src={staticFile(asset.src)} style={style}/>}
-  <AbsoluteFill style={{background:'linear-gradient(160deg,rgba(5,16,14,.65),rgba(8,18,17,.82))'}}/>
+  <AbsoluteFill style={{background:'linear-gradient(180deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,.55) 100%)'}}/>
  </AbsoluteFill>;
 };

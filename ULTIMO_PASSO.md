@@ -1,26 +1,29 @@
 # Atlas Studio — estado atual
-**Atualizado em:** 28/09/2026, aproximadamente 09:35 (America/Bahia).
+**Atualizado em:** 28/09/2026, aproximadamente 11:00 (America/Bahia).
 
-## Retomada e conclusão do projeto "The Bridge That Disappears Into the Sea"
-- **Projeto recuperado:** ID `60e7fea6-c3ec-4104-a031-02bd6a50b031`, run `f3001db5-2577-40f7-b033-19aa8679379d`.
-- **Pesquisa e narração preservadas:** a pesquisa factual foi integralmente mantida. O roteiro salvo (298 palavras) e a narração oficial (102,4 s / ~1,7 min) foram auditados contra as regras de duração: para 2 minutos pedidos (120 s), a tolerância de ±15% aceita de 102 s a 138 s e de 247 a 334 palavras. Roteiro e áudio estavam perfeitamente dentro da faixa e foram preservados sem desperdício de tokens.
-- **Abertura autêntica obrigatória:** corrigida a seleção da cena 1 no gerador para consultas progressivas preservando local e assunto (`Øresund Bridge`, `Oresund Bridge`, `Øresund Strait`, `Oresund Strait`, `Oresund`). A abertura capturou filmagem real em alta definição da ponte (`Pexels:16016738`, papel `exact-location`, `openingVideoRequired: true`, `videoOnly: true`). Nenhuma fotografia ou filmagem genérica fora de contexto foi aceita.
-- **Continuidade e seleção de mídia:** `lib/auto-media.mjs` atualizado para não permitir que mídias em cache de cenas posteriores bloqueiem o candidato legítimo da abertura. As 18 cenas foram coletadas (50% vídeo real HD, 50% fotos/ilustrações com autoria) respeitando avanço de tomada e sem repetição consecutiva de filmagens.
-- **Autoria Remotion Luna:** todas as 18 cenas foram dirigidas e programadas pelo GPT-6 Luna sob a voz narrativa e os requisitos da Seção 0, obtendo 100% de compilação na primeira tentativa.
-- **Renderização e entrega:** o MP4 final em 1080p foi renderizado com sucesso (177,99 MB, 102,48 s), a capa oficial foi gerada e o projeto avançou para o status final `review`.
+## Eliminação do Template Split-Screen e Implementação da Hierarquia de Relevância Visual
+- **Fim do split-screen artificial:** O gerador visual (`lib/motion-author.mjs` e `lib/v3-direction.mjs`) agora proíbe categoricamente encolher fotos ou vídeos em caixas flutuantes divididas com o fundo exposto. Toda mídia documental passa a ocupar obrigatoriamente 100% da tela (1920x1080 full-bleed com `objectFit: 'cover'`) e movimento sutil de câmera (Ken Burns).
+- **Overlays integrados sobre a imagem:** Explicações causais, esquemas SVG e dados devem ser renderizados exclusivamente como camadas translúcidas ou minimalistas sobre a mídia em tela cheia, preservando a estética de documentários modernos (Vox / Johnny Harris / Bloomberg).
+- **Hierarquia editorial e preservação de fotos relevantes:** No reparador automático (`lib/video-coverage-repair.mjs`), a substituição de mídias não força vídeos genéricos apenas para quebrar sequências de fotos. O critério passa a ser a **redundância visual real** (ex.: mídias ou tratamentos idênticos em cenas adjacentes). Fotos excelentes e pertinentes para a narração são sempre preservadas.
+- **Buscas em camadas simplificadas e validação de relevância:** `lib/auto-media.mjs` agora inclui `cleanSearchQuery` e `buildTieredVideoQueries`, eliminando termos que quebravam as buscas nas APIs (como "documentary footage", "official", "real footage") e testando queries curtas de 2 a 4 termos essenciais. O avaliador visual foi instruído a rejeitar vídeos contextuais desconexos, preferindo manter uma boa foto a usar um vídeo irrelevante.
+- **Auditoria semântica no revisor:** `lib/editorial-review.mjs` ganhou as funções `isSplitScreenLayout` e `detectVisualRedundancy`, detectando caixas parciais desnecessárias e repetição de estruturas entre cenas vizinhas sem depender de coordenadas fixas.
+- **Neutralidade do backdrop de contingência:** `renderer/src/SceneBackdrop.tsx` e `renderer/src/ShortsBackdrop.tsx` tiveram seus gradientes esverdeados substituídos por tons neutros cinematográficos profundos (`#090b0d` / `#181d21`) com vinheta suave e opacidade limpa.
 
 ## O que foi alterado no gerador (permanente para as próximas produções)
-1. `lib/opening-recovery.mjs`: consultas de recuperação da abertura geram variantes com o nome do monumento/marco em grafia original e ASCII antes de recuar para o acidente geográfico mais amplo, mantendo estritamente o assunto e o local.
-2. `lib/auto-media.mjs`: `usedUrls` não exclui candidatos quando `scene.openingVideoRequired` estiver ativo, garantindo prioridade máxima de busca para a abertura.
-3. `lib/automatic.mjs`: tanto o plano quanto a lista resolvida aplicam `requireOpeningVideo` nas retomadas, impedindo que cenas de abertura vazias ou não conformes sejam puladas; atualização idempotente de cenas por `id` em `resolved.json`.
+1. `lib/motion-author.mjs`: `sceneContract` e `directorContract` atualizados para exigir mídia full-bleed e overlays integrados, banindo split-screen boxes.
+2. `lib/v3-direction.mjs`: `v3DirectionPrompt` atualizado para exigir queries concisas de 2-4 palavras e montagem full-bleed com overlays.
+3. `lib/auto-media.mjs`: adicionados `cleanSearchQuery` e `buildTieredVideoQueries`; refinado o prompt do `choose` para barrar vídeos irrelevantes.
+4. `lib/video-coverage-repair.mjs`: ordenação de candidatos prioriza a eliminação de redundâncias visuais reais antes de qualquer critério numérico.
+5. `lib/editorial-review.mjs`: implementados `isSplitScreenLayout` e `detectVisualRedundancy` dentro de `reviewAuthoredBlocks`.
+6. `renderer/src/SceneBackdrop.tsx` & `renderer/src/ShortsBackdrop.tsx`: paleta de contingência atualizada para carvão/ardósia neutro.
+7. `tests/editorial-review.test.mjs`: novos testes unitários adicionados para validação de split-screens desnecessários e redundância visual.
 
 ## Validação e Resultados
-- **158 testes unitários aprovados (`npm test`)** cobrindo recuperação da abertura, continuidade visual, alinhamento de transcrição e regras editoriais da Seção 0.
-- **Produção ponta a ponta concluída:** o vídeo do projeto de teste foi renderizado em `data/long_videos/60e7fea6-c3ec-4104-a031-02bd6a50b031/video-f3001db5-2577-40f7-b033-19aa8679379d.mp4` e está acessível para reprodução e revisão no painel local (porta 4310).
+- **160 testes unitários aprovados (`npm test`)** sem qualquer quebra ou regressão no pipeline.
+- Detecção e aprovação de layouts testadas com sucesso: layouts em tela cheia com overlays aprovados; caixas divididas rejeitadas.
 
 ## Erros ou Limitações Abertos
-- Nenhum erro de pipeline em aberto no gerador ou no projeto em teste.
-- Resta a avaliação humana do vídeo pronto pelo usuário no painel para conferir o ritmo e a estética visual da nova versão.
+- Nenhum erro de pipeline ou técnico em aberto no gerador.
 
 ## Próximo Passo Recomendado
-- O usuário assistir ao vídeo gerado no painel do Atlas Studio para avaliar a abertura com a Ponte de Øresund e o tratamento visual das cenas.
+- O usuário iniciar uma nova produção curta ou rodar um teste no painel para validar a nova estética cinematográfica full-bleed e a ausência do template repetitivo.

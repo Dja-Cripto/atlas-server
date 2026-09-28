@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {reviewMediaPlan,reviewAuthoredBlocks} from '../lib/editorial-review.mjs';
+import {reviewMediaPlan,reviewAuthoredBlocks,isSplitScreenLayout,detectVisualRedundancy} from '../lib/editorial-review.mjs';
 import {detectConsecutiveFootage,detectExhaustedSegments,composeContinuity} from '../lib/visual-continuity.mjs';
 import {validateDirection,audioSlots} from '../lib/auto-plan.mjs';
 
@@ -136,4 +136,58 @@ test('audioSlots aligns slot narration with script tokens to correct Whisper mis
  const slots=audioSlots([{words:transcriptionWords}],4.0,{script});
  assert.equal(slots.length,1);
  assert.equal(slots[0].narration,'Em 1888, o explorador Fridtjof Nansen cruzou a Groelândia.');
+});
+
+test('isSplitScreenLayout detects unnecessary split-screen photo boxes and approves full-bleed with overlays',()=>{
+ const splitCode=`
+  return (
+   <AbsoluteFill>
+    <div style={{position:'absolute',left:80,top:180,width:1280,height:720}}>
+     <Img src={src} style={{width:'100%',height:'100%',objectFit:'cover'}} />
+    </div>
+    <div style={{position:'absolute',left:1370,top:155,width:470,height:770,backgroundColor:'#17272a'}}>
+     <svg><rect/></svg>
+    </div>
+   </AbsoluteFill>
+  );
+ `;
+ assert.equal(isSplitScreenLayout(splitCode),true);
+
+ const fullBleedOverlayCode=`
+  return (
+   <AbsoluteFill>
+    <Img src={src} style={{width:'100%',height:'100%',objectFit:'cover',transform:\`scale(\${scale})\`}} />
+    <div style={{position:'absolute',right:80,top:80,width:480,backgroundColor:'rgba(10,20,30,0.85)'}}>
+     <svg><rect/></svg>
+    </div>
+   </AbsoluteFill>
+  );
+ `;
+ assert.equal(isSplitScreenLayout(fullBleedOverlayCode),false);
+});
+
+test('reviewAuthoredBlocks detects unnecessary split-screen and visual redundancy across adjacent scenes',()=>{
+ const scenes=[
+  {index:0,kind:'photo',asset:{kind:'image',src:'a.jpg'}},
+  {index:1,kind:'photo',asset:{kind:'image',src:'a.jpg'}}
+ ];
+ const splitCode=`
+  return (
+   <AbsoluteFill>
+    <div style={{width:900}}>
+     <Img src={src}/>
+    </div>
+    <div style={{left:960,backgroundColor:'#111'}}>
+     <svg/>
+    </div>
+   </AbsoluteFill>
+  );
+ `;
+ const codesMap=new Map([
+  [0,splitCode],
+  [1,splitCode]
+ ]);
+ const review=reviewAuthoredBlocks(scenes,codesMap);
+ assert.ok(review.issues.some(i=>i.type==='unnecessary-split-screen'));
+ assert.ok(review.issues.some(i=>i.type==='visual-redundancy'));
 });
