@@ -20,6 +20,8 @@ custom_*/
 scratch/
 video/
 benchmarks/results/
+testes_benchmark/**/*.mp4
+testes_benchmark/**/*.png
 
 # Arquivos locais do sistema operacional
 Thumbs.db

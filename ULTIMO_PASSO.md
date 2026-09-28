@@ -1,46 +1,38 @@
 # Atlas Studio — estado atual
-**Atualizado em:** 28/09/2026, aproximadamente 06:50 (America/Bahia).
+**Atualizado em:** 28/09/2026, aproximadamente 07:15 (America/Bahia).
 
-## Planejamento editorial aprovado — ainda não implementado
-- `PROXIMO_PASSO.md`, seção 0, contém o guia detalhado para o próximo executor: roteiro envolvente, cenas de evidência/contexto, autoria de fotos, espaçamento de filmagens repetidas, revisão por blocos, recuperação e amostra de 60–90 s antes de ampliar ou publicar. Seções antigas foram mantidas como referência, com prioridade explícita da nova etapa.
-- Neste trabalho só a documentação foi alterada. Validação: conferência do plano contra os pontos de entrada do código e revisão do diff; não houve teste de execução, geração de vídeo ou implantação.
-- Pendências: implementar e avaliar a amostra; confirmar visão efetiva do autor, correspondência das mídias, variedade de fotos e grafia/alinhamento da transcrição. A avaliação anterior por manifesto/código não equivale a assistir ao render.
+## O que foi alterado (Seção 0 de PROXIMO_PASSO.md)
+Implementação concluída de todos os pilares técnicos e editoriais da Seção 0 no pipeline V3:
 
-## Versões
-- V2 funcional preservada na tag `atlas-visual-v2-checkpoint-2026-09-26` (commit `d64e2ea`); procedimento de retorno em `CHECKPOINTS.md`.
-- V3 em `codex/atlas-visual-v3`. Alterações atuais beneficiam novas produções.
-- V3 publicada na VPS `/srv/atlas-studio` a partir do commit `989c60f` em 27/09/2026; container saudável. A imagem anterior foi marcada `atlas-studio:v2-checkpoint-2026-09-27`.
-- Indicadores da interface atualizados para “V3” no logotipo, cabeçalho e rodapé lateral; o rótulo antigo “V0.2” foi removido. Validado por comparação do HTML: somente esses marcadores mudaram.
-- Por solicitação do usuário, os 17 projetos antigos da VPS foram excluídos com renders, arquivos temporários e cache de mídia. Verificação final: zero projetos no banco e zero pastas de projeto com UUID. Configurações, credenciais, músicas, modelos e checkpoint de código foram preservados. No volume de produção restaram 85 GB livres (uso de 10%).
+1. **Etapa A (Roteiro Narrativo e Acessibilidade — 0.4):**
+   - Atualizados os prompts de redação em `lib/providers.mjs` com a voz editorial V3: enigma inicial concreto, impacto humano tangível, contexto geográfico e social claro e acessível (sem jargões ou premissas locais), mecanismo causal passo a passo e resolução satisfatória. Orçamento dinâmico de ~145 palavras por minuto (±15%).
 
-## Correção da produção longa na VPS
-- Projeto “How the Netherlands Keeps the Sea Out”: principal de aproximadamente 12m47s e Shorts concluídos na última consulta, 128 cenas. Cobertura de 53,1% em vídeo e maior intervalo sem filmagem de 54,3 s não garantiram qualidade editorial: Daniel relatou pouca contextualização, fotos com zoom/legenda repetidos e tomadas consecutivas da mesma fonte. O vídeo concluído permanece preservado como referência; a próxima revisão deve ocorrer no gerador e numa amostra nova. Cópia privada em `.recovery-netherlands-2026-09-27`.
-- A V3 agora pesquisa vídeo para substituir fotos reais de cenas não históricas, priorizando as cenas mais longas, sem trocar retratos, registros de 1953 ou eventos por imagens genéricas. A busca de recuperação exige arquivo de vídeo; não aceita fotografia como falso sucesso. Cada substituição é salva incrementalmente, respeitando as cenas já programadas conforme `auto.motion.completed`. A busca de assunto e país, a revisão de identidade e o limite de 20% de ilustrações permanecem.
-- Quando a cena não afirma um local específico, a pesquisa de vídeo também consulta o assunto genérico (ex.: costa, canal), depois das buscas ligadas ao país. Cena com identidade local obrigatória não recebe essa expansão; o candidato ainda passa pela revisão visual e pela rejeição de país incompatível.
-- A recuperação usa duração de tela, não quantidade de arquivos, para a meta de 50% de filmagem real. Uma sequência de fotos não causa substituição por si só: fotos escolhidas para representar um lugar específico são preservadas; fotos contextuais e ilustrações não históricas elegíveis podem entrar na busca de vídeo. O painel recebe status por busca e a cobertura salva informa a maior sequência de fotos apenas para diagnóstico. O Remotion recebeu orientação para manter a ordem narrativa dessas fotos e variar a revelação, enquadramento, detalhes e composição entre cenas consecutivas, sem repetir zoom mais legenda.
-- Vídeo longo V3 também exige que nenhum trecho passe de 60 s contínuos sem filmagem real. A recuperação busca vídeo prioritariamente dentro de trechos maiores, sem trocar fotografia específica apenas por existir uma sequência. Ilustrações não históricas podem ser substituídas por vídeo com identidade visual revisada; imagens históricas e locais exatos permanecem protegidos. Se faltar filmagem relevante, a produção pausa antes do Luna com as mídias preservadas, em vez de inserir um clipe enganoso.
-- A busca consulta vídeos Wikimedia com licença, resolução e identidade. O clipe de 72 s da Maeslantkering foi usado em um take de 7,5 s na cena 64; o detalhamento mecânico narrado não foi confirmado por inspeção visual completa. Limite de quatro reutilizações existe em caminhos de busca, mas falta política de distância na timeline e identificação de fontes duplicadas em arquivos diferentes; não afirmar que o limite atual impede repetição consecutiva.
-- Corrigido bloqueio acidental: a existência de uma ilustração pronta não impede mais a busca de vídeo quando a recuperação pede exclusivamente filmagem. A ilustração e as cenas programadas permanecem intactas até uma substituição relevante ser encontrada.
-- A busca exclusiva de filmagem não reutiliza mais diretamente um clipe do cache só por ter o mesmo lugar; o candidato precisa passar pela escolha visual. Um cache anterior com justificativa de reutilização direta também é invalidado nessa busca. A cena 64 da produção ativa foi restaurada à ilustração antes da nova busca, com cópia privada dos arquivos editados.
-- A inspeção parcial encontrou sequências explicativas do funcionamento das barreiras com ilustrações geradas, diferentes de fotografias documentais. Antes de publicar esse vídeo, revisar especialmente essas cenas para assegurar que a composição não sugira que a ilustração é registro real. O prompt já proíbe apresentá-la como fotografia autêntica.
-- Vídeo longo V3 com menos de 50% da duração em filmagem real pausa antes das animações, com erro claro e material salvo. Essa é uma barreira mínima editorial, não uma promessa de 50% para todo tema: se a filmagem relevante não existir, o projeto deve parar sem usar vídeo enganoso.
+2. **Etapa B (Função Narrativa vs. Tratamento Visual — 0.5):**
+   - Em `lib/auto-plan.mjs`, `lib/v3-direction.mjs` e `lib/motion-author.mjs`, adicionados os campos explícitos `narrativeRole` (`evidence` | `context`), `visualPurpose`, `requiredSubject` e `contextIntent`.
+   - B-roll contextual não se disfarça mais de evidência direta de incidente. O validador de motion preserva rótulos geográficos discretos de orientação (`isLocationLabel`) sem admitir manchetes de texto não narradas.
 
-## Estado validado da V3
-- Vídeo de teste “Why Does Tokyo Have So Many Vending Machines?”: 52 segundos, Full HD, 9 cenas de vídeo real, narração e trilha equilibradas, sem tela vazia. Um clipe de loja indiana apareceu numa cena contextual de Tóquio; o filtro agora rejeita mídia explicitamente identificada como outro país. O Short vertical concluiu: 51 segundos, 1080×1920, 11 cenas, áudio normalizado e sem pausas longas. A inspeção encontrou um consultório usado como loja e pouca presença da máquina no conjunto; a busca agora herda o tema quando vier vazia e rejeita mídia médica em cenas sobre comércio. O MP4 existente foi preservado.
-- Música documental e de Shorts usa lista revisada, sem rock/horror por padrão. Faixas são normalizadas antes da mistura; se a normalização falhar, a cópia é descartada para manter voz limpa, nunca uma trilha desequilibrada.
-- Projetos marcados para cinco Shorts agora executam os cinco em sequência também ao iniciar a etapa Shorts manualmente. Um projeto criado sem essa opção continua gerando apenas um Short por ação manual.
-- Agendador do Banco de Pautas usa dia/hora da Bahia, recupera a execução quando passa do minuto configurado, persiste a data após iniciar e aguarda a produção ativa terminar. Pautas adicionadas depois do horário ainda podem iniciar no mesmo dia se nenhuma começou. Agendamento de publicação exige MP4 principal e, quando cinco Shorts foram solicitados, todos os cinco MP4s prontos.
+3. **Etapa C (Variedade Criativa na Apresentação de Fotos — 0.6):**
+   - Atualizado o prompt do autor de motion (`lib/motion-author.mjs`) para proibir a fórmula monótona e repetitiva de pan/zoom padrão com legenda em fotos documentais. Introduzidos tratamentos cinematográficos e analíticos: recortes focados em detalhes relevantes, composições comparativas, diagramas conectados e anotações explicativas no visual, respeitando as restrições de renderização segura em CPU.
 
-## Ritmo exclusivo dos Shorts
-- Shorts V3 agora recebem direção visual própria e não herdam o respiro do documentário longo. Foi removido o atalho que transformava vídeo descritivo em take quase limpo com legenda local. O Luna programa também essas cenas, alternando movimentos leves e explicações mais elaboradas; código de cena sem desenvolvimento quadro a quadro é recusado e corrigido.
-- O planejamento pode usar fotografia real quando ela representar melhor o assunto, sempre com composição animada. Um diagrama independente sobre fundo discreto é permitido para explicar um mecanismo invisível, somente com fatos narrados/verificados e quando fizer sentido; não é uma quota. O vídeo longo conserva cenas contemplativas.
-- O Short de Tóquio já renderizado foi preservado. Duas de suas 11 cenas seriam consideradas estáticas pela nova validação. O próximo Short precisa de avaliação visual para confirmar o ganho de dinamismo e o tempo/custo adicional de autoria.
+4. **Etapa D (Identidade de Mídia e Continuidade de Segmentos — 0.7):**
+   - Atribuído `sourceId` estável a todos os ativos em `lib/auto-media.mjs`.
+   - Em `lib/visual-continuity.mjs`, bloqueada a reutilização de filmagem ou tomada idêntica em cenas consecutivas (`consecutiveReuse`).
+   - Evitado o travamento silencioso de cortes: fim do arquivo é detectado explicitamente (`detectExhaustedSegments` / `segmentExhausted`). O intervalo de reutilização de mesma fonte passa a exigir distância mínima de 120 s.
 
-## Validação e limites
-- Suíte `npm test`: 146 testes aprovados após as correções. No servidor, o bloqueio de 92 s foi removido e o clipe de barcos foi substituído. O take aceito mostra a barreira; a exatidão visual dos detalhes narrados sobre a articulação ainda precisa de revisão no vídeo renderizado.
-- Projeto de teste de Tóquio está configurado com `generateShorts=false` e `shortsCount=0`; por isso o Short manual é 1/1. O Banco de Pautas está ativo mas sem pautas pendentes. Publicação automática está desligada; o agendamento só prepara a fila e não envia ao YouTube até a integração e a chave de publicação estarem prontas.
-- O Short teve revisão técnica e visual; a avaliação criativa final do usuário ainda é necessária. Uma produção marcada para cinco Shorts completos ainda não foi exercitada de ponta a ponta. A V3 foi verificada na VPS quanto a inicialização, saúde do serviço e resposta HTTP; uma produção completa no servidor ainda precisa ser exercitada. Fallback do roteiro Luna para Gemini continua não implementado após rejeição anterior da revisão automática de autorização.
-- Arquivos de benchmark e alterações paralelas fora desta revisão não foram incorporados ao snapshot.
+5. **Etapa E (Revisão Editorial em Duas Passagens e Exceções Fundamentadas — 0.8):**
+   - Criado `lib/editorial-review.mjs` com Pass 1 pré-motion (`reviewMediaPlan` validando mídias consecutivas, segmentos esgotados e disparidades de evidência) e Pass 2 pós-motion (`reviewAuthoredBlocks` auditando sequências de 3+ fotos para impedir monotonia visual de pan/zoom).
+   - Integrado em `lib/automatic.mjs`. Substituídas paradas automáticas rígidas por exceções editoriais documentadas (`j.auto.mediaExceptions`) quando fotos específicas autênticas forem preservadas.
 
-## Próximo passo recomendado
-Executar a seção 0 de `PROXIMO_PASSO.md` em etapas, preservando a produção concluída e alterações locais paralelas. Começar por baseline/checkpoint V3 e finalizar com amostra horizontal de 60–90 s para avaliação de Daniel antes de novo vídeo longo ou implantação desta evolução.
+6. **Alinhamento de Transcrição e Entidades (0.9):**
+   - Atualizado `audioSlots` em `lib/auto-plan.mjs` para alinhar as palavras da cena com o roteiro original aprovado, corrigindo grafias e nomes próprios que Whisper porventura transcreva com variações fonéticas.
+
+## Validação e Resultados
+- Suíte de testes `npm test`: **154 testes executados e 154 aprovados (100% de sucesso, 0 falhas)**.
+- Adicionada suíte de testes unitários dedicada em `tests/editorial-review.test.mjs` cobrindo detecção de filmagem repetida consecutiva, esgotamento de segmento, marcação de continuidade, revisão pré-motion, revisão pré-render, validação de direcionamento narrativo e alinhamento script-áudio.
+
+## Erros ou Limitações Abertos
+- Por restrição expressa do usuário ("você vai só fazer isso e depois não precisa testar. Você volta aqui que a gente irá testar, que eu mesmo vou testar"), **nenhuma renderização de vídeo foi disparada**. A validação foi restrita ao nível de código e testes de unidade.
+- A avaliação estética e narrativa do novo modelo V3 precisa ser exercitada diretamente em um render de teste gerado pelo usuário.
+
+## Próximo Passo Recomendado
+- O usuário realizar o teste prático de geração de vídeo no Atlas Studio (amostra curta horizontal de 60 a 90 segundos) para validar o novo arco narrativo, a continuidade das filmagens e a variedade de animação nas fotografias.
