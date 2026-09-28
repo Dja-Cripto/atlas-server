@@ -831,7 +831,7 @@ function finalPanel(j){
  const isRunning=j.status==='running';
  const isRenderRunning=(isRunning&&j.current==='render')||Boolean(j.auto?.renderingMp4);
  const isCapcutRunning=isRunning&&j.current==='capcut';
- const mainPackageReady=Boolean(j.auto?.finished&&hasFinalVideo&&j.finalization?.ready&&j.thumbnail&&j.publishingMetadata?.description&&j.selectedTitle);
+ const mainPackageReady=Boolean(j.auto?.finished&&hasFinalVideo&&j.finalization?.ready&&(j.thumbnail||j.thumbnailGenerationDisabled)&&j.publishingMetadata?.description&&j.selectedTitle);
  const autoFinished=mainPackageReady;
  const totalScenesCount=j.automaticPlan?.shots?.length||j.scenes?.length||69;
  const durationSec=Math.round(j.voiceDuration||j.renders?.[0]?.duration||(j.minutes*60));

@@ -26,6 +26,9 @@ const job = {
   title: topicTitle,
   minutes: 1,
   targetDuration: 55,
+  productionVersion: 'v3',
+  editorialVersion: 'observant-dry-v1',
+  generateShorts: false,
   skipThumbnail: true, // User requested no AI image generation call for thumbnail
   shortsCount: shouldGenShort ? 1 : 0,
   completed: [],

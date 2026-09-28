@@ -4,11 +4,62 @@ Atualizado em 28/09/2026, aproximadamente 12:20 (America/Bahia).
 
 ## Estado e prioridade
 
-Este é o plano vigente aprovado por Daniel. Substitui o antigo plano de implementação e todas as instruções conflitantes de tela cheia obrigatória, proibição de cartões/tela dividida e Ken Burns obrigatório. As funcionalidades já implementadas não são uma lista para executar novamente. Neste trabalho somente a documentação foi atualizada: as correções abaixo AINDA NÃO estão implementadas.
+Este é o plano vigente aprovado por Daniel. Substitui o antigo plano de implementação e todas as instruções conflitantes de tela cheia obrigatória, proibição de cartões/tela dividida e Ken Burns obrigatório. As funcionalidades já implementadas não são uma lista para executar novamente. Parte das alterações abaixo já foi executada por outro trabalho, mas o teste seguinte foi reprovado. Conferir implementação e diferenças locais: registro de implementação não significa aceite visual. A prioridade 0 abaixo é nova e ainda não foi implementada.
 
 Objetivo: vídeos factuais envolventes para público internacional, com contexto reconhecível, personalidade e variedade. O Luna recebe intenção, narração, mídias e contexto e decide como desenvolver a composição. As regras protegem verdade, legibilidade e variedade; não determinam um layout.
 
 Antes de implementar: ler AGENTS.md, ULTIMO_PASSO.md e CHECKPOINTS.md; conferir Git, trabalhos ativos e diferenças locais. Preservar o checkpoint V2 existente, sem mover sua tag. Não descartar alterações de outro executor nem incluir benchmarks, credenciais, banco ou mídias nos commits. Corrigir o gerador, não somente uma produção pronta.
+
+## 0. PRIORIDADE ATUAL — reconstruir descoberta e seleção de mídia
+
+Aprovado por Daniel em 28/09/2026, após reprovar o teste de 56,7 s da Ilha dos Faisões. A narração e os efeitos não são o foco desta etapa. A busca pode demorar mais: obter filmagens e fotos pertinentes e variadas vem antes de economizar consultas. “Mais de 100 opções” expressa amplitude, não uma quota por cena nem autorização de busca infinita. Não gerar outra produção longa antes de comprovar o novo inventário de mídia.
+
+### 0.1 Arquitetura e pontos de integração
+- Substituir a descoberta estreita de sourceScene em lib/auto-media.mjs por uma etapa de inventário por produção/bloco narrativo, reutilizável por todas as cenas. Separar descobrir URLs, obter metadados, revisar relevância, verificar disponibilidade, preparar arquivos e alocar takes na timeline.
+- Implementar adaptadores com contrato comum em módulos próprios; integrar em lib/providers.mjs, lib/automatic.mjs, seleção/reparo e Shorts. Campos mínimos: fornecedor, ID original, página de origem, URL da mídia quando disponível, título, autor/crédito, situação de uso, dimensões, duração, consultas, evidência geográfica, status de download e motivo de rejeição. Persistir progresso e versão do inventário.
+- Não limitar a descoberta a domínios de download atuais. Links encontrados são candidatos, não arquivos automaticamente baixáveis. Resolver página original e mídia legítima; validar destino, tipo, tamanho e redirecionamentos com segurança. Não remover proteção contra destinos locais/privados nem executar conteúdo externo.
+
+### 0.2 Fontes e consultas amplas
+- Conectar descoberta de imagens e vídeos da web por provedor/API realmente disponível. Avaliar documentação atual, credenciais, preços, paginação e condições na implementação; não pressupor que Google Imagens oferece uma API universal nem prometer integração sem verificar. Se não configurado, mostrar fonte indisponível, nunca “zero resultados”.
+- Integrar YouTube à descoberta automática: a função existente não basta, pois retorna links e não arquivos utilizáveis. Resolver separadamente acesso permitido a material reutilizável, acervos próprios/licenciados e extração de takes. Não contar miniatura de YouTube como filmagem nem prometer download de todo resultado.
+- Ampliar Wikimedia com paginação, categorias/arquivos relacionados e aliases; continuar Pexels/Pixabay e acervos institucionais pertinentes. Incluir páginas de turismo, municípios, arquivos e notícias na descoberta, sem banir um domínio jornalístico por padrão.
+- Construir consultas por entidade e intenção, em idiomas locais: Pheasant Island, Île des Faisans, Isla de los Faisanes; Bidasoa/Bidassoa, Hendaye, Irun e assunto específico quando pertinente. Começar também pelo título e pela entidade simples. Não acrescentar automaticamente aerial/drone a tudo.
+- Explorar sujeito exato, detalhes, ângulos, contexto regional verificado, vida cotidiana e documentos conforme a narração. Planejar abertura em vídeo com alternativas regionais legítimas. Não usar região aleatória por semelhança estética.
+- Paginar enquanto surgirem candidatos úteis novos. Deduplicar consultas por produção para não repetir as mesmas pesquisas em 10 cenas. Consultas simplificadas devem realmente ser executadas, não ficar no fim de uma lista truncada antes do uso.
+
+### 0.3 Descoberta não equivale a autorização nem a autenticidade
+- Não excluir resultados da pesquisa só por serem BBC, agência, rede social ou outro editor. Rastrear crédito/origem: muitas páginas reproduzem o mesmo arquivo de acervo, que pode ser obtido na fonte original.
+- Registrar situação de uso separadamente da relevância (confirmada, restrita, desconhecida). Ausência de aviso ou marca não comprova permissão; a presença no Google tampouco. Não afirmar que uma imagem de drone não pode gerar reivindicação. Material de uso desconhecido pode permanecer no inventário para decisão, sem fingir licença na publicação autônoma. Priorizar alternativas verificadas e permitir material cuja autorização o usuário forneça.
+- Não remover marcas nem recortar créditos para disfarçar origem. Preferir original limpo disponível legitimamente. Miniaturas com texto, infográficos de terceiros, mapas e imagens sintéticas nos resultados não devem ser classificados como fotos documentais.
+
+### 0.4 Avaliação por lotes e resolução adequada
+- Retirar o teto efetivo de seis candidatos avaliados por consulta: usar lotes pequenos sucessivos e persistir quais já foram analisados. Não enviar centenas de imagens simultaneamente ao modelo. Fazer triagem barata antes da revisão visual; examinar novos lotes se o primeiro não servir.
+- Avaliar relevância, evidência de local, autenticidade, nitidez, diversidade, enquadramento, duração útil e repetição. Ranking considera função evidence/context; filme regional não vira prova do objeto específico.
+- Não exigir 1920x1080 de toda fonte. Saída Full HD não exige cada foto dessa dimensão. Aprovar por tamanho de exibição/crop e qualidade: uma foto menor pode ocupar parte da composição; verificar resolução após recorte para evitar pixelização. Não aumentar pixels e declarar qualidade nativa recuperada. Filmagem inferior pode ser alternativa avaliada, sem rebaixar todo vídeo automaticamente.
+- Para vídeo, examinar amostras distribuídas e identificar intervalos úteis/trocas de tomada. Um arquivo pode oferecer vários takes, mantendo sua identidade de fonte, sem bloquear reutilização por essa identidade. Proibir repetição/sobreposição de trechos já usados; não contar outro recorte dos mesmos frames como material novo.
+
+### 0.5 Diversidade de verdade e alocação
+- Deduplicar por ID, URL canônica, hash de arquivo e semelhança perceptual: a mesma foto republicada em dez sites não são dez opções visuais. Manter autores/créditos e distinguir crops da mesma foto.
+- Selecionar conjunto de mídias antes de atribuir cenas individualmente. Reservar opções para a abertura e sujeitos essenciais; evitar que escolhas gananciosas consumam a diversidade nas primeiras cenas.
+- Medir fontes únicas, enquadramentos distintos, segundos úteis de vídeo, distribuição temporal e distância entre reutilizações. Não confundir contagem de resultados com quantidade real de conteúdo.
+- Aplicar exclusões em TODOS os caminhos: cache exato, seleção persistida, busca, reaproveitamento e reparo. Revalidar a timeline após substituições. Não voltar ao primeiro arquivo só porque o modelo rejeitou o primeiro lote.
+- Se faltar material: ampliar consultas/fontes, examinar novos lotes, replanejar trecho contextual sem mudar os fatos, buscar foto verdadeira pertinente ou esquema que realmente explique. Nunca preencher automaticamente com a mesma foto nem inventar “exceção aprovada”.
+
+### 0.6 Persistência, custo e diagnóstico
+- Orçamento configurável de consultas/tempo/custo por produção, com prioridade a trechos deficientes. Parada por suficiência e diversidade ou esgotamento documentado; não por primeiras cinco fotos. Mais tempo autorizado para busca não significa gasto sem teto em serviços pagos.
+- Concorrência limitada por fornecedor, retries com backoff para erro transitório, continuação de paginação no reinício e cancelamento cooperativo. Provedor com erro não derruba as outras buscas.
+- Cada tentativa registra fonte, consulta, página, candidatos novos, analisados, aprovados, baixados e rejeições categorizadas: irrelevância, duplicata, qualidade, indisponibilidade de revisão, direitos/acesso ou download. Não ocultar rejeições de Promise.allSettled como lista vazia.
+- Painel informa “buscando”, “avaliando novos candidatos”, “fonte indisponível” e alternativas recuperadas. Mostrar galeria de candidatos e seleção com razões, sem exigir escolha manual em toda produção autônoma.
+- Salvar acervo antes da programação. Mudança de asset invalida só código/preview dependentes; manter áudio e cenas prontas quando compatíveis.
+
+### 0.7 Sequência de execução e evidência de aceite
+1. Auditar credenciais e capacidades sem expor segredos; verificar APIs atuais e custos; mapear fontes operacionais versus ausentes.
+2. Implementar contrato, inventário persistido, telemetria e adaptadores/paginação; conectar descoberta ao fluxo que materializa cenas, não apenas à tela de pesquisa.
+3. Implementar aliases/consultas regionais, avaliação em lotes, deduplicação e resolução por composição.
+4. Integrar seleção global, exclusões e recuperação direcionada, incluindo Shorts e retomada.
+5. Quando autorizada a validação, comparar o mesmo tema Ilha dos Faisões antes/depois: apresentar inventário e diversidade ANTES de gerar voz/render novos. Examinar origem real dos takes de abertura; o rótulo “ilha fluvial” sozinho não comprova região.
+6. Só então gerar amostra curta. Aceite exige fontes pertinentes variadas, ausência de duplicatas consecutivas e da mesma foto dominando o vídeo, abertura real contextual verificável e logs completos. Não aprovar só por compilar, terminar render ou ter muitos resultados de busca.
+7. Manter a geração de capas desativada. Não reabrir alterações de narração, música ou modelo como solução para falta de mídia.
 
 ## 1. Remover ou flexibilizar restrições estéticas
 
@@ -52,8 +103,8 @@ Arquivos: lib/opening-recovery.mjs, lib/automatic.mjs, lib/visual-repair.mjs, li
 
 Arquivos: lib/auto-media.mjs, lib/visual-continuity.mjs, lib/video-coverage-repair.mjs e montagem em lib/automatic.mjs.
 
-- NÃO usar a mesma imagem ou a mesma fonte de vídeo em cenas consecutivas. Aplicar na busca, cache, reparo e montagem; usar sourceId/URL canônica e indícios de duplicação, não somente caminho local.
-- Reuso posterior é permitido com separação e, para vídeo, outro trecho útil quando disponível. Medir uso na timeline real, não quantidade de entradas no cache. Preferência de cerca de 120 s em vídeos longos não vira bloqueio arbitrário em vídeos curtos.
+- NÃO usar a mesma imagem em cenas consecutivas. Para vídeo, a restrição é repetir o mesmo trecho/take, não reutilizar a fonte original. Aplicar na busca, cache, reparo e montagem; usar sourceId/URL canônica e indícios de duplicação, não somente caminho local.
+- Fotografia pode ser reutilizada posteriormente com separação. Vídeo pode fornecer vários trechos diferentes, inclusive para cenas próximas; não exigir intervalo de 120 s nem bloquear por sourceId igual. Controlar intervalos efetivamente usados por fonte, evitando sobreposição/repetição do material.
 - Não repetir silenciosamente o fim do clipe esgotado. Selecionar outra mídia ou tratamento coerente. Fonte longa é estoque de takes, não autorização de cena contínua de um minuto.
 - Preservar ordem e sincronização da narração. Corrigir o asset do slot em vez de embaralhar história para afastar duplicatas.
 - Priorizar vídeo em tempo de tela. Meta de 50% e alerta de 60 s sem filmagem são sinais para busca/revisão, não pausas automáticas isoladas nem garantia de qualidade.
@@ -96,3 +147,14 @@ Arquivos: lib/auto-media.mjs, lib/visual-continuity.mjs, lib/video-coverage-repa
 Aceite: abertura comprovadamente em vídeo pertinente; foto pode entrar sobre mapa/composição; nenhuma duplicata consecutiva; sequência de fotos pode existir sem repetir zoom/legenda; contexto reconhecível e verdadeiro; revisão recebe código e corrige problema detectado; retomada preserva trabalho. Não considerar concluído só por compilar ou alterar prompts.
 
 Referência de regressão: produção Pheasant Island, run 246028d7-07b5-4856-a52a-449ab7332c4d, 11 cenas e 57,44 s; quatro fotos distintas e uma fonte de vídeo repetida três vezes; filmagem em 25,2% do tempo. Não atribuir todas as falhas ao modelo nem afirmar rejeição de 100% dos vídeos sem evidência.
+
+### 0.8 Correção prioritária confirmada: identidade geográfica e candidatos invisíveis
+- Conferência read-only do job df6fb0ba-7683-413f-a4df-0747ccc938e0 confirmou 1.280 registros de candidatos, 758 com arquivos de vídeo nos metadados, incluindo diversos vídeos de aves. Isso NÃO significa 758 downloads ou 758 vídeos pertinentes à região; não declarar todos rejeitados sem reconstruir decisões.
+- lib/auto-plan.mjs: hasLocation aceita uma palavra isolada de cinco letras após retirar termos genéricos; “Pheasant Island” vira “pheasant”. Remover esse atalho. Resolver entidade composta, aliases verificados e tipo geográfico com evidência; nunca promover coincidência lexical isolada a exact-location. Cobrir homônimos e topônimos curtos sem uma lista de remendos específica da ilha.
+- lib/auto-media.mjs: candidatePool coloca exact primeiro e corta em seis. choose não percorre automaticamente o restante desse conjunto após rejeição. Avaliar novos lotes, conservar cursor e motivos, garantir diversidade pertinente por fonte/representação quando a função permitir. Não obrigar mistura foto/documento/contexto em cenas videoOnly ou de evidência específica; lote híbrido não é uma quota universal.
+- Corrigir reusableMediaCandidates: condição !candidate.files?.length desvia a contagem de usos para fotos. Medir reutilização na timeline para AMBOS os tipos e respeitar exclusões em todos os caminhos. Não confundir cache de consultas com usos na montagem.
+- Preservar regra aprovada: fotos sem repetição consecutiva; vídeos podem reutilizar a mesma fonte, mas não os mesmos trechos. A sugestão externa “apagar foto após primeiro uso para sempre” NÃO substitui essa decisão. Não apagar arquivos/cache como meio de controlar seleção.
+- Priorizar esses defeitos antes de ampliar tráfego/provedores: mais resultados entrando no mesmo filtro defeituoso não resolve. Aceite inclui ave não classificada como ilha, rejeição do primeiro lote seguida de avaliação do próximo e fotos repetidas detectadas mesmo via cache.
+
+### 0.9 Esclarecimento final de Daniel — reutilização de vídeo
+Esta seção prevalece sobre qualquer frase anterior ambígua sobre duplicatas/fontes. Um vídeo de um minuto pode fornecer vários trechos úteis. É permitido usar a mesma fonte em cenas próximas ou consecutivas se os trechos forem diferentes e fizerem sentido. Não repetir os mesmos dez segundos, nem apenas mudar legenda/crop/velocidade para disfarçar a repetição. Registrar intervalos de entrada/saída na fonte original e verificar sobreposição; selecionar momentos úteis, não só incrementar trimStart sem analisar conteúdo. Um plano contínuo sem mudança visual pode continuar monótono mesmo com intervalos distintos: avaliar ritmo como recomendação editorial, não proibir a fonte. Retirar de detectConsecutiveFootage/detectConsecutiveMedia, reviewMediaPlan, exclusões da busca e reparo qualquer bloqueio de vídeo baseado somente em sourceId/URL iguais. Aplicar seleção por trechos disponíveis; quando esgotados, procurar outra mídia. Preservar identificação canônica para contabilizar corretamente os trechos. A correção local que hoje bloqueia duplicatas de fonte ainda precisa ser adaptada antes de implantação. A política de fotografias não foi alterada neste esclarecimento.
