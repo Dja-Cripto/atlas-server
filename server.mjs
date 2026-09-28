@@ -18,12 +18,13 @@ import {launchCapCut} from './lib/capcut.mjs';
 import {getScheduleSettings,saveScheduleSettings,listScheduleQueue,listHistory,calculateNextAvailableDate,scheduleJob,unscheduleJob} from './lib/schedule.mjs';
 import {getPublishingSettings,savePublishingSettings,dispatchPublicationQueue} from './lib/publishing.mjs';
 import {transcriptToVtt} from './lib/captions.mjs';
-import {loadTopicsData,saveTopicsData,addTopic,addBulkTopics,parseBulkText,updateTopic,deleteTopic,dismissAlert,addAlert,processNextTopicInQueue,dailyTopicTick} from './lib/topics.mjs';
+import {loadTopicsData,saveTopicsData,addTopic,addBulkTopics,parseBulkText,updateTopic,deleteTopic,dismissAlert,addAlert,processNextTopicInQueue,dailyTopicTick,ensureSeedTopics} from './lib/topics.mjs';
 
 const root=path.dirname(fileURLToPath(import.meta.url));
 const dir=process.env.ATLAS_DATA_DIR||path.join(root,'data');
 const port=Number(process.env.PORT||4310), origin=`http://127.0.0.1:${port}`;
 const store=createStore(dir),active=new Set();
+try{const st=loadTopicsData(dir);if(ensureSeedTopics(st))saveTopicsData(dir,st);}catch(e){console.error('[Topics Seed Erro]',e);}
 const previewStudios=new Map();
 const steps=['research','script','scenes','media','voice','thumbnail','editing','automatic','shorts','render','capcut'];
 const labels={research:'Pesquisa',script:'Roteiro',scenes:'Plano de cenas',media:'Busca de filmagens',voice:'Narração',thumbnail:'Capa',editing:'Plano de edição detalhado',automatic:'Produção automática',shorts:'Geração de 5 Shorts',render:'Renderização MP4',capcut:'Exportação CapCut'};
@@ -653,6 +654,7 @@ const server=http.createServer(async(req,res)=>{
   
     if(p==='/api/hub'&&req.method==='GET'){
     const topicsData=loadTopicsData(dir);
+    if(ensureSeedTopics(topicsData))saveTopicsData(dir,topicsData);
     const scheduleSlots=calculateNextAvailableDate(store);
     const jobs=store.list();
     const todayJob=jobs.find(j=>j.scheduled?.targetDate===scheduleSlots.targetDate)||jobs[0]||null;
@@ -672,7 +674,7 @@ const server=http.createServer(async(req,res)=>{
    }
 
    if(p==='/api/topics'&&req.method==='GET'){
-    json(res,200,loadTopicsData(dir));
+    const td=loadTopicsData(dir);if(ensureSeedTopics(td))saveTopicsData(dir,td);json(res,200,td);
     return;
    }
 
@@ -712,7 +714,7 @@ const server=http.createServer(async(req,res)=>{
    if(p==='/api/topics/run-next'&&req.method==='POST'){
     const b=await body(req).catch(()=>({}));
     const s={...providers.defaults,...store.settings()};
-    const result=await processNextTopicInQueue(store,s.geminiKey,runAutomaticForJob,b.topicId||null);
+    const result=await processNextTopicInQueue(store,s,runAutomaticForJob,b.topicId||null);
     json(res,200,result);
     return;
    }
@@ -777,7 +779,7 @@ setInterval(async()=>{
  topicTickRunning=true;
  try{
   const s={...providers.defaults,...store.settings()};
-  await dailyTopicTick({store,dir,geminiKey:s.geminiKey,runProductionFn:runAutomaticForJob});
+  await dailyTopicTick({store,dir,settings:s,runProductionFn:runAutomaticForJob});
  }catch(e){console.error('[Agendador Autônomo Erro]',e);}
  finally{topicTickRunning=false;}
 },40000);
