@@ -1,7 +1,148 @@
 # Atlas Visual V3 — próximos passos aprovados
-**Atualizado em:** 26/09/2026 (America/Bahia).
+**Atualizado em:** 28/09/2026, aproximadamente 06:50 (America/Bahia).
 
-Este arquivo registra o plano aprovado para a V3. O checkpoint funcional da V2 é `atlas-visual-v2-checkpoint-2026-09-26` (commit `d64e2ea`). Nenhuma decisão abaixo está ativa no gerador principal antes da implementação e validação. Consulte `ULTIMO_PASSO.md` para o estado implementado; preserve produções em andamento.
+Este arquivo é o guia de execução da próxima evolução editorial da V3. A seção 0 abaixo é o plano vigente aprovado por Daniel e prevalece sobre recomendações estéticas antigas conflitantes. As seções 1–4 são referência das decisões anteriores: várias já foram implementadas; não as executar novamente sem conferir o código e `ULTIMO_PASSO.md`. O checkpoint V2 permanece na tag `atlas-visual-v2-checkpoint-2026-09-26` (`d64e2ea`). Neste trabalho foi feita somente documentação; o gerador não recebeu as mudanças da seção 0.
+
+## 0. Plano de execução vigente — história, contexto e variedade visual
+
+### 0.1 Objetivo, escopo e entrega esperada
+
+Criar vídeos de informação e entretenimento factual para um público internacional que pode desconhecer o país e o assunto. O espectador deve reconhecer o lugar, entender por que aquilo importa às pessoas e querer descobrir a resposta. Precisão permanece obrigatória. O problema não é a palavra “documentário” isoladamente: é a combinação de roteiro expositivo, imagens pouco relacionadas à afirmação e montagem repetitiva.
+
+Executar primeiro no gerador local e numa amostra horizontal de 60–90 segundos. Não iniciar outro vídeo de 12–15 minutos como primeiro teste. Não reescrever produções concluídas nem reiniciar um trabalho ativo para testar. Não publicar automaticamente esta evolução na VPS antes de validar a amostra e Daniel avaliar o resultado. Preservar comportamento próprio dos Shorts; adaptar funções compartilhadas com compatibilidade, sem aplicar o ritmo horizontal ao vertical.
+
+Entregas: alterações no gerador, testes relevantes, amostra curta feita pelo fluxo real, relatório de mídia/ritmo/custo e `ULTIMO_PASSO.md` atualizado. O executor deve avançar por estas etapas; não considerar a tarefa concluída apenas por trocar prompts.
+
+### 0.2 Evidências e limites do diagnóstico
+
+Referência: “How the Netherlands Keeps the Sea Out”, run `fc4ae141-c6c7-479f-b09c-cc64cbb9df05`, 128 cenas, cerca de 12m47s. Finalizou no servidor com principal e Shorts; Daniel reprovou aspectos editoriais do principal. Cobertura do manifesto: 53,1% do tempo em vídeo, 23,7% em foto real, restante em mapas/ilustrações. Esses números não constituem aprovação visual.
+
+- `lib/providers.mjs`: roteiro longo pede `Measured documentary voice`; a orientação de personalidade é adicional. Falta uma estrutura explícita de curiosidade, pessoas e descoberta no ramo longo.
+- `lib/automatic.mjs`: planejamento pede direção documental para público dos EUA, contém receitas e ainda menciona autoria GLM em texto de prompt. Idioma inglês americano deve ser separado de pressupor conhecimento cultural americano.
+- `lib/motion-author.mjs`: contratos misturam liberdade com movimento “restrained”, exemplos de zoom/pan e receitas de localização das legendas. Cenas 2, 3, 7 e 8 do vídeo foram inspecionadas no código correto no servidor: zoom/deslocamento + texto, com revelações/gráfico pequeno em parte delas. Isso confirma tendência, não prova que todas as fotos ou todos os resultados vieram do Luna principal; conferir tentativas/modelo/fallback por cena antes de atribuir autoria.
+- `lib/visual-continuity.mjs`: `composeContinuity` calcula `trimStart` por caminho local e limita ao trecho disponível. Não impõe espaçamento temporal entre reutilizações; pode repetir segmento ao esgotar a duração. A mesma fonte também pode existir em arquivos locais diferentes.
+- `lib/auto-media.mjs`: correções anteriores impediram ilustração existente de bloquear busca `videoOnly` e proibiram reutilização direta de cache nesse modo sem nova escolha visual. Preservar essas correções. “Mesmo país” não comprova “mesmo assunto”.
+- A direção global usa `sampleTimelineForDirector(..., limit=12)`. Conferir como cenas não amostradas recebem direção; uma amostra espaçada pode ocultar uma sequência ruim de cinco fotos. Não afirmar que o diretor analisou todas as cenas apenas por existir uma timeline.
+- Nomes corrompidos foram encontrados na transcrição do planejamento, não confirmados pela escuta. Não alterar voz/pronúncia com base apenas nisso.
+- Análise anterior leu parte de uma pasta local de Tóquio por engano. Para este diagnóstico, usar somente o run dos Países Baixos acima. Não atribuir o código de Tóquio ao vídeo longo.
+
+### 0.3 Preparação e proteção do estado
+
+1. Ler `AGENTS.md`, `ULTIMO_PASSO.md`, este plano e `CHECKPOINTS.md`. Inspecionar branch, status, jobs ativos e versão publicada antes de qualquer implantação.
+2. V2 já tem checkpoint; não mover nem sobrescrever a tag. Criar snapshot descritivo do estado funcional V3 antes de mudanças significativas, incluindo apenas código pertinente e seguro. Não incluir credenciais, banco, mídia, renders, dependências ou benchmarks privados.
+3. Há alterações paralelas locais em `.gitignore`, `Iniciar Atlas Studio.cmd`, `lib/automatic.mjs`, `lib/providers.mjs`, `renderer/src/Root.tsx` e pastas de benchmark. Conferir novamente; não descartar nem incorporar automaticamente. Fazer staging por trecho quando necessário.
+4. Registrar baseline por segundos, fonte original, intervalo reutilizado e tratamento. Separar tipo de mídia (vídeo/foto/ilustração/mapa) de tipo de composição (Luna/local/reserva); as porcentagens dessas duas famílias não são somáveis entre si.
+
+### 0.4 Etapa A — roteiro com intenção narrativa
+
+Arquivos iniciais: `lib/providers.mjs` (prompt longo, `editorialVoice`, revisão de duração) e chamadas em `lib/automatic.mjs`.
+
+- Substituir a direção de tom uniformemente comedido por curiosidade, clareza e descoberta com consequências humanas. Definir antes da prosa: pergunta central, situação concreta, por que importa, contexto geográfico/social, explicações necessárias e conclusão que responde ao gancho.
+- Esses itens são objetivos editoriais, não capítulos obrigatórios ou uma fórmula verbal. Não exigir começar sempre com “Você sabia?”; não proibir todo número na abertura. Um dado pode abrir quando torna o conflito imediatamente compreensível.
+- Usar inglês americano acessível a público internacional. Apresentar o lugar e conceitos necessários sem assumir conhecimento prévio de obras/termos locais.
+- Personalidade: autor curioso, observador, humor seco e sarcasmo dirigido a contradições; sem bordão, quota de piadas ou trivialização de mortes e sofrimento. Não inventar pessoas, depoimentos, estatísticas ou situações para criar emoção.
+- Preservar validação de duração pela voz real, pausas curtas ao completar raciocínio e revisão factual. Não aumentar duração com silêncio, repetição ou fala artificialmente lenta.
+- Manter pesquisa no Gemini/Vertex, roteiro/autoria principal no Luna e recuperação configurada. Esta etapa não é uma nova migração de modelo.
+
+### 0.5 Etapa B — distinguir função narrativa de tratamento visual
+
+Arquivos: planejamento em `lib/automatic.mjs`; normalização/roteamento em `lib/auto-plan.mjs`; identidade em `lib/media-identity.mjs`; busca e escolha em `lib/auto-media.mjs`; revisão em `lib/visual-repair.mjs`.
+
+Introduzir dados explícitos por cena (nomes sugeridos; adaptar consistentemente ao schema):
+
+| Campo | Contrato |
+| --- | --- |
+| `narrativeRole` | `evidence` (mostra a afirmação) ou `context` (situa lugar/vida/consequência). Não reutilizar `editorialRole`, que já identifica abertura/corpo/final. |
+| `visualPurpose` | Frase curta dizendo o que a imagem precisa comunicar. |
+| `requiredSubject` | Local, pessoa, objeto/evento específico quando a afirmação exigir. |
+| `contextIntent` | Orientação geográfica, cotidiano, pessoas, consequência ou transição quando aplicável. |
+| `allowedSubstitution` | Descrição factual de alternativas aceitáveis, sem licença genérica para qualquer vídeo do país. |
+| `selectionReason` | Por que a mídia escolhida atende a essa função; incluir limitações de evidência. |
+
+Propagar os campos por normalização, JSON persistido, revisão, recuperação, timeline e prompts. Evitar que `safeDirection` ou outro normalizador silenciosamente os descarte. Jobs antigos recebem inferência conservadora somente ao replanejar, sem invalidar toda produção concluída.
+
+Exemplos de aceitação:
+- Afirmação sobre uma favela identificada: vídeo dessa favela ou foto verdadeira identificada; não outra favela parecida.
+- Trecho geral sobre o Rio: Cristo, ruas e pessoas do Rio podem orientar o público mesmo sem a voz dizer “Cristo Redentor”. Não apresentá-los como o local de um incidente narrado.
+- Explicação de peça mecânica: plano geral da obra não prova dimensões/funcionamento da peça. Usar foto específica ou esquema fiel com fatos verificados; filmagem contextual pode acompanhar sem fingir que mostra o detalhe.
+- Evento histórico: mídia atual só como contextualização claramente distinguível; imagem gerada não pode ser tratada como registro histórico.
+
+Planejar cenas de contexto durante a escrita/direção, nos momentos em que a narração permite. Não inserir um cartão-postal por cronômetro, nem reorganizar fotos históricas rompendo a cronologia. Contexto inclui moradores/cotidiano e referências reconhecíveis, não apenas monumentos. Ausência de pessoas não deve virar quota que obriga inventar material.
+
+Revisar a proibição absoluta de nome não dito na mesma cena: rótulo discreto de orientação pode identificar lugar realmente mostrado e verificado no contexto; destacar números, eventos ou alegações novas continua exigindo suporte e sincronização. Distinguir legenda de localização de afirmação factual enfatizada, inclusive nos validadores. Não liberar texto arbitrário.
+
+### 0.6 Etapa C — liberdade para fotografias, com revisão da sequência
+
+Arquivos: `directorContract`, `sceneContract`, `compactScene`, `cleanPromptScene`, `authorMotion` em `lib/motion-author.mjs`; roteamento em `lib/auto-plan.mjs`; integração de provedor usada por esses métodos.
+
+1. Confirmar payload real enviado ao autor: JSON com caminho de arquivo não equivale a fornecer pixels. Quando o endpoint/modelo oferecer visão, enviar prévia otimizada da foto no formato oficialmente suportado. Se não oferecer, usar análise visual do provedor já disponível para transmitir conteúdo observado e regiões relevantes. Registrar o caminho efetivamente usado; não alegar que Luna viu a imagem sem verificar.
+2. Dar ao autor imagem/descrição visual, origem e limites, trecho narrado, fato validado, intenção, vizinhos e tratamentos recentes. Não enviar vídeo completo ou imagens gigantes por cena sem necessidade.
+3. Toda foto segue para autoria composta. Retirar a preferência universal por movimento discreto, receitas obrigatórias de posição e receitas de escala. Exemplos de tratamentos são possibilidades, nunca catálogo fechado: arquivo fotográfico, detalhe revelado, comparação, anotações, composição de fotos verificadas, diagrama conectado à imagem.
+4. Zoom/pan podem integrar a apresentação; zoom/pan com legenda não deve passar como desenvolvimento suficiente de uma sequência inteira. Não exigir três efeitos por foto, movimento incessante ou informação nova inventada para justificar animação.
+5. Manter fatos, origem honesta, legibilidade, proporção da imagem, mídia visível e execução determinística. Preservar restrições técnicas justificadas pelo servidor CPU; não liberar filtros pesados, rede/arquivos ou código inseguro para “dar liberdade”. Se um efeito pedir recorte/segmentação, preparar asset antes do render com ferramenta disponível e verificar custo; não exigir recurso ausente.
+6. Revisar um bloco de fotos por significado e resultado, não contar apenas `interpolate()` ou deslocamentos. Um segundo texto ou uma linha animada não tornam automaticamente a composição distinta. Usar código/metadados como triagem e alguns frames/prévia para confirmar.
+
+### 0.7 Etapa D — evitar repetição de filmagem e dos mesmos segmentos
+
+Arquivos: `lib/auto-media.mjs`, `lib/visual-continuity.mjs`, `lib/video-coverage-repair.mjs`; aplicação no planejamento/manifesto em `lib/automatic.mjs`.
+
+- Persistir `sourceId` estável por fornecedor/ID original ou URL canônica, independentemente do nome local/transcode. Incluir `[trimStart, trimEnd]` e momento de exibição na timeline. Usar hash/conferência de duplicata quando houver indício de mesma mídia em URLs diferentes; não confundir filmes diferentes só pelo título.
+- Impedir a mesma filmagem original em cenas consecutivas neste fluxo. Preferir ao menos 120 s entre reutilizações em vídeos longos. Tratar 120 s como preferência ajustável ao contexto/duração, sem criar nova pausa automática por um limite arbitrário; num vídeo curto, preferir fontes únicas.
+- Reuso distante deve escolher segmento útil diferente, respeitando duração real e sujeito narrado. Não usar o atual clamp para repetir silenciosamente o último segmento disponível. Arquivo de 72 s é um conjunto de takes potenciais, nunca autorização para tocar 72 s contínuos.
+- Aplicar política tanto na busca normal quanto em cache, recuperação e montagem final; conferir fontes repetidas mesmo quando salvas em arquivos distintos. Priorizar adequação factual antes de novidade visual.
+- Se houver conflito: procurar fonte alternativa pertinente; tentar outro enquadramento/segmento de outra fonte; usar foto real adequada com autoria; considerar esquema explicativo quando necessário. Não trocar apenas a legenda mantendo a mesma tomada.
+- Preservar ordem da narração. Afastar repetição substituindo a mídia do slot, não movendo cenas históricas ao acaso. Salvar substituição incrementalmente e revalidar apenas dependências atingidas.
+
+### 0.8 Etapa E — revisar o conjunto antes do custo maior
+
+- Criar revisão do plano de mídia antes da autoria completa, seguida de revisão de blocos autorados antes do render final. A primeira detecta fonte repetida, falta de orientação e incompatibilidade de mídia; a segunda detecta monotonia de composição. Uma não substitui a outra.
+- Percorrer todas as cenas com regras baratas. Para revisão por modelo, usar resumo global e blocos narrativos com vizinhos nas bordas; não depender apenas de 12 cenas espaçadas e não reenviar todo o roteiro a cada checagem.
+- Resultado estruturado: cenas envolvidas, gravidade, evidência, motivo, correção proposta e estado. Diagnóstico estético é separado de erro técnico de render.
+- Cobertura de 50% de vídeo e limite de 60 s sem filmagem permanecem metas editoriais de recuperação. Substituir a interrupção imediata apenas por esses números por busca/replanejamento limitado e persistido. Após esgotar alternativas, se a sequência for coerente, variada e tecnicamente íntegra, registrar exceção fundamentada e aviso; isso não autoriza slideshow longo e monótono. Qualidade inaceitável ou mídia enganosa continua exigindo revisão com tudo salvo.
+- Não autorizar exceção só porque uma IA disse “aprovado”: guardar medidas, cenas e justificativa. Não inserir segundos irrelevantes de vídeo apenas para zerar o contador.
+- Limitar revisões editoriais a uma revisão de bloco e uma correção direcionada inicialmente; persistir tentativas para reinícios não reabrirem um ciclo infinito. Manter recuperação técnica por cena (3 tentativas principais + 2 secundárias + reserva limitada) separada dessas revisões.
+- Corrigir somente cenas afetadas; preservar voz e demais artefatos quando suas entradas não mudarem. Se mudar mídia, narração ou instrução de cena, invalidar código/preview dependentes por assinatura de entradas e versão editorial. Não reutilizar código antigo que tenha caminho de mídia fixo após trocar o manifesto. Não regenerar tudo por conveniência.
+- Status do painel deve distinguir buscando mídia, autoria, revisão e renderização. Remover `liveStatus` antigo ao avançar de etapa; retomada não pode aparentar busca travada enquanto o Luna já programa.
+
+### 0.9 Integração com transcrição, texto e dados
+
+Inspecionar `audioSlots` e o uso de `transcript.json`. Usar o roteiro verificado como referência de grafia/entidades; a transcrição fornece tempos e indícios do que foi falado. Alinhar ambos sem substituir palavras apenas pela posição e sem inventar horários. Divergência de número/nome requer escuta pontual antes de classificar erro de voz. Não tratar “maisla anchoring” como nome geográfico válido para buscar mídia. Se a divergência for real no áudio, corrigir somente o trecho pertinente antes de sua montagem; se for reconhecimento, corrigir a associação textual preservando áudio e sincronismo.
+
+### 0.10 Validação econômica e critérios de aprovação
+
+Executar testes relevantes após mudanças e suíte antes do checkpoint validado. Pontos de partida: `tests/media-reuse.test.mjs`, `tests/visual-continuity.test.mjs`, `tests/visual-v3.test.mjs`, `tests/visual-coverage.test.mjs`, `tests/video-coverage-repair.test.mjs` e validações de autoria existentes. Não criar testes que apenas confirmem presença de frases no prompt.
+
+Casos necessários:
+- mesma fonte em dois arquivos diferentes detectada; adjacência impedida; reuso distante permitido; intervalo disponível não reinicia silenciosamente;
+- narrativa específica rejeita objeto/local incompatível, enquanto contexto permite referência geográfica verificada;
+- foto continua composta após todas as normalizações e recuperações;
+- troca de mídia invalida apenas código/preview dependentes; reinício reutiliza trabalho compatível;
+- busca `videoOnly` não é abortada por ilustração existente, nem recebe imagem como falso sucesso;
+- duração/ordem/sincronização e estados do painel continuam coerentes; Shorts não herdam regressões de funções compartilhadas.
+
+Amostra pelo gerador, sem montar à mão uma demonstração que o robô não consegue repetir:
+1. Criar novo run isolado horizontal de 60–90 s, preferencialmente no mesmo tema dos Países Baixos, com abertura em filmagem real, contexto reconhecível, cotidiano/pessoas quando pertinente, explicação e bloco de 3–5 fotos coerentes. A quantidade serve ao teste, não vira regra de produção.
+2. Exercitar também, com fixture de timeline longa, a política de 120 s e recuperação de intervalos >60 s; o vídeo curto sozinho não testa esses casos.
+3. Verificar com e sem som a abertura; assistir à sequência de fotos e às transições. Não declarar qualidade aprovada apenas pela compilação ou por ler TSX. Inspecionar render correto, identificando run e timestamps.
+4. Critérios: país compreensível pelas imagens; gancho concreto; contexto sem falsa evidência; fotos com desenvolvimento variado; ausência de mesma filmagem consecutiva; mecanismo compreensível; voz inteligível e personalidade natural. Não garantir retenção de público com esse teste: ela exige dados de audiência posteriores.
+5. Relatar tempo e uso por etapa com dados retornados pelo provedor; não inventar custo quando indisponível. Amostrar revisão visual para economizar tokens. Não chamar um segundo modelo por toda cena só para confirmar aprovação.
+6. Entregar a amostra a Daniel para avaliação. Só então ampliar o teste e considerar implantação. Preservar áudio/música já aprovados; não mudar mixagem, compressão do MP4 ou agendamento como parte deste ajuste editorial.
+
+### 0.11 Checklist de conclusão para o executor
+
+- [ ] Confirmou baseline e checkpoint, isolou alterações paralelas.
+- [ ] Corrigiu direção do roteiro e propagou função narrativa por todo o fluxo.
+- [ ] Verificou acesso visual do autor e eliminou instruções criativas conflitantes.
+- [ ] Corrigiu identidade/repetição da fonte e seleção dos segmentos.
+- [ ] Implementou revisão de blocos, recuperação limitada, estado persistido e invalidação correta.
+- [ ] Verificou nomes/tempos sem confundir transcrição defeituosa com voz defeituosa.
+- [ ] Testes relevantes passaram; amostra real foi renderizada e inspecionada.
+- [ ] Registrou limitações e pediu avaliação da amostra antes de ampliar a produção.
+- [ ] Atualizou `ULTIMO_PASSO.md`, criou commit descritivo e enviou somente arquivos pertinentes ao GitHub.
+
+## Referência das decisões anteriores (seções 1–4)
+
+Conferir implementação antes de executar. Onde houver conflito estético/de fluxo com a seção 0, seguir a seção 0. Decisões sobre pesquisa, provedores, duração, voz, reserva, publicação e compressão continuam válidas naquilo que não foi expressamente revisto.
 
 ## 1. Recuperação de cenas e proteção da produção na V3
 
