@@ -1,6 +1,6 @@
 # Atlas Studio — estado atual
 
-Atualizado em 28/09/2026, aproximadamente 15:25 (America/Bahia).
+Atualizado em 28/09/2026, aproximadamente 15:35 (America/Bahia).
 
 ## Último trabalho
 - **Pré-pesquisa econômica de viabilidade (`lib/topic-presearch.mjs`)**:
@@ -20,12 +20,17 @@ Atualizado em 28/09/2026, aproximadamente 15:25 (America/Bahia).
   - Botão de reavaliação manual para pautas marcadas como insuficientes ou inconclusivas.
 - **Suíte de testes automatizados (`tests/topic-presearch.test.mjs`)**:
   - Testes unitários para cálculo de custo de tokens, deduplicação, semeadura idempotente e concorrência com lease de worker.
+- **Deploy no VPS (`ubuntu@137.131.171.144`)**:
+  - `git pull` na branch `codex/atlas-visual-v3` executado em `/srv/atlas-studio`.
+  - Banco de pautas atualizado em `/srv/robo/portal-bot/data/atlas-storage/data/topics.json` com os 5 novos temas, horário de disparo `00:00` e duração padrão de `15 min`.
+  - Container Docker `atlas-studio` reiniciado e operacional.
 
 ## Estado verificado
 - **165 testes automatizados passando com 100% de sucesso (`npm test`)**:
   - 165 pass, 0 fail.
-- **Servidor ativo e operacional (`http://localhost:4310`)**:
-  - Endpoints `/api/topics` e `/api/hub` respondendo com 200 OK e 5 pautas na fila.
+- **Servidor ativo e operacional localmente e no VPS (`137.131.171.144:4310`)**:
+  - Container Docker `atlas-studio` rodando (status healthy).
+  - Fila no VPS populada com os 5 temas em inglês na ordem aprovada (15 min + 5 Shorts).
   - Disparo automático ativo para 00:00 (America/Bahia).
   - Geração de capas mantida desativada (`thumbnailGenerationDisabled: true`) para economia de testes.
   - Publicação automática mantida pausada.
@@ -35,4 +40,4 @@ Atualizado em 28/09/2026, aproximadamente 15:25 (America/Bahia).
 - A aprovação de mídia na pré-pesquisa é uma estimativa fundamentada de acervo público; a adequação editorial final ocorre durante o download e montagem das cenas.
 
 ## Próximo passo recomendado
-- Daniel pode acompanhar o ciclo automático da meia-noite ou disparar uma produção manual no painel para validar a geração completa de 10-15 minutos e os 5 Shorts sequenciais no novo fluxo.
+- Daniel pode recarregar o painel no navegador (`http://localhost:4310` através do atalho de conexão do VPS) e conferir as 5 novas pautas prontas para execução na aba "Banco de Pautas".
