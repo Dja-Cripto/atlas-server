@@ -27,3 +27,10 @@ Atualizado em 28/09/2026, aproximadamente 14:45 (America/Bahia).
 - Implementar a etapa de **pré-validação de inventário de mídia** para a fila de agendamento automático da meia-noite:
   - Avaliar o volume de mídias reais encontradas para o tema antes de roteirizar/narrar;
   - Se o acervo for insuficiente para a duração mínima de 10 minutos (10-15 min), avançar automaticamente para o próximo tema da lista.
+
+## Plano seguinte aprovado — 28/09/2026
+- PROXIMO_PASSO.md foi substituído pelo escopo atual: pré-pesquisa econômica para no mínimo dez minutos, principal de 10–15 min, cinco Shorts sequenciais, banco com cinco sugestões, fila única manual/agendada à meia-noite America/Bahia e avisos persistentes.
+- Resultado curto aprovado por Daniel; não reabrir reconstrução visual/busca já realizada como tarefa automática. Afirmar insuficiência de temas somente após avaliação, não pelo caráter hiperlocal.
+- Capas e publicação devem permanecer desligadas. Dois dias de teste não autorizam postagem automática ao final.
+- Esta atualização é somente documental: não foram inseridas ideias no banco ativo, criados agendamentos, alterado código ou implantado servidor. Próximo executor implementa/valida e depois atualiza servidor conforme plano.
+- Validação desta etapa: revisão do documento contra o pedido; sem testes ou chamadas pagas. O próximo passo recomendado acima é substituído pelo plano completo em PROXIMO_PASSO.md.
