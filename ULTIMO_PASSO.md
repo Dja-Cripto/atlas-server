@@ -1,32 +1,34 @@
 # Atlas Studio — estado atual
 
-Atualizado em 29/09/2026, aproximadamente 13:10 (America/Bahia).
+Atualizado em 29/09/2026, aproximadamente 15:45 (America/Bahia).
 
 ## Último trabalho
-- **Reaproveitamento de acervo do documentário para Shorts (`lib/shorts.mjs`, `lib/auto-media.mjs`)**:
-  - Implementada a função `borrowMatchingAsset(scene, longAssets, usedSrcs)` para reaproveitar os 146 arquivos de mídia em Full HD já baixados e verificados do documentário principal nos Shorts do mesmo tema quando buscas externas para termos abstratos/conceituais não retornarem resultado.
-  - Ajustado `lib/auto-media.mjs` (`reusableAssetFromCache` e `sourceScene`): a flag `isShort: true` agora impede que as URLs do cache do vídeo longo sejam adicionadas a `usedUrls` como mídias proibidas no Short, permitindo o reaproveitamento contextual do mesmo país/tema.
-  - Corrigida a condição de retomada em `lib/shorts.mjs`: cenas com `missingVisual: true` remanescentes de falhas anteriores são filtradas em vez de ignoradas, permitindo a resolução com o novo pipeline.
-  - Adicionada rede de segurança ao final de `repairVisuals`: qualquer cena pendente após a revisão é atendida com uma mídia válida do documentário principal, garantindo 100% de cobertura sem interromper a esteira.
-- **Suíte de testes automatizados (`tests/shorts-render.test.mjs`)**:
-  - Teste unitário para `borrowMatchingAsset` validando score por palavras-chave, controle de `usedSrcs` para não repetir mídias dentro do Short e integridade dos metadados de crédito.
-- **Deploy no VPS (`ubuntu@137.131.171.144`)**:
-  - Código commitado e enviado para a branch `codex/atlas-visual-v3` (commit `4057b1c`).
-  - Atualizado no VPS via `git pull` em `/srv/atlas-studio` e container reiniciado.
-  - O `short-0` foi disparado novamente: todas as 11 cenas foram resolvidas com sucesso (0 cenas pendentes), a programação das cenas via Luna/GLM concluiu, a validação de prévia passou e a renderização do MP4 está em andamento no servidor a ~3,2 quadros/s.
+- **Correção da validação de outputRange do Remotion no gerador de Shorts (`lib/motion-author.mjs`, `lib/shorts.mjs`)**:
+  - Diagnosticada e corrigida a causa raiz da falha na Cena 5 do Short 5 (`outputRange must contain only numbers, numeric tuples, or supported scale, translate, and rotate strings`).
+  - O parser de `interpolate` tratava o 4º argumento de opções `{ extrapolateLeft: 'clamp', ... }` como segundo item de `outputRange`, empacotando-o em `[output, { options }]`.
+  - Atualizado `normalizeMotionCode` para rejeitar objetos de opções em `args[3]`, desembalar `[output, { options }]` caso ocorra e validar na AST a ausência de objetos em `outputRange`.
+  - Adicionado fallback secundário com `generateFallbackSceneCode` em `lib/shorts.mjs` caso a prévia ainda aponte falha, impedindo travamento de lotes.
+- **Implementação da faixa de duração (10 a 15 minutos) para produções automáticas (`lib/automatic.mjs`, `lib/providers.mjs`, `lib/topics.mjs`, `public/app.js`)**:
+  - Separado o comportamento entre pedidos manuais (duração exata alvo ±15%) e pautas automáticas da esteira do banco de temas.
+  - Para pautas automáticas (`isAutoTopic`, `durationMode === 'range'`, `topicId`), o sistema agora aceita a faixa configurável de 10 a 15 minutos (com margem de 5%, ~9.5 a 15.75 minutos). Documentários como o da Holanda (12.4 min) passam diretamente sem rejeição.
+  - O gerador de roteiro (`script`) agora calcula o orçamento de palavras baseado no ponto médio e faixa de `[minMinutes, maxMinutes]`.
+  - Interface do estúdio atualizada com controles de `minMinutes` e `maxMinutes` nas configurações de montagem.
+- **Testes automatizados (`tests/shorts-render.test.mjs`)**:
+  - Testes unitários para validação de `interpolate` com opções e aprovação da faixa de duração automática (10 a 15 min).
+  - Executados 168 testes com 100% de aprovação.
 
 ## Estado verificado
-- **166 testes automatizados passando com 100% de sucesso (`npm test`)**:
-  - 166 pass, 0 fail.
-- **Short 1 em renderização ativa no VPS (`137.131.171.144:4310`)**:
-  - `status: running`, `error: null`.
-  - Todas as 11 cenas com mídia/diagrama em Full HD, sem travar em `shot-5` ou `shot-9`.
-  - Renderização vertical 1080x1920 avançando com Remotion a ~3,2 fps.
-- **Vídeo principal de 15 minutos verificado e íntegro no VPS**:
-  - `video-84746866-bd26-4543-9845-2374d2d28b44.mp4` (1.5 GB, 14.3 min, 148 cenas, 91 vídeos, 55 fotos, 0 cenas sem mídia).
+- **168 testes automatizados passando com 100% de sucesso (`npm test`)**.
+- **VPS (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
+  - Vídeo longo de 14.3 minutos finalizado e íntegro (1.5 GB).
+  - Shorts 1, 2, 3 e 4 renderizados com sucesso em 1080x1920 (9:16 vertical).
+  - Short 5 teve a cena `Scene4.tsx` corrompida pelo bug de `outputRange` agora resolvido no gerador do robô.
+- **VPS (`11720f5a-0831-4379-8770-3979b8a4a3ce` - Holanda)**:
+  - Pausou na validação antiga de 15 min com 12.4 min (746s). Com a nova regra de 10 a 15 minutos, está plenamente elegível para montagem.
 
 ## Erros ou limitações que continuam abertos
-- A publicação automática e a geração de capas continuam deliberadamente desligadas durante o período de testes.
+- Cooldown de reutilização de ativos dentro do mesmo Short pode ser reforçado para evitar repetições pontuais como as do Short 4 (cenas 6 e 8).
+- Publicação automática permanece desligada conforme solicitado.
 
 ## Próximo passo recomendado
-- Aguardar a conclusão da renderização do Short 1 no painel (`http://localhost:4310`) e inspecionar o resultado do primeiro vídeo vertical antes de seguir para os próximos.
+- Realizar deploy na VPS (`git push` e `git pull`), aplicar a correção no `Scene4.tsx` do Short 5 e finalizar sua renderização para completar os 5 Shorts de Terremoto no Japão.

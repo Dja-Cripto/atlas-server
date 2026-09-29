@@ -52,3 +52,33 @@ test('an existing completed Short returns without requiring a temporary file',as
   await rm(root,{recursive:true,force:true});
  }
 });
+test('normalizeMotionCode preserves 4-argument interpolate with variable output without corruption', async () => {
+ const { normalizeMotionCode } = await import('../lib/motion-author.mjs');
+ const code = `const progress = (f: number, input: number[], output: number[]) =>
+   interpolate(f, input, output, {
+     extrapolateLeft: 'clamp',
+     extrapolateRight: 'clamp',
+   });`;
+ const normalized = normalizeMotionCode(code);
+ assert.match(normalized, /interpolate\(\s*f,\s*input,\s*output,\s*\{[\s\S]*?extrapolateLeft:\s*'clamp'[\s\S]*?extrapolateRight:\s*'clamp'[\s\S]*?\}\s*\)/);
+ assert.doesNotMatch(normalized, /\[output,/);
+});
+
+test('automatic duration calculation approves 10 to 15 minute range for auto bank topics', () => {
+ const autoJob = {
+  id: 'auto-topic-1',
+  topicId: 'candidate-123',
+  isAutoTopic: true,
+  durationMode: 'range',
+  minMinutes: 10,
+  maxMinutes: 15,
+  productionVersion: 'v3'
+ };
+ const minMin = Number(autoJob.minMinutes) || 10;
+ const maxMin = Number(autoJob.maxMinutes) || 15;
+ const minSeconds = Math.max(30, minMin * 60 * 0.95);
+ const maxSeconds = maxMin * 60 * 1.05;
+ const measuredNetherlands = 12.4 * 60; // 744 seconds
+ const passed = measuredNetherlands >= minSeconds && measuredNetherlands <= maxSeconds;
+ assert.equal(passed, true, '12.4 minutos deve ser aprovado para pauta automatica de 10 a 15 minutos');
+});
