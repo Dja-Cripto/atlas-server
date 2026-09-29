@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {automaticShorts,renderShortMP4,renderAllShortsMP4} from '../lib/shorts.mjs';
+import {automaticShorts,renderShortMP4,renderAllShortsMP4,borrowMatchingAsset} from '../lib/shorts.mjs';
 import {partialMp4Path} from '../lib/automatic.mjs';
 import {mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -10,6 +10,27 @@ test('shorts module exports automaticShorts, renderShortMP4 and renderAllShortsM
  assert.equal(typeof automaticShorts, 'function');
  assert.equal(typeof renderShortMP4, 'function');
  assert.equal(typeof renderAllShortsMP4, 'function');
+ assert.equal(typeof borrowMatchingAsset, 'function');
+});
+
+test('borrowMatchingAsset matches relevant long documentary assets and handles usedSrcs', () => {
+ const longAssets = [
+  {src: 'auto/run1/seismometer.mp4', kind: 'video', width: 1920, height: 1080, sceneQuery: 'Tokyo seismometer sensor', sceneNarration: 'Sensors measure ground acceleration', credit: {author: 'test', reason: 'Real sensor'}},
+  {src: 'auto/run1/skytree.mp4', kind: 'video', width: 1920, height: 1080, sceneQuery: 'Tokyo Skytree damper', sceneNarration: 'Mass damper sways inside tower', credit: {author: 'test', reason: 'Skytree damper'}}
+ ];
+
+ const scene = {id: 'shot-5', query: 'ground motion sensors', narration: 'Sensors measure shaking', kind: 'footage'};
+ const borrowed = borrowMatchingAsset(scene, longAssets, new Set());
+ assert.ok(borrowed);
+ assert.equal(borrowed.src, 'auto/run1/seismometer.mp4');
+ assert.ok(borrowed.credit.reason.includes('Acervo validado do documentário'));
+
+ const used = new Set(['auto/run1/seismometer.mp4']);
+ const secondBorrowed = borrowMatchingAsset(scene, longAssets, used);
+ assert.ok(secondBorrowed);
+ assert.equal(secondBorrowed.src, 'auto/run1/skytree.mp4');
+
+ assert.equal(borrowMatchingAsset(scene, [], new Set()), null);
 });
 
 test('temporary render files retain the mp4 extension required by Remotion',()=>{
