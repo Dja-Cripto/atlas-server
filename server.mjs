@@ -257,6 +257,9 @@ const allowedHosts=new Set([
  'localhost:4310',
  'portal-panel:3000',
  'portal-panel',
+ 'atlas-studio:3000',
+ 'atlas-studio:4310',
+ 'atlas-studio',
  'painel.setupdja.website',
  'setupdja.website'
 ]);
