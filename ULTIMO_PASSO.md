@@ -1,34 +1,37 @@
 # Atlas Studio — estado atual
 
-Atualizado em 29/09/2026, aproximadamente 15:45 (America/Bahia).
+Atualizado em 29/09/2026, aproximadamente 16:40 (America/Bahia).
 
 ## Último trabalho
-- **Correção da validação de outputRange do Remotion no gerador de Shorts (`lib/motion-author.mjs`, `lib/shorts.mjs`)**:
-  - Diagnosticada e corrigida a causa raiz da falha na Cena 5 do Short 5 (`outputRange must contain only numbers, numeric tuples, or supported scale, translate, and rotate strings`).
-  - O parser de `interpolate` tratava o 4º argumento de opções `{ extrapolateLeft: 'clamp', ... }` como segundo item de `outputRange`, empacotando-o em `[output, { options }]`.
-  - Atualizado `normalizeMotionCode` para rejeitar objetos de opções em `args[3]`, desembalar `[output, { options }]` caso ocorra e validar na AST a ausência de objetos em `outputRange`.
-  - Adicionado fallback secundário com `generateFallbackSceneCode` em `lib/shorts.mjs` caso a prévia ainda aponte falha, impedindo travamento de lotes.
-- **Implementação da faixa de duração (10 a 15 minutos) para produções automáticas (`lib/automatic.mjs`, `lib/providers.mjs`, `lib/topics.mjs`, `public/app.js`)**:
-  - Separado o comportamento entre pedidos manuais (duração exata alvo ±15%) e pautas automáticas da esteira do banco de temas.
-  - Para pautas automáticas (`isAutoTopic`, `durationMode === 'range'`, `topicId`), o sistema agora aceita a faixa configurável de 10 a 15 minutos (com margem de 5%, ~9.5 a 15.75 minutos). Documentários como o da Holanda (12.4 min) passam diretamente sem rejeição.
-  - O gerador de roteiro (`script`) agora calcula o orçamento de palavras baseado no ponto médio e faixa de `[minMinutes, maxMinutes]`.
-  - Interface do estúdio atualizada com controles de `minMinutes` e `maxMinutes` nas configurações de montagem.
-- **Testes automatizados (`tests/shorts-render.test.mjs`)**:
-  - Testes unitários para validação de `interpolate` com opções e aprovação da faixa de duração automática (10 a 15 min).
-  - Executados 168 testes com 100% de aprovação.
+- **Finalização dos 5 Shorts em MP4 vertical 1080x1920 na VPS (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
+  - Short 5 renderizado com sucesso (1.723 quadros em 57s, 53 MB) após a correção no gerador de `outputRange`.
+  - Pacote de 5 Shorts 100% concluído na VPS.
+- **Geração de Capa Oficial (Thumbnail) via Vertex AI / Gemini 3.1 Flash Image**:
+  - Capa 16:9 gerada com sucesso (`thumbnail-8f4d3a72-...png`, 2.1 MB) exibindo corte transversal de fundações antissísmicas, amortecedores de base e metrópole costeira japonesa.
+  - Registrada no projeto como capa ativa para publicação.
+- **Agendamento Completo e Configuração no Modo Público**:
+  - Projeto colocado em `status: scheduled` para amanhã (30/09/2026).
+  - Horários oficiais alocados: Vídeo longo às 13:00 (EST) / 14:00 (BRT); Shorts 1 a 5 distribuídos no ciclo de 24h.
+  - Configurações de publicação atualizadas para modo `public` (`youtubeMode: "public"`, `enabled: true`).
+  - Legendas WebVTT geradas e sincronizadas a partir dos `transcript.json` para todos os 6 vídeos (1 longo + 5 shorts).
+- **Proteção da Fila de Publicação e Otimização de Disco na VPS (`lib/publishing.mjs`)**:
+  - Implementado teto de tentativas (máximo 3) e intervalo de espera de 15 minutos em falhas para evitar re-downloads de 1.5 GB em loop.
+  - Liberados mais de 5,8 GB de espaço livre na VPS com limpeza de cache de build e dados de execução temporários do n8n.
+- **Testes automatizados**:
+  - 168 testes passando com 100% de sucesso (`npm test`).
 
 ## Estado verificado
-- **168 testes automatizados passando com 100% de sucesso (`npm test`)**.
-- **VPS (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
-  - Vídeo longo de 14.3 minutos finalizado e íntegro (1.5 GB).
-  - Shorts 1, 2, 3 e 4 renderizados com sucesso em 1080x1920 (9:16 vertical).
-  - Short 5 teve a cena `Scene4.tsx` corrompida pelo bug de `outputRange` agora resolvido no gerador do robô.
-- **VPS (`11720f5a-0831-4379-8770-3979b8a4a3ce` - Holanda)**:
-  - Pausou na validação antiga de 15 min com 12.4 min (746s). Com a nova regra de 10 a 15 minutos, está plenamente elegível para montagem.
+- **Projeto do Japão (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
+  - Vídeo longo de 14m18s em MP4 íntegro (1.5 GB).
+  - 5 Shorts verticais em MP4 íntegros (`short_1.mp4` a `short_5.mp4`).
+  - Capa oficial 16:9 gerada e gravada.
+  - Títulos SEO, timestamps de capítulos, tags e legendas WebVTT vinculados.
+  - Agendado para 30/09/2026.
+- **Disco da VPS**:
+  - 5,8 GB de espaço livre disponível, container `atlas-studio` e `n8n` operando normalmente.
 
 ## Erros ou limitações que continuam abertos
-- Cooldown de reutilização de ativos dentro do mesmo Short pode ser reforçado para evitar repetições pontuais como as do Short 4 (cenas 6 e 8).
-- Publicação automática permanece desligada conforme solicitado.
+- A conexão OAuth do canal do YouTube no n8n reportou credencial expirada (`EAUTH`); a reconexão da conta no n8n é necessária para o webhook completar o upload automático externo, caso o usuário não queira fazer o upload pelo YouTube Studio.
 
 ## Próximo passo recomendado
-- Realizar deploy na VPS (`git push` e `git pull`), aplicar a correção no `Scene4.tsx` do Short 5 e finalizar sua renderização para completar os 5 Shorts de Terremoto no Japão.
+- Daniel revisar a capa gerada e confirmar se prefere que o upload seja disparado via n8n (após renovar o login do YouTube no n8n) ou baixado diretamente para publicação manual.
