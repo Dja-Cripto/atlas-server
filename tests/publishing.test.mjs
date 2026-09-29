@@ -42,6 +42,19 @@ test('publishing plan creates long video and five Shorts per enabled channel', (
   assert.equal(plan.every((item) => item.publishAt.endsWith('Z')), true);
 });
 
+test('YouTube may use a later date without changing already accepted Facebook slots', () => {
+  const job = scheduledJob();
+  job.scheduled.youtube = {
+    longVideo: {date: '2026-10-01', time: '13:00'},
+    shorts: [{date: '2026-10-01', time: '15:00'}],
+  };
+  const plan = buildPublicationPlan(job, {timezone: 'America/New_York'}, {youtube: true, facebook: true});
+  assert.equal(plan.find((item) => item.key === 'youtube:long').publishAt, '2026-10-01T17:00:00.000Z');
+  assert.equal(plan.find((item) => item.key === 'facebook:long').publishAt, '2026-09-21T17:00:00.000Z');
+  assert.equal(plan.find((item) => item.key === 'youtube:short:1').publishAt, '2026-10-01T19:00:00.000Z');
+  assert.equal(plan.find((item) => item.key === 'facebook:short:1').publishAt, '2026-09-21T19:00:00.000Z');
+});
+
 test('timezone conversion preserves requested New York wall time', () => {
   assert.equal(zonedDateTimeToISOString('2026-09-21', '13:00', 'America/New_York'), '2026-09-21T17:00:00.000Z');
 });
@@ -62,8 +75,9 @@ test('enabled queue records each accepted platform item and does not resend it',
   const store = fakeStore({publishingEnabled: true, publishingYouTube: true, publishingFacebook: false}, [job]);
   let calls = 0;
   const fetchImpl = async () => ({ok: true, status: 200, text: async () => JSON.stringify({id: `external-${++calls}`})});
-  const first = await dispatchPublicationQueue({store, scheduleSettings: {timezone: 'America/New_York'}, fetchImpl});
-  const second = await dispatchPublicationQueue({store, scheduleSettings: {timezone: 'America/New_York'}, fetchImpl});
+  const now = new Date('2026-09-20T00:00:00.000Z');
+  const first = await dispatchPublicationQueue({store, scheduleSettings: {timezone: 'America/New_York'}, fetchImpl, now});
+  const second = await dispatchPublicationQueue({store, scheduleSettings: {timezone: 'America/New_York'}, fetchImpl, now});
   assert.equal(first.accepted, 6);
   assert.equal(second.attempted, 0);
   assert.equal(calls, 6);

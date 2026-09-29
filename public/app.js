@@ -410,19 +410,23 @@ function schedule(){
    </div>
    <span class="badge">${q.length} na fila</span>
   </div>
-  ${q.length?q.map(j=>`
+  ${q.length?q.map(j=>{
+   const youtubeDate=j.scheduled?.youtube?.longVideo?.date||j.scheduled?.longVideo?.date;
+   const facebookDate=j.scheduled?.longVideo?.date;
+   const youtubeReady=['youtube:long',...Array.from({length:5},(_,i)=>`youtube:short:${i+1}`)].every(key=>j.publications?.[key]?.status==='accepted');
+   return `
    <div class="job-row" data-job="${j.id}" tabindex="0" role="button">
     <div class="job-art">${j.thumbnail?`<img src="${esc(j.thumbnail)}" alt="Capa">`:'◎'}</div>
     <div class="job-info">
      <h3>${esc(j.scheduled?.longVideo?.title||j.title)}</h3>
-     <small>Agendado para ${j.scheduled.targetDate} · Vídeo longo às ${j.scheduled.longVideo?.time||cfg.longTime} EST · 5 Shorts (${(j.scheduled.shorts||[]).map(s=>s.time).join(', ')})</small>
+     <small>YouTube: ${esc(youtubeDate||'—')} (${youtubeReady?'envio aceito':'aguardando envio'}) · Facebook: ${esc(facebookDate||'—')} (${j.publications?.['facebook:long']?.status==='accepted'?'envio aceito':'aguardando envio'}) · Horário de Nova York</small>
     </div>
-    <span class="badge scheduled">Agendado: ${j.scheduled.targetDate}</span>
+    <span class="badge scheduled">${youtubeReady?'YouTube enviado':'YouTube na fila'}</span>
     <a class="text-btn" href="/api/jobs/${j.id}/package" download title="Baixar pacote de publicação" style="margin:0 4px;" onclick="event.stopPropagation();">Pacote ↓</a>
     <button type="button" class="text-btn" data-action="unschedule-job" data-job-action="${j.id}" title="Remover agendamento" style="color:#a8b3ac;padding:6px 10px;font-size:13px;border-radius:4px;" onmouseover="this.style.color='#b25d3b'" onmouseout="this.style.color='#a8b3ac'" onclick="event.stopPropagation();">🗑</button>
     <span>›</span>
    </div>
-  `).join(''):empty('Nenhuma publicação na fila','Ao concluir uma produção, agende-a para que ela entre na grade sem sobreposição de datas.')}
+  `}).join(''):empty('Nenhuma publicação na fila','Ao concluir uma produção, agende-a para que ela entre na grade sem sobreposição de datas.')}
  </section>
 
  ${unscheduledReady.length?`
