@@ -1,37 +1,32 @@
 # Atlas Studio — estado atual
 
-Atualizado em 29/09/2026, aproximadamente 16:40 (America/Bahia).
+Atualizado em 29/09/2026, aproximadamente 17:20 (America/Bahia).
 
 ## Último trabalho
-- **Finalização dos 5 Shorts em MP4 vertical 1080x1920 na VPS (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
-  - Short 5 renderizado com sucesso (1.723 quadros em 57s, 53 MB) após a correção no gerador de `outputRange`.
-  - Pacote de 5 Shorts 100% concluído na VPS.
-- **Geração de Capa Oficial (Thumbnail) via Vertex AI / Gemini 3.1 Flash Image**:
-  - Capa 16:9 gerada com sucesso (`thumbnail-8f4d3a72-...png`, 2.1 MB) exibindo corte transversal de fundações antissísmicas, amortecedores de base e metrópole costeira japonesa.
-  - Registrada no projeto como capa ativa para publicação.
-- **Agendamento Completo e Configuração no Modo Público**:
-  - Projeto colocado em `status: scheduled` para amanhã (30/09/2026).
-  - Horários oficiais alocados: Vídeo longo às 13:00 (EST) / 14:00 (BRT); Shorts 1 a 5 distribuídos no ciclo de 24h.
-  - Configurações de publicação atualizadas para modo `public` (`youtubeMode: "public"`, `enabled: true`).
-  - Legendas WebVTT geradas e sincronizadas a partir dos `transcript.json` para todos os 6 vídeos (1 longo + 5 shorts).
-- **Proteção da Fila de Publicação e Otimização de Disco na VPS (`lib/publishing.mjs`)**:
-  - Implementado teto de tentativas (máximo 3) e intervalo de espera de 15 minutos em falhas para evitar re-downloads de 1.5 GB em loop.
-  - Liberados mais de 5,8 GB de espaço livre na VPS com limpeza de cache de build e dados de execução temporários do n8n.
+- **Diagnóstico e Correção da Publicação Multiplataforma no n8n (`CXeQ7kICnWCazhzy`)**:
+  - Identificada a causa da falha no YouTube: token OAuth expirado no n8n (`EAUTH / invalid or expired token`).
+  - Identificada a causa da falha no Facebook: token de página expirado em 20/09/2026 (`OAuthException 190, session expired`).
+  - Corrigido o nó de roteamento `Roteador de Canal` (Switch) no n8n para modo de expressão determinística (`$json.channel === "facebook" ? 1 : 0`), eliminando o desvio incorreto de payloads do Facebook para o fluxo do YouTube.
+  - Corrigidos os nós `Baixar Vídeo` e `Baixar Capa` no n8n para baixar internamente via `http://atlas-studio:3000` em velocidade de rede local Docker, eliminando timeouts de 120s da Cloudflare (HTTP 524).
+- **Liberação de Host Interno Docker (`server.mjs`)**:
+  - Adicionado `atlas-studio` e `atlas-studio:3000` à lista de hosts permitidos (`allowedHosts`). Validada a resposta HTTP 200 direta para o arquivo de 1,5 GB.
+  - Alteração commitada (`f5441d3`), enviada ao GitHub e aplicada na VPS com restart do container.
 - **Testes automatizados**:
   - 168 testes passando com 100% de sucesso (`npm test`).
 
 ## Estado verificado
-- **Projeto do Japão (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
-  - Vídeo longo de 14m18s em MP4 íntegro (1.5 GB).
-  - 5 Shorts verticais em MP4 íntegros (`short_1.mp4` a `short_5.mp4`).
-  - Capa oficial 16:9 gerada e gravada.
-  - Títulos SEO, timestamps de capítulos, tags e legendas WebVTT vinculados.
-  - Agendado para 30/09/2026.
-- **Disco da VPS**:
-  - 5,8 GB de espaço livre disponível, container `atlas-studio` e `n8n` operando normalmente.
+- **Vídeos e Metadados do Japão (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
+  - Vídeo longo de 14m18s íntegro (1,5 GB).
+  - 5 Shorts verticais 1080x1920 prontos e validados.
+  - Capa 16:9 antissísmica vinculada.
+  - Legendas WebVTT e horários de agendamento em modo público configurados para 30/09 e 01/10.
+- **Infraestrutura**:
+  - n8n operando normalmente com rota interna otimizada e sem timeout de download.
+  - Disco da VPS com mais de 5,8 GB livres.
 
 ## Erros ou limitações que continuam abertos
-- A conexão OAuth do canal do YouTube no n8n reportou credencial expirada (`EAUTH`); a reconexão da conta no n8n é necessária para o webhook completar o upload automático externo, caso o usuário não queira fazer o upload pelo YouTube Studio.
+- **YouTube**: A credencial `youTubeOAuth2Api` (`YouTube account`) precisa de reconexão/login com Google pelo painel do n8n para renovar o OAuth token.
+- **Facebook**: O token de acesso da página no nó `Facebook - Vídeos & Reels` expirou e necessita de um novo Bearer Token para permitir postagem automática pela Graph API.
 
 ## Próximo passo recomendado
-- Daniel revisar a capa gerada e confirmar se prefere que o upload seja disparado via n8n (após renovar o login do YouTube no n8n) ou baixado diretamente para publicação manual.
+- Daniel efetuar a reconexão da conta do YouTube no n8n (basta clicar em Reconectar na credencial `YouTube account`) e, se desejar o Facebook ativo, atualizar o token da página no nó do Facebook.
