@@ -1,32 +1,29 @@
 # Atlas Studio — estado atual
 
-Atualizado em 29/09/2026, aproximadamente 17:20 (America/Bahia).
+Atualizado em 29/09/2026, aproximadamente 17:35 (America/Bahia).
 
 ## Último trabalho
-- **Diagnóstico e Correção da Publicação Multiplataforma no n8n (`CXeQ7kICnWCazhzy`)**:
-  - Identificada a causa da falha no YouTube: token OAuth expirado no n8n (`EAUTH / invalid or expired token`).
-  - Identificada a causa da falha no Facebook: token de página expirado em 20/09/2026 (`OAuthException 190, session expired`).
-  - Corrigido o nó de roteamento `Roteador de Canal` (Switch) no n8n para modo de expressão determinística (`$json.channel === "facebook" ? 1 : 0`), eliminando o desvio incorreto de payloads do Facebook para o fluxo do YouTube.
-  - Corrigidos os nós `Baixar Vídeo` e `Baixar Capa` no n8n para baixar internamente via `http://atlas-studio:3000` em velocidade de rede local Docker, eliminando timeouts de 120s da Cloudflare (HTTP 524).
-- **Liberação de Host Interno Docker (`server.mjs`)**:
-  - Adicionado `atlas-studio` e `atlas-studio:3000` à lista de hosts permitidos (`allowedHosts`). Validada a resposta HTTP 200 direta para o arquivo de 1,5 GB.
-  - Alteração commitada (`f5441d3`), enviada ao GitHub e aplicada na VPS com restart do container.
+- **Validação Completa da Autenticação do YouTube**:
+  - Usuário reconectou a conta Google no n8n com sucesso.
+  - Credencial `YouTube account` (`youTubeOAuth2Api`) testada via chamada oficial à API do YouTube: canal **Atlas Unbound** (`@atlasunbounddocs`, ID `UCZeu2tVZ2G8Xj0xMjrteq7Q`) autenticado e respondendo normalmente com todas as permissões (`youtube.upload`, `youtube.force-ssl`, `youtube`, `youtubepartner`).
+  - Nenhum vídeo foi publicado no teste; apenas a autorização e conectividade com a API foram validadas.
+- **Roteamento e Downloads Internos no n8n (`CXeQ7kICnWCazhzy`)**:
+  - Nó `Roteador de Canal` operando em modo de expressão determinística.
+  - Nós `Baixar Vídeo` e `Baixar Capa` apontando para a rota interna local (`http://atlas-studio:3000`), com teste de download do vídeo de 1,5 GB concluído com sucesso em 0,5 segundo (HTTP 200).
 - **Testes automatizados**:
   - 168 testes passando com 100% de sucesso (`npm test`).
 
 ## Estado verificado
-- **Vídeos e Metadados do Japão (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
+- **YouTube**:
+  - 100% pronto, autenticado e apto para upload do vídeo longo e dos 5 Shorts verticais assim que o gatilho for acionado.
+- **Pacote do Japão (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
   - Vídeo longo de 14m18s íntegro (1,5 GB).
-  - 5 Shorts verticais 1080x1920 prontos e validados.
-  - Capa 16:9 antissísmica vinculada.
+  - 5 Shorts verticais 1080x1920 finalizados.
+  - Capa 16:9 oficial antissísmica vinculada.
   - Legendas WebVTT e horários de agendamento em modo público configurados para 30/09 e 01/10.
-- **Infraestrutura**:
-  - n8n operando normalmente com rota interna otimizada e sem timeout de download.
-  - Disco da VPS com mais de 5,8 GB livres.
 
 ## Erros ou limitações que continuam abertos
-- **YouTube**: A credencial `youTubeOAuth2Api` (`YouTube account`) precisa de reconexão/login com Google pelo painel do n8n para renovar o OAuth token.
-- **Facebook**: O token de acesso da página no nó `Facebook - Vídeos & Reels` expirou e necessita de um novo Bearer Token para permitir postagem automática pela Graph API.
+- **Facebook**: O token de acesso da página no nó `Facebook - Vídeos & Reels` expirou em 20/09 e necessita de um novo Bearer Token caso o usuário deseje publicar simultaneamente no Facebook.
 
 ## Próximo passo recomendado
-- Daniel efetuar a reconexão da conta do YouTube no n8n (basta clicar em Reconectar na credencial `YouTube account`) e, se desejar o Facebook ativo, atualizar o token da página no nó do Facebook.
+- Definir com Daniel se ele deseja publicar somente no YouTube agora ou se aguarda o token do Facebook para subir nos dois ao mesmo tempo.
