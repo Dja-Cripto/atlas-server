@@ -76,10 +76,10 @@ test('enabled queue records each accepted platform item and does not resend it',
   let calls = 0;
   const fetchImpl = async () => ({ok: true, status: 200, text: async () => JSON.stringify({id: `external-${++calls}`})});
   const now = new Date('2026-09-20T00:00:00.000Z');
-  const first = await dispatchPublicationQueue({store, scheduleSettings: {timezone: 'America/New_York'}, fetchImpl, now});
-  const second = await dispatchPublicationQueue({store, scheduleSettings: {timezone: 'America/New_York'}, fetchImpl, now});
-  assert.equal(first.accepted, 6);
-  assert.equal(second.attempted, 0);
+  const results = [];
+  for (let index = 0; index < 7; index++) results.push(await dispatchPublicationQueue({store, scheduleSettings: {timezone: 'America/New_York'}, fetchImpl, now}));
+  assert.equal(results.slice(0, 6).every((result) => result.accepted === 1), true);
+  assert.equal(results[6].attempted, 0);
   assert.equal(calls, 6);
   assert.equal(Object.values(job.publications).every((item) => item.status === 'accepted'), true);
 });
