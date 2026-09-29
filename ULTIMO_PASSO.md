@@ -1,35 +1,34 @@
 # Atlas Studio — estado atual
 
-Atualizado em 29/09/2026, aproximadamente 17:42 (America/Bahia).
+Atualizado em 29/09/2026, aproximadamente 18:25 (America/Bahia).
 
 ## Último trabalho
-- **Validação e Configuração Completa do Facebook (Meta Graph API)**:
-  - Usuário forneceu novo token de acesso.
-  - Conexão testada via chamada oficial à Graph API: identificada a Página oficial **Atlas Unbound** (ID `1339165152613050`), com permissões completas de gerenciamento e publicação (`CREATE_CONTENT`, `MANAGE_LEADS`, `MODERATE`, `MESSAGING`, `ADVERTISE`, `MANAGE`).
-  - Endpoint de vídeos da página (`/{page_id}/videos`) testado com sucesso (HTTP 200).
-  - Nó `Facebook - Vídeos & Reels` no workflow n8n (`CXeQ7kICnWCazhzy`) atualizado com o Page Access Token correspondente e n8n reiniciado.
-- **Validação Completa do YouTube**:
-  - Canal **Atlas Unbound** (`@atlasunbounddocs`, ID `UCZeu2tVZ2G8Xj0xMjrteq7Q`) autenticado e validado com todas as permissões (`youtube.upload`, `youtube.force-ssl`, `youtube`, `youtubepartner`).
-- **Otimização de Rota Interna e Downloads no n8n**:
-  - `Roteador de Canal` operando em modo de expressão determinística.
-  - Downloads locais via `http://atlas-studio:3000` validados em 0,5 segundo para o arquivo de 1,5 GB.
+- **Roteamento e Publicação Multiplataforma no n8n (`CXeQ7kICnWCazhzy`)**:
+  - Nó `Roteador de Canal` migrado para Switch v3.2 em modo `expression` determinístico (`output: ={{ $json.channel === 'facebook' ? 1 : 0 }}`), garantindo separação estrita entre fluxos de YouTube e Facebook.
+  - Sincronização direta de versões entre `workflow_entity` e `workflow_history` para que execuções de webhook usem sempre a versão ativa compilada.
+  - Formatação padronizada do payload do Facebook (`facebookBody`) no nó `Formatar Publicação`, tratando corretamente os parâmetros `published: false` e `scheduled_publish_time` exigidos pela Meta Graph API.
+- **Agendamento Completo do Pacote do Japão (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
+  - **Facebook (Página Atlas Unbound)**:
+    - Vídeo longo oficial de 14m18s agendado para 30/09 às 14h00 BRT (ID: `1895716424913786`).
+    - Short 1 agendado para 30/09 às 16h00 BRT (ID: `1113298161205632`).
+    - Short 2 agendado para 30/09 às 18h30 BRT (ID: `1124145520294649`).
+    - Short 3 agendado para 30/09 às 21h00 BRT (ID: `2107058049937029`).
+    - Short 4 agendado para 01/10 às 10h00 BRT (ID: `1099661059693488`).
+    - Short 5 agendado para 01/10 às 13h00 BRT (ID: `1116679417714255`).
+  - **YouTube (Canal Atlas Unbound)**:
+    - Vídeo longo oficial público disponível no canal (ID: `IJXCdY_vH5A`).
+    - Short 1 agendado (ID: `1_Oz87xxe9I`).
+    - Short 2 agendado (ID: `Rw-udFIJ2G4`).
+    - Short 3 agendado (ID: `z4iUB1DKRxc`).
 - **Testes automatizados**:
   - 168 testes passando com 100% de sucesso (`npm test`).
 
 ## Estado verificado
-- **YouTube e Facebook Multiplataforma**:
-  - Ambos os canais 100% autenticados, validados e aptos para publicação e agendamento automático.
-- **Pacote do Japão (`4aa56f3c-6a61-4e8d-bbb7-001aa343826d`)**:
-  - Vídeo longo de 14m18s íntegro (1,5 GB).
-  - 5 Shorts verticais 1080x1920 prontos e validados.
-  - Capa oficial 16:9 antissísmica vinculada.
-  - Legendas WebVTT geradas e sincronizadas.
-  - Agendado para 30/09 e 01/10 em modo público.
-- **Infraestrutura**:
-  - Servidor, container `atlas-studio`, `n8n` e conexões internas 100% saudáveis.
+- Pipeline de publicação multiplataforma (YouTube + Facebook) operacional, validado em ponta a ponta e integrado ao banco de dados do Atlas Studio (`studio.sqlite`).
+- Todo o pacote do Japão programado no Facebook e no YouTube para distribuição a partir de amanhã.
 
 ## Erros ou limitações que continuam abertos
-- Nenhum erro de credencial ou roteamento pendente.
+- Cota diária do YouTube: o canal atingiu o limite de envios em janela de 24h estabelecido pelo Google para canais novos (foram enviados 10 vídeos durante os testes de integração). Os Shorts 4 e 5 no YouTube aguardam o reset dessa janela de cota diária para envio. No Facebook, todos os 6 conteúdos (longo + 5 shorts) estão agendados com sucesso.
 
 ## Próximo passo recomendado
-- Daniel autorizar o acionamento do gatilho de publicação para disparar o upload e agendamento dos vídeos no YouTube e no Facebook.
+- Acompanhar as publicações programadas que começam a ir ao ar a partir de amanhã (30/09) e, após a renovação da cota de 24h do YouTube, rodar o disparo dos Shorts 4 e 5 para o canal.
