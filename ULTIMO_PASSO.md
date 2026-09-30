@@ -1,25 +1,27 @@
 # Atlas Studio — estado atual
 
-Atualizado em 29/09/2026, aproximadamente 19:45 (America/Bahia).
+Atualizado em 30/09/2026, aproximadamente 12:40 (America/Bahia).
 
 ## O que foi alterado
-- Publicação futura no YouTube usa modo agendado; o robô recusa modo público e horários vencidos ou próximos demais. Erros de upload incertos não são reenviados às cegas. Limite de uploads conhecido permite nova tentativa após 24 horas.
-- Descrições enviadas pelo Atlas removem links HTTP/HTTPS e www, preservando nomes dos sites. O painel agora distingue a data do YouTube da data do Facebook e mostra se o envio ao YouTube ainda está pendente.
-- O YouTube envia no máximo um item por ciclo do publicador. Se houver falha de resultado incerto, os próximos uploads desse projeto param para revisão em vez de gerar duplicatas; o painel indica essa pausa.
-- Após o usuário excluir os vídeos antigos do YouTube, os seis itens da produção `4aa56f3c-6a61-4e8d-bbb7-001aa343826d` foram rearmados para tentativa automática a partir de 30/09, cerca de 19:12 (Bahia), devido ao limite de uploads da conta. Datas pretendidas no YouTube: vídeo longo e Shorts 1–3 em 01/10; Shorts 4–5 em 02/10, nos horários configurados para Nova York. Ainda não há novos IDs: **não estão agendados na plataforma até o upload ser aceito**.
-- Os seis agendamentos corretos do Facebook foram preservados, sem reenvio. Os três envios extras foram removidos da plataforma após autorização do usuário. Novos envios ao Facebook continuam desligados; a publicação automática segue ligada apenas para YouTube.
+- O Facebook voltou a receber novos agendamentos. O fluxo n8n usa a credencial protegida `Atlas Facebook Page`; o token literal antigo foi removido. A credencial da Página foi validada por consulta real, sem guardar segredo no projeto.
+- Os arquivos binários do n8n foram copiados e movidos para o disco de dados `/srv/robo`, com montagem persistente. O serviço voltou saudável; o disco do sistema passou de 100% para 77% de uso. As cópias antigas só foram retiradas após comparar os 37 arquivos e validar a nova montagem.
+- Os seis itens de “Where Singapore Gets Its Water” foram enviados uma única vez ao Facebook e receberam IDs distintos. Os seis agendamentos anteriores de “How Japan Builds Cities That Live with Earthquakes” foram preservados.
+- O publicador do YouTube continua em modo agendado, com no máximo um upload por ciclo e sem repetir automaticamente falhas de resultado incerto.
 
 ## O que foi validado
-- Nove testes de publicação passaram; sintaxe local e no servidor válida; contêiner Atlas saudável. Execução de conferência no servidor fez zero chamadas antes da hora de nova tentativa.
-- Os quatro IDs antigos conhecidos do YouTube não aparecem mais na consulta da API. Nova tentativa do vídeo principal recebeu erro real do YouTube: `The user has exceeded the number of videos they may upload`; nenhum novo vídeo foi criado nessa tentativa.
-- Os seis arquivos de vídeo estão acessíveis e suas descrições planejadas não têm links. O histórico do n8n confirma seis envios aceitos ao Facebook com horários futuros e descrições sem links.
-- A API do Facebook confirmou os seis vídeos corretos ainda não publicados, com datas entre 30/09 e 01/10; confirmou também que os três IDs extras não estão mais acessíveis. O token novo fornecido pelo usuário é válido, com permissões de Página, mas o próprio token da Página derivado dele expira em 30/09 às 00:00 UTC (29/09 às 21:00 Bahia).
+- A Meta confirmou os 12 IDs das duas produções como existentes, `published=false` e com horários futuros: Japão em 30/09 às 14h, 16h, 18h30 e 21h, mais 01/10 às 10h e 13h; Singapura em 01/10 às 14h, 16h, 18h30 e 21h, mais 02/10 às 10h e 13h (Bahia). A publicação final ainda depende da Meta executar esses horários.
+- O único vídeo público recente retornado pela listagem da Página foi `Test Short 1`, um teste separado; não é um dos cinco Shorts agendados do Japão.
+- A consulta autenticada ao canal YouTube Atlas Unbound retornou zero uploads. Os seis itens do Japão ainda têm erro `uploadLimitExceeded`; a próxima tentativa controlada está prevista para 30/09 por volta de 19h12 (Bahia).
+- O vídeo principal e cinco Shorts de Singapura estão renderizados. Seu primeiro envio ao YouTube falhou antes do upload por `ENOSPC` no nó “Baixar Vídeo” do n8n; o Atlas pausou as tentativas seguintes para evitar duplicatas. Não foi criado vídeo no YouTube nessa tentativa.
+- n8n respondeu HTTP 200 após a migração; os 37 arquivos estavam visíveis no disco novo. A nova credencial do Facebook agendou seis itens com sucesso.
 
 ## Limitações abertas
-- Não é possível concluir o reenvio ao YouTube antes de a conta voltar a aceitar uploads. Conferir os seis IDs, estado `private` e `publishAt` depois da tentativa automática; se houver novo erro, investigar antes de reenviar para evitar duplicatas.
-- O Facebook usa um token literal no fluxo n8n, sem renovação automática. O token temporário recém-testado não foi instalado no fluxo: ele e o token de Página correspondente expiram ainda hoje. Obter autorização duradoura da Página, guardá-la em credencial segura no n8n e retirar o literal do fluxo antes de reativar novos envios.
-- Os seis posts aceitos estão agendados no Facebook, mas sua publicação final ainda depende da plataforma nas datas previstas. O histórico antigo em `publications` registra aceitação, não publicação final.
+- O YouTube ainda não aceitou nenhum dos 12 itens. Seu limite diário de uploads é do canal, separado da cota da API; o número exato permitido para esta conta não foi informado pelo YouTube. A liberação só pode ser confirmada numa tentativa real após 24 horas.
+- A falha de Singapura por falta de espaço está diagnosticada e o espaço corrigido, mas o estado `publicationPause.youtube` permanece até reconciliação e reagendamento seguros. O horário base de Singapura no YouTube (01/10 às 14h Bahia) colidiria com o vídeo do Japão, caso ambos fossem enviados sem ajuste.
+- O disco de dados tem cerca de 49 GB livres. Os binários de execuções do n8n ainda acumulam; configurar retenção/prune antes de muitas novas produções.
+- O token de Página não tem expiração definida no campo do token; o prazo separado de acesso a dados informado pela Meta é 28/12/2026. A conexão deve ser monitorada, pois permissões podem ser revogadas.
 
 ## Próximo passo recomendado
-1. Obter token de Página de longa duração por fluxo oficial da Meta, armazená-lo como credencial protegida no n8n, substituir o Bearer literal do fluxo e validar uma chamada real antes de reativar novos envios do Facebook. Não reutilizar o token temporário enviado no chat.
-2. Após o limite do YouTube liberar, conferir os seis novos IDs e horários reais no YouTube Studio/API. Manter o Facebook desligado no Atlas até a reconexão ser validada.
+1. Após 19h12 de 30/09, observar a primeira tentativa do Japão no YouTube e confirmar o ID, privacidade e `publishAt` na plataforma. Se o limite persistir, manter fila segura sem uploads repetidos.
+2. Depois de confirmar a capacidade real, reconciliar a pausa de Singapura e atribuir horários próprios no YouTube, sem colisão com Japão nem excesso de uploads no mesmo período.
+3. Ajustar a retenção dos binários de execução no n8n e verificar a publicação final dos 12 agendamentos do Facebook nos horários previstos.
