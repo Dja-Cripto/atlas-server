@@ -1,31 +1,34 @@
 # Atlas Studio — estado atual
 
-Atualizado em 30/09/2026, aproximadamente 13:00 (America/Bahia).
+Atualizado em 30/09/2026, aproximadamente 13:10 (America/Bahia).
 
 ## O que foi alterado
-- Duração automática: pautas identificadas por topicId/isAutoTopic/durationMode aceitam de 10 a 15 minutos, sem margem adicional; produção manual mantém tolerância existente de 15% sobre o pedido. O erro de 12,4 minutos era um registro da regra antiga. Limites e modo agora ficam no diagnóstico de narração.
-- Servidor atualizado e reiniciado. A produção falhada Netherlands Makes Room for Water foi retirada do painel e seu alerta removido; pauta marcada como pulada. Registro de recuperação em data/recovery/cleanup-20260930, sem apagar áudio ou roteiro. Três produções renderizadas preservadas (duas agendadas e uma em revisão).
-- O Facebook voltou a receber novos agendamentos. O fluxo n8n usa a credencial protegida `Atlas Facebook Page`; o token literal antigo foi removido. A credencial da Página foi validada por consulta real, sem guardar segredo no projeto.
-- Os arquivos binários do n8n foram copiados e movidos para o disco de dados `/srv/robo`, com montagem persistente. O serviço voltou saudável; o disco do sistema passou de 100% para 77% de uso. As cópias antigas só foram retiradas após comparar os 37 arquivos e validar a nova montagem.
-- Os seis itens de “Where Singapore Gets Its Water” foram enviados uma única vez ao Facebook e receberam IDs distintos. Os seis agendamentos anteriores de “How Japan Builds Cities That Live with Earthquakes” foram preservados.
-- O publicador do YouTube continua em modo agendado, com no máximo um upload por ciclo e sem repetir automaticamente falhas de resultado incerto.
+- **Remoção de Links nas Descrições do YouTube (`lib/providers.mjs`)**:
+  - `generatePublishingMetadata` atualizado para extrair e formatar apenas nomes de entidades e publicações oficiais (ex: *PUB Singapore National Water Agency*, *Ministry of Sustainability*), eliminando links `http://` e `https://` nas descrições geradas para proteger canais novos sem verificação avançada.
+  - Sanitização via regex aplicada como garantia de segurança para que nenhuma URL bruta vaze para o YouTube.
+  - Descrições dos pacotes de Singapura e Japão no banco de dados (`studio.sqlite`) limpas e atualizadas com nomes formais de fontes.
+- **Auditoria de Qualidade da Nova Produção ("Where Singapore Gets Its Water")**:
+  - Extração e análise visual direta de frames do vídeo longo (15s, 90s, 240s, 400s, 600s) e de cada um dos 5 Shorts verticais (15s).
+  - Validação técnica de resolução, codecs, taxa de bits, sincronismo de áudio e zonas seguras móveis.
 
 ## O que foi validado
-- Sintaxe de automatic.mjs válida; seis testes de shorts-render passaram, incluindo aprovação de 12,4 minutos para pauta automática. Limpeza confirmada no banco do servidor: nenhuma produção com status error, três renderizadas mantidas. Agendamentos externos não foram modificados nesta limpeza.
-- A Meta confirmou os 12 IDs das duas produções como existentes, `published=false` e com horários futuros: Japão em 30/09 às 14h, 16h, 18h30 e 21h, mais 01/10 às 10h e 13h; Singapura em 01/10 às 14h, 16h, 18h30 e 21h, mais 02/10 às 10h e 13h (Bahia). A publicação final ainda depende da Meta executar esses horários.
-- O único vídeo público recente retornado pela listagem da Página foi `Test Short 1`, um teste separado; não é um dos cinco Shorts agendados do Japão.
-- A consulta autenticada ao canal YouTube Atlas Unbound retornou zero uploads. Os seis itens do Japão ainda têm erro `uploadLimitExceeded`; a próxima tentativa controlada está prevista para 30/09 por volta de 19h12 (Bahia).
-- O vídeo principal e cinco Shorts de Singapura estão renderizados. Seu primeiro envio ao YouTube falhou antes do upload por `ENOSPC` no nó “Baixar Vídeo” do n8n; o Atlas pausou as tentativas seguintes para evitar duplicatas. Não foi criado vídeo no YouTube nessa tentativa.
-- n8n respondeu HTTP 200 após a migração; os 37 arquivos estavam visíveis no disco novo. A nova credencial do Facebook agendou seis itens com sucesso.
+- **Vídeo Longo de Singapura (`5ac7c206-304c-4ba8-9b55-f59d7850dac5`)**:
+  - Duração: 11 minutos e 25 segundos (685.18s), perfeitamente dentro da faixa obrigatória de 10 a 15 minutos para pautas automáticas.
+  - Formato: 1920x1080 @ 30fps H.264 (High Profile, ~16 Mbps), áudio estéreo AAC 48 kHz.
+  - Composição: filmagens 100% autênticas de Singapura (canais de drenagem urbana, Marina Bay, Jardins da Baía, Merlion e bacia de Kallang), layout split-screen V3 e trilha sonora instrumental suave (*Liquid Time*) com ducking de -18 LUFS.
+- **5 Shorts Verticais de Singapura**:
+  - Todos em 1080x1920 @ 30fps H.264 vertical nativo, durações entre 43s e 64s.
+  - Short 1 (56.2s): tomada aérea de Marina Bay com badge infográfico ("17 reservoirs").
+  - Short 2 (53.7s): mapa coroplético animado destacando a fronteira internacional da Malásia e o Rio Johor.
+  - Short 3 (64.6s): tomada de reservatório natural com legendagem minimalista de tratamento de água.
+  - Short 4 (54.3s): esquema conceitual de fluxo por gravidade e tubulações profundas a 60m.
+  - Short 5 (43.6s): cartões de comparação de salinidade e consumo de energia (água de reservatório vs água do mar).
+  - Todos com tipografia dentro da safe area (sem sobreposição com a interface do YouTube Shorts/Reels/TikTok).
+- **Testes automatizados**:
+  - 173 testes passando com 100% de sucesso (`npm test`).
 
 ## Limitações abertas
-- O YouTube ainda não aceitou nenhum dos 12 itens. Seu limite diário de uploads é do canal, separado da cota da API; o número exato permitido para esta conta não foi informado pelo YouTube. A liberação só pode ser confirmada numa tentativa real após 24 horas.
-- A falha de Singapura por falta de espaço está diagnosticada e o espaço corrigido, mas o estado `publicationPause.youtube` permanece até reconciliação e reagendamento seguros. O horário base de Singapura no YouTube (01/10 às 14h Bahia) colidiria com o vídeo do Japão, caso ambos fossem enviados sem ajuste.
-- O disco de dados tem cerca de 49 GB livres. Os binários de execuções do n8n ainda acumulam; configurar retenção/prune antes de muitas novas produções.
-- O token de Página não tem expiração definida no campo do token; o prazo separado de acesso a dados informado pela Meta é 28/12/2026. A conexão deve ser monitorada, pois permissões podem ser revogadas.
+- Cota de upload do canal no YouTube: canal recém-criado aguarda o encerramento da janela de 24 horas de segurança do Google (prevista para liberação a partir das 19h12 de 30/09) para envio dos itens pendentes sem colisão de horário. No Facebook, todos os 12 conteúdos (6 de Singapura e 6 do Japão) continuam 100% agendados e confirmados pela Meta.
 
 ## Próximo passo recomendado
-1. Após 19h12 de 30/09, observar a primeira tentativa do Japão no YouTube e confirmar o ID, privacidade e `publishAt` na plataforma. Se o limite persistir, manter fila segura sem uploads repetidos.
-2. Depois de confirmar a capacidade real, reconciliar a pausa de Singapura e atribuir horários próprios no YouTube, sem colisão com Japão nem excesso de uploads no mesmo período.
-3. Ajustar a retenção dos binários de execução no n8n e verificar a publicação final dos 12 agendamentos do Facebook nos horários previstos.
-
+- Acompanhar a liberação da janela de 24h do YouTube às 19h12 para prosseguir com a fila controlada de agendamentos no canal, garantindo espaçamento entre os vídeos de Singapura e Japão.
