@@ -39,3 +39,8 @@ Atualizado em 30/09/2026, aproximadamente 13:10 (America/Bahia).
 - Busca explícita de recuperação não é bloqueada pela existência de ilustração em cache. Limites editoriais mantidos.
 - Sete testes de visual-repair passaram, incluindo recuperação real com limite de ilustrações esgotado. Arquivos implantados no servidor, serviço reiniciado. Produção preservada; conclusão do novo processamento ainda deve ser acompanhada.
 - Próximo passo: confirmar recuperação das cenas 101/103/109/111 e qualidade antes da publicação. Pendências de publicação descritas acima continuam abertas.
+
+## Envio controlado YouTube — 01/10/2026
+- Tentativa de 30/09 às 19h12 falhou antes do YouTube: EACCES no armazenamento n8n. Diretório migrado tinha UID/GID 1001; corrigido para 1000 do serviço. Gravação validada dentro do container.
+- Iniciado somente envio do principal Japão pelo webhook normal (execução 53536); Shorts e demais projetos continuam pausados. Não reenviar enquanto sending. Data de publicação desta tentativa calculada para duas horas após início, em modo scheduled.
+- Resultado externo ainda em acompanhamento; não assumir liberação da cota sem ID confirmado. Arquivo principal preservado.
