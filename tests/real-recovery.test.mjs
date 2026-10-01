@@ -1,6 +1,11 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {realRecoveryScenes,candidatePool} from '../lib/auto-media.mjs';
+test('a Panama crossing is not rejected because its cruise itinerary mentions other countries',()=>{
+ const candidate={id:50243662,source:'Wikimedia Commons',title:'Panama Canal Timelapse Caribbean to Pacific',locationEvidence:'Panama Canal crossing filmed aboard a cruise from Colombia to Costa Rica',files:[{width:1920,height:1080}]};
+ assert.equal(candidatePool({topicCountry:'Panama',identityRequired:true},[candidate]).length,1);
+ assert.equal(candidatePool({topicCountry:'Panama',identityRequired:true},[{...candidate,title:'Costa Rica cruise',locationEvidence:'Costa Rica rainforest'}]).length,0);
+});
 test('context recovery searches regional support instead of substitution prose',()=>{
  const original={id:'shot-111',kind:'title',missingVisual:true,query:'Panama Canal rainforest watershed',location:'Gatún Lake watershed, Panama',countries:['Panama'],narrativeRole:'context',allowedSubstitution:'Verified footage of rain falling over the watershed',asset:{src:'bad.jpg'}};
  const alternatives=realRecoveryScenes(original);

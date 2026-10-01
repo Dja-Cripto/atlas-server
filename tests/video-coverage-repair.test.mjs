@@ -6,6 +6,14 @@ import {candidatePool,commonsVideoCandidates,mediaSearchVariants} from '../lib/a
 const photo={kind:'image',representationRole:'contextual'};
 const video={kind:'video',representationRole:'contextual',duration:6};
 
+test('coverage recovery budgets used source seconds and expands prior short preparations',async()=>{
+ const old={kind:'video',src:'short.mp4',duration:6,credit:{url:'source'}};
+ const scenes=[{id:'a',start:0,end:5,asset:old},{id:'b',start:5,end:10,kind:'footage',query:'canal',asset:photo}];
+ let used;
+ const result=await repairVideoCoverage(scenes,{title:'Canal',duration:10,target:1,findVideo:async scene=>{used=scene.usedVideoSeconds.source;return {...old,src:'full.mp4',duration:28};}});
+ assert.equal(used,5);assert.equal(result.scenes[0].asset.duration,28);assert.equal(result.scenes[0].asset.src,'full.mp4');assert.equal(result.coverage.videoRatio,1);
+});
+
 test('generic photos and illustrations can become video; specific historical photos stay intact',()=>{
  assert.equal(eligibleForVideoUpgrade({heading:'A Dutch canal',narration:'Water moves through the city.',query:'Netherlands canal',asset:photo},'The Netherlands'),true);
  assert.equal(eligibleForVideoUpgrade({kind:'photo',heading:'The barrier',narration:'The barrier holds the sea.',query:'Oosterscheldekering',asset:{...photo,representationRole:'exact-location'}},'The Netherlands'),false);
