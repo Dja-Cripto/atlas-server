@@ -77,3 +77,8 @@ Atualizado em 30/09/2026, aproximadamente 13:10 (America/Bahia).
 - Short4 rejeitado na execução 53546, nó YouTube Publicar Vídeo: The user has exceeded the number of videos they may upload. Short5 não enviado. Não confundir erro com simultaneidade: todos enviados um por vez. Pausa YouTube mantida para Singapura, erro do Short4 normalizado; aguardar pelo menos 24h da attemptedAt antes de nova tentativa, sem garantia de liberação.
 - Principal tqvPdpR5a6o e capa simplificada preservados, agendado 02/10 14h. Facebook preservado. Nenhuma mídia apagada.
 - Próximo passo: liberar pausa e retomar somente Shorts4/5 após janela da cota; horários reservados 03/10 13h e 16h Bahia. API confirmou os três anteriores; não reenviar.
+
+## Limite observado de uploads — 01/10/2026
+- Usuário pediu preservar a referência prática de aproximadamente 10 uploads YouTube por 24 horas, somando vídeos principais e Shorts. É hipótese observada neste canal, não limite oficial confirmado nem garantia de reset à meia-noite. Não afirmar que houve exclusão de vídeo por esta sessão; nenhuma exclusão YouTube foi feita neste trabalho.
+- Planejar um pacote diário de 1 principal + 5 Shorts (6 uploads), evitar acumular pacotes e tentativas extras na mesma janela. Contar uploads/envios, inclusive agendados, não somente publicações públicas do dia. Esta anotação não implementa contador ou limitador novo no código.
+- Pendências preservadas: Singapura Shorts4 e 5, reservados para 03/10 às 13h e 16h Bahia. Nova tentativa somente após 02/10 às 15h13 Bahia (24h desde rejeição), conferir liberação antes de avançar. Retomada ainda exige execução; não há monitor/agendamento adicional criado neste registro.
