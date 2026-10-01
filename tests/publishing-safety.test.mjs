@@ -35,3 +35,22 @@ test('uncertain YouTube response pauses the remaining uploads',async()=>{
  assert.equal(first.attempted,1);assert.equal(second.attempted,0);assert.equal(calls,1);
  assert.match(job.publicationPause.youtube.reason,/conferir o YouTube/);
 });
+
+test('global YouTube sending item blocks uploads from other productions',async()=>{
+ const settings={publishingEnabled:true,publishingYouTube:true,publishingFacebook:false,youtubePublishMode:'scheduled'};
+ const queued={id:'queued',title:'Queued',scheduled:{longVideo:{date:'2026-12-01',time:'13:00'}},renders:[{url:'/queued.mp4'}]};
+ const sending={id:'sending',publications:{'youtube:short:1':{status:'sending'}}};
+ let calls=0;
+ const result=await dispatchPublicationQueue({store:{settings:()=>settings,list:()=>[queued,sending],put:()=>{}},scheduleSettings:{timezone:'America/New_York'},fetchImpl:async()=>{calls++;},now:new Date('2026-10-01')});
+ assert.equal(result.attempted,0);assert.equal(calls,0);
+});
+
+test('concurrent queue invocation cannot duplicate an ongoing upload',async()=>{
+ const settings={publishingEnabled:true,publishingYouTube:true,publishingFacebook:false,youtubePublishMode:'scheduled'};
+ const j={id:'one',title:'One',scheduled:{longVideo:{date:'2026-12-01',time:'13:00'}},renders:[{url:'/one.mp4'}]};
+ const store={settings:()=>settings,list:()=>[j],put:()=>{}};
+ let release;const gate=new Promise(resolve=>{release=resolve;});
+ const first=dispatchPublicationQueue({store,scheduleSettings:{timezone:'America/New_York'},now:new Date('2026-10-01'),fetchImpl:async()=>{await gate;return {ok:true,text:async()=>JSON.stringify({id:'confirmed'})};}});
+ const second=await dispatchPublicationQueue({store,scheduleSettings:{timezone:'America/New_York'}});
+ assert.equal(second.busy,true);release();assert.equal((await first).accepted,1);
+});

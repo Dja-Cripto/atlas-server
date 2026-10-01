@@ -55,3 +55,11 @@ Atualizado em 30/09/2026, aproximadamente 13:10 (America/Bahia).
 - Imagens acima de 2 MiB são convertidas para JPEG 1280x720 com ffmpeg; upload rejeitado localmente se ainda exceder limite. Imagens menores preservadas.
 - 174 testes passaram, sintaxe válida. providers.mjs e automatic.mjs implantados, Atlas reiniciado. Não alterados títulos/capas/descrições já publicados. Qualidade visual da próxima capa ainda requer avaliação humana; prompts não garantem CTR.
 - Próximo passo: avaliar pacote de nova produção e confirmar miniatura aplicada pela plataforma. Panamá estava novamente em error/visual-review antes deste reinício; recuperação ainda pendente, não declarar produção concluída.
+
+## Shorts Japão e fila sequencial — 01/10/2026
+- Cinco Shorts enviados individualmente pela rede interna n8n. Antes de cada próximo envio, API videos.list confirmou ID, uploadStatus uploaded/processed e publishAt. Não exigido término da transcodificação. Facebook preservado.
+- IDs YouTube: Short1 o9yGL8RzS9U; Short2 4hNKBvn53zw; Short3 m4f4KYCSovY; Short4 x4mqYeQR57I; Short5 O4ihSX8t1HI. Horários Bahia: 01/10 18h30 e 21h; 02/10 10h, 13h e 16h. Atlas sincronizado com os horários aceitos; pausa Japão removida após todos confirmados. Principal pOlv3tqZnOU preservado.
+- Publicador automático agora tem trava contra chamadas concorrentes, bloqueia novo YouTube enquanto qualquer projeto tem sending e limita uma tentativa YouTube por ciclo em toda a fila (antes era por projeto). Só resposta com ID externo marca accepted; erro incerto exige reconciliação, sem reenviar cegamente.
+- Onze testes de publicação passaram, incluindo concorrência e sending entre projetos; publishing.mjs implantado e servidor reiniciado antes do envio. Nenhum novo envio simultâneo ao YouTube.
+- Primeira chamada pública ao webhook retornou 403 antes do fluxo; usada rede interna com sucesso. Token temporário removido. A falha original era EACCES, não demonstradamente simultaneidade. Não garantir ausência de cota futura.
+- Próximo passo: confirmar publicações nos horários e resolver Singapura/Holanda e Panamá separadamente; este trabalho enviou apenas Shorts do Japão.
