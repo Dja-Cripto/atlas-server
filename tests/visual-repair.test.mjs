@@ -44,3 +44,18 @@ test('large media outage does not turn an entire documentary into generated illu
  assert.equal(result.pending.length,8);
  assert.equal(result.scenes.filter(item=>item.asset?.representationRole==='illustrative').length,2);
 });
+
+test('real recovery precedes exhausted illustration fallback and preserves context', async () => {
+ const scene={id:'x',kind:'title',missingVisual:true,start:0,end:5,heading:'Missing visual',narrativeRole:'context',narration:'People operate the canal.',allowedSubstitution:'Regional canal operations'};
+ let generated=false;
+ const result=await repairVisuals([scene],{
+  maxIllustrations:0,
+  propose:async()=>({kind:'video',requiredSubject:'Exact specific operator',asset:{src:'https://example.com/fake.mp4'}}),
+  materialize:async replacement=>{assert.equal(replacement.requiredSubject,'');assert.equal(replacement.asset,undefined);return null;},
+  recoverReal:async original=>({...original,kind:'footage',asset:{kind:'video',src:'verified-local.mp4'}}),
+  illustrate:async()=>{generated=true;}
+ });
+ assert.equal(result.pending.length,0);
+ assert.equal(result.scenes[0].missingVisual,undefined);
+ assert.equal(generated,false);
+});

@@ -32,3 +32,10 @@ Atualizado em 30/09/2026, aproximadamente 13:10 (America/Bahia).
 
 ## Próximo passo recomendado
 - Acompanhar a liberação da janela de 24h do YouTube às 19h12 para prosseguir com a fila controlada de agendamentos no canal, garantindo espaçamento entre os vídeos de Singapura e Japão.
+
+## Correção de recuperação — 01/10/2026
+- Panamá pausou em quatro cenas após materialização falhada e teto de 22 ilustrações. Propostas da IA não são mídia real.
+- Recuperação agora tenta buscas originais, substituições e contexto regional antes de ilustrar; mantém cenas de contexto sem exigência de sujeito exato. Assets sugeridos pelo modelo são descartados e apenas resultados reais do buscador são usados.
+- Busca explícita de recuperação não é bloqueada pela existência de ilustração em cache. Limites editoriais mantidos.
+- Sete testes de visual-repair passaram, incluindo recuperação real com limite de ilustrações esgotado. Arquivos implantados no servidor, serviço reiniciado. Produção preservada; conclusão do novo processamento ainda deve ser acompanhada.
+- Próximo passo: confirmar recuperação das cenas 101/103/109/111 e qualidade antes da publicação. Pendências de publicação descritas acima continuam abertas.
