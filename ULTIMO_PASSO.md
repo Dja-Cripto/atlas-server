@@ -63,3 +63,11 @@ Atualizado em 30/09/2026, aproximadamente 13:10 (America/Bahia).
 - Onze testes de publicação passaram, incluindo concorrência e sending entre projetos; publishing.mjs implantado e servidor reiniciado antes do envio. Nenhum novo envio simultâneo ao YouTube.
 - Primeira chamada pública ao webhook retornou 403 antes do fluxo; usada rede interna com sucesso. Token temporário removido. A falha original era EACCES, não demonstradamente simultaneidade. Não garantir ausência de cota futura.
 - Próximo passo: confirmar publicações nos horários e resolver Singapura/Holanda e Panamá separadamente; este trabalho enviou apenas Shorts do Japão.
+
+## Capa simplificada Singapura — 01/10/2026
+- Gerador de capas atualizado permanentemente: um assunto dominante, espaço negativo, iluminação/contraste marcantes e pergunta curta em inglês (2-3 palavras). Retiradas colagens, split-screen, insets, diagramas, setas, estatísticas e múltiplas etiquetas das instruções de capa. Metadados orientam o mesmo conceito simples. Sem mudar cenas do vídeo.
+- Nova capa gerada pela API configurada do próprio Atlas e selecionada: thumbnail-84fa1c99-681d-4d7e-a889-38b1548c4a03.png, 1.756.085 bytes; orientação Singapore skyline in rain / NOT ENOUGH?. Capa anterior preservada no histórico.
+- YouTube thumbnails.set confirmou aplicação ao vídeo tqvPdpR5a6o. API confirmou uploadStatus uploaded, privado/agendado 02/10 17:00Z (14h Bahia). Atlas reconciliado com ID; não reenviar principal. Resposta do webhook falhou, mas upload chegou.
+- Horários YouTube reservados Singapura: principal 02/10 14h; Shorts 02/10 18h30 e 21h, 03/10 10h, 13h, 16h (Bahia). Shorts ainda não confirmados no YouTube, pausa mantida para verificar término n8n 53542 (running na última consulta). Facebook já tinha agendamentos externos; preservados.
+- 176 testes passaram; providers.mjs implantado e Atlas reiniciado após terminar a chamada de upload. Nova capa precisa de aprovação visual do usuário; confirmação API não avalia qualidade visual.
+- Próximo passo: confirmar visual da capa e término de 53542, enviar cinco Shorts Singapura sequencialmente. Pendência Panamá permanece.
