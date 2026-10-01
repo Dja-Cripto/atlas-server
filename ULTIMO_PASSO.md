@@ -71,3 +71,9 @@ Atualizado em 30/09/2026, aproximadamente 13:10 (America/Bahia).
 - Horários YouTube reservados Singapura: principal 02/10 14h; Shorts 02/10 18h30 e 21h, 03/10 10h, 13h, 16h (Bahia). Shorts ainda não confirmados no YouTube, pausa mantida para verificar término n8n 53542 (running na última consulta). Facebook já tinha agendamentos externos; preservados.
 - 176 testes passaram; providers.mjs implantado e Atlas reiniciado após terminar a chamada de upload. Nova capa precisa de aprovação visual do usuário; confirmação API não avalia qualidade visual.
 - Próximo passo: confirmar visual da capa e término de 53542, enviar cinco Shorts Singapura sequencialmente. Pendência Panamá permanece.
+
+## Shorts Singapura — 01/10/2026
+- Enviados sequencialmente e confirmados pela API: Short1 3dXvz_Bf4P0 para 02/10 18h30 Bahia; Short2 OU6iNsY1gU8 para 02/10 21h; Short3 dmFtTxlFrNk para 03/10 10h. Short2 teve atraso de disponibilidade na consulta API; reconciliado pelo ID da execução 53544, sem reupload.
+- Short4 rejeitado na execução 53546, nó YouTube Publicar Vídeo: The user has exceeded the number of videos they may upload. Short5 não enviado. Não confundir erro com simultaneidade: todos enviados um por vez. Pausa YouTube mantida para Singapura, erro do Short4 normalizado; aguardar pelo menos 24h da attemptedAt antes de nova tentativa, sem garantia de liberação.
+- Principal tqvPdpR5a6o e capa simplificada preservados, agendado 02/10 14h. Facebook preservado. Nenhuma mídia apagada.
+- Próximo passo: liberar pausa e retomar somente Shorts4/5 após janela da cota; horários reservados 03/10 13h e 16h Bahia. API confirmou os três anteriores; não reenviar.
