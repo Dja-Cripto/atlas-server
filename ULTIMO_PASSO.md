@@ -1,6 +1,6 @@
 # Atlas Studio — continuidade
 
-Atualizado em 02/10/2026, aproximadamente 15h35 (America/Bahia).
+Atualizado em 02/10/2026, aproximadamente 19h20 (America/Bahia).
 
 ## Alterações implantadas
 - Pré-pesquisa usa aliases curtos e consultas sem termos editoriais; distribui candidatos entre fontes e formatos. Aprofunda consultas/páginas dos blocos fracos e revisa mais vídeos quando faltam segundos.
@@ -23,8 +23,14 @@ Atualizado em 02/10/2026, aproximadamente 15h35 (America/Bahia).
 ## Limitações e preservação
 - Implantado no VPS /srv/atlas-studio o commit 4b23fa5, via avanço do histórico e reinício somente de atlas-studio; container saudável. Correções anteriores do VPS conferidas e preservadas em stash atlas-pre-deploy-2026-10-02. Nenhum render de ponta a ponta realizado com esta versão; qualidade final ainda exige teste visual de principal e Shorts.
 - Panamá162c93b7-724a-45a5-8761-5f91b7521c2b e seus Shorts antigos foram rejeitados pelo usuário por qualidade; arquivos preservados, não reutilizar como aprovados.
-- Não houve upload, alteração de agendamento externo, limpeza de projetos ou mudança de publishingEnabled. Manter a pausa de novos envios solicitada pelo usuário; publicações já aceitas nas plataformas não foram alteradas. Pendências anteriores YouTube/Facebook exigem consulta atual antes de qualquer ação.
+- Publicação reativada por pedido do usuário: publishingEnabled=true, YouTube/Facebook habilitados, YouTube em modo agendado. Pausa antiga de Singapura removida somente após 24h e confirmação dos vídeos existentes na API. Nenhuma publicação existente foi reenviada; Panamá rejeitado permanece em review e sem agendamento.
 - Regras mantidas: produções automáticas10–15min, manuais respeitam duração solicitada,5 Shorts, execução sequencial; descrições sem URLs e textos das capas em inglês.
 
+## Estado das publicações verificado
+- Facebook: Japão e Singapura, vídeo principal e cinco Shorts de cada, confirmados publicados/ready pela API; nada pendente de upload.
+- YouTube: Japão completo publicado; Singapura principal e Short 1 publicados, Shorts 2 e 3 processados e agendados. Shorts 4 e 5 enviados pelo endpoint do painel um por vez, ambos aceitos pelo workflow e confirmados na API; ainda processando na última consulta.
+- Singapura Short 4: UMZb1HjftbM, 03/10 às 13h Bahia (16:00Z); Short 5: Vu5C7m-MkE4, 03/10 às 16h Bahia (19:00Z). IDs e estados persistidos no banco do servidor; estados antigos publicados reconciliados no painel.
+- Nenhuma alteração de código neste trabalho; fluxo real do painel validado com dois envios sem falha. Limite diário do canal não é garantido; manter proteção e não reenviar IDs existentes.
+
 ## Próximo passo
-- Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Novos envios às plataformas continuam pausados.
+- Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Publicação está habilitada; preservar envio sequencial, confirmação de ID externo e pausas em erro incerto/limite.
