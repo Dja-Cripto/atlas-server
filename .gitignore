@@ -26,3 +26,6 @@ testes_benchmark/**/*.png
 # Arquivos locais do sistema operacional
 Thumbs.db
 .DS_Store
+cookies.txt
+.vault-key
+*.sqlite*

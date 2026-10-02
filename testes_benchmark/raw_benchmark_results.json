@@ -1,0 +1,72 @@
+{
+  "scripts": {
+    "glm-5.3-flash": {
+      "text": "",
+      "elapsed": 0.36751413345336914,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "gpt-6-luna": {
+      "text": "",
+      "elapsed": 0.3303256034851074,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "deepseek-v4-flash": {
+      "text": "",
+      "elapsed": 0.3491096496582031,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "qwen3.8-flash": {
+      "text": "",
+      "elapsed": 0.34957289695739746,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "grok-4.7": {
+      "text": "",
+      "elapsed": 0.3357999324798584,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "kimi-k2.7-code": {
+      "text": "",
+      "elapsed": 0.34061622619628906,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    }
+  },
+  "remotion": {
+    "glm-5.3-flash": {
+      "text": "",
+      "elapsed": 0.34198927879333496,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "gpt-6-luna": {
+      "text": "",
+      "elapsed": 0.34256529808044434,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "deepseek-v4-flash": {
+      "text": "",
+      "elapsed": 0.34302449226379395,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "kimi-k2.7-code": {
+      "text": "",
+      "elapsed": 0.33658719062805176,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    "qwen3.8-flash": {
+      "text": "",
+      "elapsed": 0.35126185417175293,
+      "status": "error",
+      "error": "HTTP Error 403: Forbidden"
+    }
+  }
+}
