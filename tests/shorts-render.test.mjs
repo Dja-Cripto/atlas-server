@@ -27,8 +27,7 @@ test('borrowMatchingAsset matches relevant long documentary assets and handles u
 
  const used = new Set(['auto/run1/seismometer.mp4']);
  const secondBorrowed = borrowMatchingAsset(scene, longAssets, used);
- assert.ok(secondBorrowed);
- assert.equal(secondBorrowed.src, 'auto/run1/skytree.mp4');
+ assert.equal(secondBorrowed,null,'an unrelated tower cannot replace the used ground sensor merely because both are videos');
 
  assert.equal(borrowMatchingAsset(scene, [], new Set()), null);
 });
