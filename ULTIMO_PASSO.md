@@ -1,6 +1,6 @@
 # Atlas Studio — continuidade
 
-Atualizado em 03/10/2026, aproximadamente 16h50 (America/Bahia).
+Atualizado em 03/10/2026, aproximadamente 17h15 (America/Bahia).
 
 ## Alterações implantadas
 - Pré-pesquisa usa aliases curtos e consultas sem termos editoriais; distribui candidatos entre fontes e formatos. Aprofunda consultas/páginas dos blocos fracos e revisa mais vídeos quando faltam segundos.
@@ -43,6 +43,12 @@ Atualizado em 03/10/2026, aproximadamente 16h50 (America/Bahia).
 - Corrigido dailyTopicTick: dispara apenas no minuto configurado, sem recuperar meia-noite perdida durante a tarde. Produção manual permanece disponível e trabalho ativo não é interrompido. Teste de horário/worker passou (3 testes de production-readiness); sintaxe conferida.
 - Inconclusivos agora preservam mediaSummary e gaps: painel não deve mostrar zero por ausência desses campos. Auditoria oceano: 1.285 mídias, 53 distintas aprovadas (28 vídeos/25 fotos), 359s conservadores; lacunas Alvin e Deepsea Challenger, 14 falhas de fonte (Library of Congress 403). Não comprova escassez do tema.
 - Universo de7c14ad-1c54-479c-a804-f73e85b60c85 em execução, preservado. Atualização de código será ativada por reinício somente após worker livre; disparos automáticos temporariamente suspensos e restaurados para 00:00 America/Bahia após ativação. Postagens não alteradas neste ajuste.
+
+## Ajuste do planejador de mídia
+- Pré-pesquisa distingue assuntos essenciais de exemplos opcionais. Nomes/instrumentos escolhidos pelo planejador não são obrigatórios em temas gerais; requisitos explícitos do criador e evidência factual continuam exigidos. Conceitos físicos podem ser explicados por gráficos corretos sobre mídia pertinente, sem exigir foto de instrumento.
+- Esquema usa essentialSubjects e optionalSubjects, com blocos guiados pela pergunta central, sem impor história/instrumentos/infraestrutura como tangentes obrigatórias. Plano visual comprovado é passado ao roteiro para evitar depender de exemplos sem mídia.
+- 200 testes locais passaram após implementação; 13 testes da revisão/pre-pesquisa passaram após refinamento final do prompt. Teste real intermediário de oceano mostrou que trocar nomes não bastava: blocos 1/2 passaram, mas o plano ainda inventou manômetro/ROV/cabo como requisitos. Teste intermediário interrompido após o prompt ser substituído; versão final ainda aguarda pré-pesquisa real.
+- Pauta oceano volta a pending para reavaliação à meia-noite; auditoria anterior preservada no arquivo de pré-pesquisa, sem aprovação forçada. Sem disparo de produção adicional. Universo ativo preservado; ativação aguardará worker livre.
 
 ## Próximo passo
 - Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Publicação está habilitada; preservar envio sequencial, confirmação de ID externo e pausas em erro incerto/limite.

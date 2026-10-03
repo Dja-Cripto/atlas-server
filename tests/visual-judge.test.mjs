@@ -88,12 +88,19 @@ test('presearch approves only when media passes visual review, and records why',
   clearJudgeCache();
   await sandbox(async dir=>{
     const items=q=>[...Array.from({length:15},(_,i)=>mk(q+'v'+i,true)),...Array.from({length:10},(_,i)=>mk(q+'p'+i,false))];
-    const r=await preSearchTopic(topic,settings,{dir,planner:async()=>({text:plan}),fetchImage,
+    const r=await preSearchTopic(topic,settings,{dir,planner:async prompt=>{
+      assert.match(prompt,/Do not invent mandatory named vehicles/);
+      const outline=JSON.parse(plan);
+      for(const block of outline.blocks){block.essentialSubjects=['canal'];block.optionalSubjects=['particular vessel'];}
+      return {text:JSON.stringify(outline)};
+    },fetchImage,
       searchers:{commonsPhotos:async q=>items(q).filter(x=>!x.files),commonsClips:async()=>[],stockVideos:async(s,q)=>items(q).filter(x=>x.files),stockPhotos:async()=>[],archive:async()=>[]},
       judgeCall:async(s,parts)=>{const ids=[...parts[0].text.matchAll(/"id":"([^"]+)"/g)].map(m=>m[1]).filter(id=>!id.startsWith('block'));return {text:JSON.stringify({verdicts:ids.map(id=>({id,score:8,role:'contextual',sees:'canal',coveredSubjects:['canal']}))}),usage:{promptTokenCount:500,candidatesTokenCount:50}};}});
     assert.equal(r.status,'approved',r.reason+JSON.stringify(r.mediaSummary));
     assert.ok(r.mediaSummary.reviewedVisually>0);assert.ok(r.mediaSummary.estimatedVideoSeconds>=300);
     assert.ok(r.inventory.length>0);assert.ok(r.inventory.every(c=>c.presearchReview.score>=6));
+    assert.ok(r.mediaPlan.narrativeBlocks.every(b=>b.optionalSubjects.includes('particular vessel')));
+    assert.ok(r.blocks.every(b=>b.missingSubjects.length===0));
   });
 });
 
