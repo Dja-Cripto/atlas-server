@@ -1,6 +1,6 @@
 # Atlas Studio — continuidade
 
-Atualizado em 02/10/2026, aproximadamente 19h20 (America/Bahia).
+Atualizado em 03/10/2026, aproximadamente 16h25 (America/Bahia).
 
 ## Alterações implantadas
 - Pré-pesquisa usa aliases curtos e consultas sem termos editoriais; distribui candidatos entre fontes e formatos. Aprofunda consultas/páginas dos blocos fracos e revisa mais vídeos quando faltam segundos.
@@ -31,6 +31,13 @@ Atualizado em 02/10/2026, aproximadamente 19h20 (America/Bahia).
 - YouTube: Japão completo publicado; Singapura principal e Short 1 publicados, Shorts 2 e 3 processados e agendados. Shorts 4 e 5 enviados pelo endpoint do painel um por vez, ambos aceitos pelo workflow e confirmados na API; ainda processando na última consulta.
 - Singapura Short 4: UMZb1HjftbM, 03/10 às 13h Bahia (16:00Z); Short 5: Vu5C7m-MkE4, 03/10 às 16h Bahia (19:00Z). IDs e estados persistidos no banco do servidor; estados antigos publicados reconciliados no painel.
 - Nenhuma alteração de código neste trabalho; fluxo real do painel validado com dois envios sem falha. Limite diário do canal não é garantido; manter proteção e não reenviar IDs existentes.
+
+## Banco de pautas
+- A pedido do usuário, seis pautas cadastradas no VPS via API autenticada e relidas: todas pending, 15min de referência automática (faixa 10–15), cinco Shorts. Sem disparo manual de produção ou alteração da configuração/agendamentos.
+- Seleção pela API oficial YouTube: RealLifeLore (7,94M inscritos) e The B1M (4,08M); três vídeos principais com mais visualizações de cada, ordenados por viewCount, excluindo Shorts. Consulta em 03/10/2026.
+- Referências RealLifeLore: GE-lAftuQgc (50.478.200), Iy7NzjCmUf0 (33.274.902), hOFRbjjjwCE (25.752.646). Pautas: profundidade do oceano; escala do universo; mudanças possíveis até 2050.
+- Referências The B1M: Wehsz38P74g (20.413.389), QiYvXKQksgI (15.337.347), a_-BrHqQwXI (10.761.313). Pautas: Billionaires’ Row em Nova York; túnel Fehmarnbelt; barragem etíope e Nilo.
+- Briefings exigem roteiro próprio, pesquisa atual, evidência visual e pré-pesquisa antes de produção; previsões antigas não entram como fatos. A pauta do universo amplia o tema do canal, mantida por ser o segundo vídeo mais visto do canal escolhido.
 
 ## Próximo passo
 - Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Publicação está habilitada; preservar envio sequencial, confirmação de ID externo e pausas em erro incerto/limite.
