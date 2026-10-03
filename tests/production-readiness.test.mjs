@@ -17,7 +17,7 @@ test('checked Shorts continue sequentially; a single manual Short stops after on
  assert.equal(count,1);
 });
 
-test('daily topic tick catches a missed minute and waits for a running production',async()=>{
+test('daily topic tick only starts at the configured minute and preserves running work',async()=>{
  const dir=await mkdtemp(path.join(tmpdir(),'atlas-daily-'));
  try{
   const data=loadTopicsData(dir);
@@ -27,12 +27,17 @@ test('daily topic tick catches a missed minute and waits for a running productio
   assert.deepEqual(localProductionClock(now),{date:'2026-09-27',time:'09:05'});
   const store={dir,list:()=>[{status:'running'}]};
   const options={store,dir,now,geminiKey:'',runProductionFn:async()=>{throw Error('Should wait');}};
+  assert.equal((await dailyTopicTick(options)).status,'not-due');
+  data.settings.autoRunTime='09:05';saveTopicsData(dir,data);
+  assert.equal((await dailyTopicTick({...options,now:new Date('2026-09-27T12:04:00Z')})).status,'not-due');
   assert.equal((await dailyTopicTick(options)).status,'busy');
   assert.equal(loadTopicsData(dir).settings.lastAutoRunDate,'');
   store.list=()=>[];
   assert.equal((await dailyTopicTick(options)).status,'empty');
   assert.equal(loadTopicsData(dir).settings.lastAutoRunDate,'');
   assert.equal((await dailyTopicTick(options)).status,'empty');
+  data.settings.lastAutoRunDate='2026-09-27';saveTopicsData(dir,data);
+  assert.equal((await dailyTopicTick(options)).status,'not-due');
  }finally{await rm(dir,{recursive:true,force:true});}
 });
 

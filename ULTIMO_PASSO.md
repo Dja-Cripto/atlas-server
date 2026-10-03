@@ -1,6 +1,6 @@
 # Atlas Studio — continuidade
 
-Atualizado em 03/10/2026, aproximadamente 16h25 (America/Bahia).
+Atualizado em 03/10/2026, aproximadamente 16h50 (America/Bahia).
 
 ## Alterações implantadas
 - Pré-pesquisa usa aliases curtos e consultas sem termos editoriais; distribui candidatos entre fontes e formatos. Aprofunda consultas/páginas dos blocos fracos e revisa mais vídeos quando faltam segundos.
@@ -38,6 +38,11 @@ Atualizado em 03/10/2026, aproximadamente 16h25 (America/Bahia).
 - Referências RealLifeLore: GE-lAftuQgc (50.478.200), Iy7NzjCmUf0 (33.274.902), hOFRbjjjwCE (25.752.646). Pautas: profundidade do oceano; escala do universo; mudanças possíveis até 2050.
 - Referências The B1M: Wehsz38P74g (20.413.389), QiYvXKQksgI (15.337.347), a_-BrHqQwXI (10.761.313). Pautas: Billionaires’ Row em Nova York; túnel Fehmarnbelt; barragem etíope e Nilo.
 - Briefings exigem roteiro próprio, pesquisa atual, evidência visual e pré-pesquisa antes de produção; previsões antigas não entram como fatos. A pauta do universo amplia o tema do canal, mantida por ser o segundo vídeo mais visto do canal escolhido.
+
+## Disparo da fila e resultado do oceano
+- Corrigido dailyTopicTick: dispara apenas no minuto configurado, sem recuperar meia-noite perdida durante a tarde. Produção manual permanece disponível e trabalho ativo não é interrompido. Teste de horário/worker passou (3 testes de production-readiness); sintaxe conferida.
+- Inconclusivos agora preservam mediaSummary e gaps: painel não deve mostrar zero por ausência desses campos. Auditoria oceano: 1.285 mídias, 53 distintas aprovadas (28 vídeos/25 fotos), 359s conservadores; lacunas Alvin e Deepsea Challenger, 14 falhas de fonte (Library of Congress 403). Não comprova escassez do tema.
+- Universo de7c14ad-1c54-479c-a804-f73e85b60c85 em execução, preservado. Atualização de código será ativada por reinício somente após worker livre; disparos automáticos temporariamente suspensos e restaurados para 00:00 America/Bahia após ativação. Postagens não alteradas neste ajuste.
 
 ## Próximo passo
 - Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Publicação está habilitada; preservar envio sequencial, confirmação de ID externo e pausas em erro incerto/limite.
