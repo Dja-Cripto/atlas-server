@@ -26,12 +26,14 @@ Atualizado em 04/10/2026 (America/Bahia).
 - Publicação reativada por pedido do usuário: publishingEnabled=true, YouTube/Facebook habilitados, YouTube em modo agendado. Pausa antiga de Singapura removida somente após 24h e confirmação dos vídeos existentes na API. Nenhuma publicação existente foi reenviada; Panamá rejeitado permanece em review e sem agendamento.
 - Regras mantidas: produções automáticas10–15min, manuais respeitam duração solicitada,5 Shorts, execução sequencial; descrições sem URLs e textos das capas em inglês.
 
-## Estado das publicações verificado
-- Facebook: Japão e Singapura, vídeo principal e cinco Shorts de cada, confirmados publicados/ready pela API; nada pendente de upload.
-- YouTube: Japão completo publicado; Singapura principal e Short 1 publicados, Shorts 2 e 3 processados e agendados. Shorts 4 e 5 enviados pelo endpoint do painel um por vez, ambos aceitos pelo workflow e confirmados na API; ainda processando na última consulta.
-- Singapura Short 4: UMZb1HjftbM, 03/10 às 13h Bahia (16:00Z); Short 5: Vu5C7m-MkE4, 03/10 às 16h Bahia (19:00Z). IDs e estados persistidos no banco do servidor; estados antigos publicados reconciliados no painel.
-- Nenhuma alteração de código neste trabalho; fluxo real do painel validado com dois envios sem falha. Limite diário do canal não é garantido; manter proteção e não reenviar IDs existentes.
-
+## Estado das publicações verificado — 04/10, aproximadamente 10h45 Bahia
+- Japão e Singapura: principal e cinco Shorts de cada confirmados publicados nas APIs YouTube/Facebook. Nenhum upload antigo pendente desses projetos.
+- Oceano b320ac34-0c03-4bf8-80de-a84d609100e3: principal Rxl6MXA3ZWg já existia no YouTube, processado e agendado, apesar de fetch failed no Atlas. Registro reconciliado com o ID existente e pausa incerta removida somente após confirmação; principal não reenviado. Miniatura existente enviada e aceita pela API thumbnails.set.
+- Cinco Shorts enviados sequencialmente/confirmados na API e persistidos: OddiAwgi4lE, ojt5C01qyAE, VPyD8BNlrrg, kuJytkPTTX8, ELqS6MtGDsM. Primeiros quatro processados; quinto recebido e processando na consulta. Facebook principal e cinco Shorts confirmados ready/scheduled, preservados sem reenvio.
+- Horários Bahia, ambas as plataformas: principal 05/10 14h; Shorts 1–3 em 05/10 16h, 18h30 e 21h; Shorts 4–5 em 06/10 10h e 13h. Canal usa America/New_York, diferente do horário Bahia.
+- Publicação automática habilitada para YouTube/Facebook, modo agendado; envio YouTube permanece um por execução e protegido por trava de concorrência. IDs já aceitos não são reenviados.
+- Fila automática habilitada às 00:00 America/Bahia, faixa 10–15min, cinco Shorts. Próxima data calculada para produção que concluir após a meia-noite de 05/10 é 06/10, com Shorts distribuídos entre 06 e 07. Essa produção ainda não foi concluída nem enviada: não há garantia de vídeo diário se pesquisa/render falhar.
+- Sem alteração de código neste ajuste. Reconciliação de resposta perdida foi manual; erro incerto futuro continua pausando por segurança e exige conferência. Universo continua error e Panamá rejeitado continua review, ambos fora dos agendamentos.
 ## Banco de pautas
 - A pedido do usuário, seis pautas cadastradas no VPS via API autenticada e relidas: todas pending, 15min de referência automática (faixa 10–15), cinco Shorts. Sem disparo manual de produção ou alteração da configuração/agendamentos.
 - Seleção pela API oficial YouTube: RealLifeLore (7,94M inscritos) e The B1M (4,08M); três vídeos principais com mais visualizações de cada, ordenados por viewCount, excluindo Shorts. Consulta em 03/10/2026.
@@ -57,3 +59,4 @@ Atualizado em 04/10/2026 (America/Bahia).
 
 ## Próximo passo
 - Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Publicação está habilitada; preservar envio sequencial, confirmação de ID externo e pausas em erro incerto/limite.
+
