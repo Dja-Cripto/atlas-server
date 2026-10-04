@@ -645,3 +645,8 @@ test('normalizer repairs the Remotion frame hook without allowing arbitrary requ
  assert.match(code,/useCurrentFrame/);
  assert.doesNotThrow(()=>validateMotionCode(code,{asset:{kind:'video',src:'clip.mp4'}}));
 });
+test('location matching tolerates percentages and malformed escapes without hiding valid encoded places',()=>{
+ assert.equal(hasLocation({title:'Milky Way 100% real',url:'https://x/Milky%20Way%ZZ'},'Milky Way'),true);
+ assert.equal(hasLocation({title:'100% image',url:'https://x/Milky%20Way'},'Milky Way'),true);
+ assert.equal(hasLocation({title:'100% ocean',url:'https://x/%E0%A4%A'},'Milky Way'),false);
+});

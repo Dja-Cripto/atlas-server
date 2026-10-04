@@ -1,6 +1,6 @@
 # Atlas Studio — continuidade
 
-Atualizado em 03/10/2026, aproximadamente 17h15 (America/Bahia).
+Atualizado em 04/10/2026 (America/Bahia).
 
 ## Alterações implantadas
 - Pré-pesquisa usa aliases curtos e consultas sem termos editoriais; distribui candidatos entre fontes e formatos. Aprofunda consultas/páginas dos blocos fracos e revisa mais vídeos quando faltam segundos.
@@ -49,6 +49,11 @@ Atualizado em 03/10/2026, aproximadamente 17h15 (America/Bahia).
 - Esquema usa essentialSubjects e optionalSubjects, com blocos guiados pela pergunta central, sem impor história/instrumentos/infraestrutura como tangentes obrigatórias. Plano visual comprovado é passado ao roteiro para evitar depender de exemplos sem mídia.
 - 200 testes locais passaram após implementação; 13 testes da revisão/pre-pesquisa passaram após refinamento final do prompt. Teste real intermediário de oceano mostrou que trocar nomes não bastava: blocos 1/2 passaram, mas o plano ainda inventou manômetro/ROV/cabo como requisitos. Teste intermediário interrompido após o prompt ser substituído; versão final ainda aguarda pré-pesquisa real.
 - Pauta oceano volta a pending para reavaliação à meia-noite; auditoria anterior preservada no arquivo de pré-pesquisa, sem aprovação forçada. Sem disparo de produção adicional. Universo ativo preservado; ativação aguardará worker livre.
+
+## Falha técnica do universo
+- Universo de7c14ad-1c54-479c-a804-f73e85b60c85 falhou na seleção/recuperação com URI malformed, não com escassez comprovada. hasLocation decodificava título, URL e evidência juntos; percentuais literais ou escapes inválidos lançavam exceção e bloqueavam o restante das cenas.
+- Corrigida a função geral: decodifica apenas grupos percent-encoded válidos e preserva grupos inválidos sem lançar. Testes de localização com percentual, URL válida e escape inválido passaram; não aprova automaticamente locais irrelevantes. Código/roteiro/voz e mídias da produção preservados, sem render ou retomada manual nesta ação.
+- Ativação anterior concluiu: produção automática habilitada para 00:00; oceano informado concluído no painel. Esta conclusão não comprova qualidade visual final.
 
 ## Próximo passo
 - Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Publicação está habilitada; preservar envio sequencial, confirmação de ID externo e pausas em erro incerto/limite.
