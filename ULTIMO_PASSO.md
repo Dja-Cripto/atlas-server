@@ -62,4 +62,4 @@ Atualizado em 04/10/2026 (America/Bahia).
 
 ## Alertas de postagem — 04/10, aproximadamente 11h Bahia
 - Hub Central mostra falhas e horários vencidos por vídeo/Short e plataforma (YouTube/Facebook). Alertas são derivados das pendências atuais, persistem até resolução e desaparecem após aceitação; não disparam reenvios.
-- Seis testes de publicação/alertas passaram; sintaxe do servidor e interface conferida. Universo ainda aguardava retomada na verificação anterior; nenhum worker ativo antes da implantação.
+- Seis testes de publicação/alertas passaram; sintaxe do servidor e interface conferida. Implantado no VPS com worker livre e reinício somente do Atlas. Hub autenticado respondeu com os alertas atuais. Universo retomado pelo endpoint automatic: status running, error=null, roteiro/voz/direção reaproveitados; entrou na revisão das cenas sem desenvolvimento visual às 10h57 Bahia. Ainda não concluiu nem foi agendado; não afirmar qualidade ou resolução completa até validar resultado.
