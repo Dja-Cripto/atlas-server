@@ -16,7 +16,7 @@ import {automaticShorts,renderAllShortsMP4} from './lib/shorts.mjs';
 import {runRequestedShorts} from './lib/short-sequence.mjs';
 import {launchCapCut} from './lib/capcut.mjs';
 import {getScheduleSettings,saveScheduleSettings,listScheduleQueue,listHistory,calculateNextAvailableDate,scheduleJob,unscheduleJob} from './lib/schedule.mjs';
-import {getPublishingSettings,savePublishingSettings,dispatchPublicationQueue} from './lib/publishing.mjs';
+import {getPublishingSettings,savePublishingSettings,dispatchPublicationQueue,publicationAlerts} from './lib/publishing.mjs';
 import {transcriptToVtt} from './lib/captions.mjs';
 import {loadTopicsData,saveTopicsData,addTopic,addBulkTopics,parseBulkText,updateTopic,deleteTopic,dismissAlert,addAlert,processNextTopicInQueue,dailyTopicTick,ensureSeedTopics} from './lib/topics.mjs';
 
@@ -663,7 +663,7 @@ const server=http.createServer(async(req,res)=>{
     const todayJob=jobs.find(j=>j.scheduled?.targetDate===scheduleSlots.targetDate)||jobs[0]||null;
     json(res,200,{
      todayJob,
-     alerts:(topicsData.alerts||[]).filter(a=>!a.dismissed).slice(0,10),
+     alerts:[...publicationAlerts(jobs),...(topicsData.alerts||[]).filter(a=>!a.dismissed)],
      queue:topicsData.queue||[],
      settings:topicsData.settings||{autoRunTime:'00:00',enabled:true},
      nextSlot:scheduleSlots,

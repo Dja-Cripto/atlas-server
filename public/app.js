@@ -95,7 +95,7 @@ function row(j){
 }
 
 function hubAlerts(){
- const alerts=(topicsData.alerts||[]).filter(a=>!a.dismissed);
+ const alerts=(page==='overview' ? hubData.alerts||[] : topicsData.alerts||[]).filter(a=>!a.dismissed);
  if(!alerts.length)return '';
  return `<section class="hub-alerts-section">
   ${alerts.map(a=>`
@@ -106,7 +106,7 @@ function hubAlerts(){
      <p>${esc(a.message)}</p>
      ${a.advice?`<div class="hub-alert-advice">“${esc(a.advice)}”</div>`:''}
     </div>
-    <button type="button" class="hub-alert-dismiss" data-dismiss-alert="${a.id}">Entendido ✕</button>
+    ${a.persistent?'<span class="muted">Aguardando resolução</span>':`<button type="button" class="hub-alert-dismiss" data-dismiss-alert="${a.id}">Entendido ✕</button>`}
    </div>
   `).join('')}
  </section>`;

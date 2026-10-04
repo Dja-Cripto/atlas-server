@@ -60,3 +60,6 @@ Atualizado em 04/10/2026 (America/Bahia).
 ## Próximo passo
 - Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Publicação está habilitada; preservar envio sequencial, confirmação de ID externo e pausas em erro incerto/limite.
 
+## Alertas de postagem — 04/10, aproximadamente 11h Bahia
+- Hub Central mostra falhas e horários vencidos por vídeo/Short e plataforma (YouTube/Facebook). Alertas são derivados das pendências atuais, persistem até resolução e desaparecem após aceitação; não disparam reenvios.
+- Seis testes de publicação/alertas passaram; sintaxe do servidor e interface conferida. Universo ainda aguardava retomada na verificação anterior; nenhum worker ativo antes da implantação.
