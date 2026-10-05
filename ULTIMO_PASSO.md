@@ -80,3 +80,8 @@ Atualizado em 04/10/2026 (America/Bahia).
 - API autenticada confirmou fila enabled=true, disparo00:00 America/Bahia, duração10–15min e cinco Shorts. Não disparada pauta extra durante o dia.
 - Configuração relida: texto e revisão visual Go, deepseek-v4-flash-vision-exp, cenas Go. Publicação YouTube/Facebook habilitada, modo agendado; agendas existentes preservadas.
 - Universo permanece interrupted após contenção de custo, sem retomada manual adicional. Não confundir com produção concluída. Medição/orçamento global ainda pendentes; próxima validação deve medir custo e qualidade de uma produção completa.
+## Correção de lotes OpenCode — 05/10/2026
+- Quatro pautas continuam existentes, inconclusivas após ciclo noturno. Busca encontrou mais de mil mídias/tema; falha de revisão não comprova falta de conteúdo.
+- Reproduzido lote8 com teto2048: HTTP200, finish_reason=length,2048 tokens de raciocínio, conteúdo vazio e zero avaliações. Corrigido para lotes2 e teto8192; respostas truncadas/incompletas agora interrompem avaliação explicitamente, sem busca em cascata e sem fallback Gemini.
+- 15 testes passaram. Teste real lote2: HTTP200 finish=stop,1902 entrada/3844 saída (3729 raciocínio), duas avaliações completas. Consumo maior que teste simples de descrição; custo mensal ainda não validado. Qualidade das pautas não foi aprovada por este teste.
+- Avaliação visual exclusivamente OpenCode conforme pedido; quatro pautas serão reavaliadas no próximo disparo00:00 America/Bahia, sem produção extra durante o dia. Pesquisa factual/geração de imagem continuam na configuração Google previamente acordada.
