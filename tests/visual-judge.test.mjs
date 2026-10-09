@@ -11,6 +11,18 @@ const img={type:'image/jpeg',bytes:Buffer.from('x')};
 const fetchImage=async()=>img;
 const fake=verdicts=>async()=>({text:JSON.stringify({verdicts}),usage:{promptTokenCount:1000,candidatesTokenCount:100}});
 
+test('persisted Go verdict avoids another paid call after restart, but changed media is reviewed',async()=>{
+ const cacheDir=await mkdtemp(path.join(tmpdir(),'visual-cache-'));
+ try{
+  clearJudgeCache();let calls=0;const call=async()=>{calls++;return fake([{id:'persist',score:8,role:'contextual'}])();};
+  const s={visualProvider:'go',visualModel:'test'},scene={id:'persist',query:'canal'},c={id:'persist',source:'test',image:'original'};
+  await judgeBatch(s,scene,[c],{fetchImage,call,cacheDir});clearJudgeCache();
+  const result=await judgeBatch(s,scene,[c],{fetchImage,call,cacheDir});
+  assert.equal(calls,1);assert.equal(result.items[0].cached,true);
+  await judgeBatch(s,scene,[{...c,image:'changed'}],{fetchImage,call,cacheDir});assert.equal(calls,2);
+ }finally{clearJudgeCache();await rm(cacheDir,{recursive:true,force:true});}
+});
+
 test('parseJudgeVerdicts clamps scores and downgrades weak non-exact candidates', () => {
   const m=parseJudgeVerdicts('```json\n{"verdicts":[{"id":"a","score":12,"role":"exact"},{"id":"b","score":3,"role":"contextual"},{"id":"c","score":"x"}]}\n```');
   assert.equal(m.get('a').score,10);

@@ -1,89 +1,31 @@
 # Atlas Studio — continuidade
 
-Atualizado em 04/10/2026 (America/Bahia).
+Atualizado em 09/10/2026, aproximadamente 20h20 (America/Bahia).
 
-## Alterações implantadas
-- Pré-pesquisa usa aliases curtos e consultas sem termos editoriais; distribui candidatos entre fontes e formatos. Aprofunda consultas/páginas dos blocos fracos e revisa mais vídeos quando faltam segundos.
-- Aprovação exige todos os blocos e assuntos essenciais visivelmente cobertos, abertura em vídeo e pelo menos300s conservadores de filmagens para10min. Fontes não avaliadas não entram na duração. Amostra por quadros não comprova todo o conteúdo dos clipes.
-- Resultados inconclusivos não afirmam inexistência de mídia. Auditoria registra falhas por fonte. Inventário aprovado e plano são transferidos da pré-pesquisa para a fila/gerador, com nova revisão por cena.
-- Revisão visual indisponível não aprova por tags. Shorts não escolhem qualquer mídia do acervo quando a pertinente já foi usada.
-- Antes das animações, principal e Shorts recuperam alternativas para fontes consecutivas, recortes esgotados e concentração excessiva; se não houver alternativa comprovada, preservam o trabalho e não renderizam repetição. Fontes podem reaparecer com trechos inéditos e espaçados.
-- Principal exige50% de filmagem real também após a alocação final; a antiga exceção percentual não libera animações. Na retomada, código visual antigo é comparado às fontes/recortes atuais; só cenas afetadas são reprogramadas e a prévia é invalidada.
-- Teste local por scripts/test-media-search.mjs e Testar Busca de Midia.cmd; relatórios/miniaturas ficam emdata/relatorios, fora do Git. Auditoria futura salva todos os registros, sem truncar160.
+## Estado e causa do bloqueio
+- Produção 780dd40b-3288-4f88-b5be-7504b22a0abc, "What Could Change Before 2050?", interrompida em 06/10 por HTTP429 durante programação do quinto Short. Trabalho e cenas salvas preservados. Não está concluída nem publicada.
+- Registro parcial do Luna:158 chamadas,3.813.409 tokens de entrada e592.662 de saída. Não inclui todo o consumo visual e não permite atribuir a franquia mensal inteira ao Atlas. Prompts por cena repetiam a linha do tempo inteira e todas as diretivas, com entradas próximas de44mil tokens em várias chamadas.
+- As outras três pautas (Nova York, Fehmarnbelt, Etiópia) ficaram inconclusivas por429 do planejador, antes das buscas; não significa falta de acervo. Não apagar nem aprovar à força.
+
+## Rebalanceamento implementado
+- Código visual do principal e Shorts recebe direção global compacta, diretiva da cena atual e cenas vizinhas, eliminando reenvio da linha do tempo inteira por cena. Diretor global mantém visão geral. Modelos atuais preservados: não há evidência de custo/qualidade para troca adicional neste trabalho.
+- Revisão visual OpenCode agora persiste avaliações válidas em data/visual-review-cache. Reaproveita somente mesma mídia, contexto e modelo; alteração de imagem/quadros/contexto exige nova revisão. Falhas não são cacheadas como reprovação. Não há fallback para revisão Gemini.
+- Todas as chamadas HTTP OpenCode passam por controle persistente em data/opencode-control/usage.json: teto conservador de80 chamadas textuais e120 visuais por dia UTC, com reserva antes do envio;429 bloqueia novas chamadas por pelo menos24h (ou Retry-After maior). Arquivo ilegível bloqueia consumo. São limites de chamadas, não orçamento financeiro nem garantia de duração mensal.
+- Limite interrompe direção/programação imediatamente, sem tentar outros modelos ou gerar contingência para contornar franquia esgotada. Etapas prontas permanecem salvas.
+- À meia-noite, fila verifica pausa antes de novas pesquisas e prioriza retomar a MESMA produção automática cujo erro identifique limite OpenCode; trava/renovação de lease impede concorrência. Outros erros e produções rejeitadas não são retomados por esta regra. Não recupera disparo perdido durante a tarde.
+- Produção2050 terá erro antigo classificado explicitamente como limite OpenCode, mantendo mensagem original e backup do registro. Pausa inicial conservadora de24h a partir da implantação porque usuário informou franquia esgotada; não prova que o saldo retorna nesse prazo. Nova429 renova pausa. Não prometido reset na segunda-feira.
 
 ## Validação
--200 testes passaram, incluindo recortes esgotados, variedade nos Shorts, capacidade sem projeção, assuntos essenciais e código visual obsoleto na retomada. Sintaxe e diff conferidos.
-- Teste real Panamá:968 mídias distintas,146 Wikimedia,941 Full HD;422 avaliações por bloco;69 distintas aprovadas(31 vídeos/38 fotos);420s conservadores de filmagem. Resultado inconclusivo: piloto conduzindo navio e nível do Lago Gatún na seca não comprovados. Busca melhorou; não autoriza afirmar falta real de conteúdo nem liberar este plano.
-- Library of Congress retorna403;15 buscas falharam no teste final. Estimativa do códigoUS$0,073893 não confirma faturamento.
-- Relatório: data/relatorios/teste-busca-2026-10-02T18-06-04-195Z.html. Esta execução ainda truncou detalhes em160; resumo íntegro emdata/relatorios/resultado-panama-corrigido.md. Próximas execuções guardam tudo.
+-208 testes locais passaram, inclusive cache persistente após limpar memória, invalidação por mídia alterada, bloqueio persistente429, teto diário e retomada do mesmo projeto antes de outra pauta. Sem chamadas pagas nesta execução. Sintaxe/diff conferidos.
+- Implantação: enviar commit desta alteração ao GitHub e avançar /srv/atlas-studio somente com worker livre; reiniciar apenas atlas-studio. Não incorporar scripts avulsos não versionados no VPS. Confirmar saúde/configuração após ativação.
 
-- Teste local Suíça: 1.156 mídias, 76 distintas aprovadas (35 vídeos/41 fotos), 465s conservadores. Inconclusivo por máquina Herrenknecht, controle Pollegio e entrada Ceneri não comprovados; não significa inexistência de conteúdo.
-- VPS: 32 testes específicos passaram. Suíte atual: 199/200; teste HTTP do painel pressupõe acesso sem login, mas o VPS exige autenticação (401 em vez de 400). Saúde e pausa publishingEnabled=false confirmadas após reinício; três projetos e seus estados preservados.
+## Regras preservadas
+- Fila automática habilitada para00:00 America/Bahia, produções10–15min e cinco Shorts; manual respeita duração pedida. Uma produção por vez.
+- Publicação YouTube/Facebook habilitada, modo agendado e envio sequencial com confirmação de IDs; nenhuma postagem/agendamento foi alterado neste rebalanceamento. Última produção publicada conhecida: Oceano, principal05/10 e Shorts05–06/10. Consultar plataformas antes de afirmar novos posts.
+- Panamá162c93b7-724a-45a5-8761-5f91b7521c2b e seus Shorts antigos foram rejeitados por qualidade: não publicar. Universo de7c14ad-1c54-479c-a804-f73e85b60c85 continua interrompido, sem aprovação.
+- Revisão visual, planejamento e código usam OpenCode. Pesquisa factual com fontes e geração de capa/ilustrações continuam Google na configuração acordada anteriormente. Não alegar que Google foi inteiramente removido. Descrições sem URLs; texto de capas em inglês.
+- Pré-pesquisa exige cobertura visual de blocos/assuntos essenciais e duração conservadora; mídia sem revisão não conta. Mantidos filtros de relevância, recortes inéditos e diversidade; não liberar repetição para economizar.
 
-## Limitações e preservação
-- Implantado no VPS /srv/atlas-studio o commit 4b23fa5, via avanço do histórico e reinício somente de atlas-studio; container saudável. Correções anteriores do VPS conferidas e preservadas em stash atlas-pre-deploy-2026-10-02. Nenhum render de ponta a ponta realizado com esta versão; qualidade final ainda exige teste visual de principal e Shorts.
-- Panamá162c93b7-724a-45a5-8761-5f91b7521c2b e seus Shorts antigos foram rejeitados pelo usuário por qualidade; arquivos preservados, não reutilizar como aprovados.
-- Publicação reativada por pedido do usuário: publishingEnabled=true, YouTube/Facebook habilitados, YouTube em modo agendado. Pausa antiga de Singapura removida somente após 24h e confirmação dos vídeos existentes na API. Nenhuma publicação existente foi reenviada; Panamá rejeitado permanece em review e sem agendamento.
-- Regras mantidas: produções automáticas10–15min, manuais respeitam duração solicitada,5 Shorts, execução sequencial; descrições sem URLs e textos das capas em inglês.
-
-## Estado das publicações verificado — 04/10, aproximadamente 10h45 Bahia
-- Japão e Singapura: principal e cinco Shorts de cada confirmados publicados nas APIs YouTube/Facebook. Nenhum upload antigo pendente desses projetos.
-- Oceano b320ac34-0c03-4bf8-80de-a84d609100e3: principal Rxl6MXA3ZWg já existia no YouTube, processado e agendado, apesar de fetch failed no Atlas. Registro reconciliado com o ID existente e pausa incerta removida somente após confirmação; principal não reenviado. Miniatura existente enviada e aceita pela API thumbnails.set.
-- Cinco Shorts enviados sequencialmente/confirmados na API e persistidos: OddiAwgi4lE, ojt5C01qyAE, VPyD8BNlrrg, kuJytkPTTX8, ELqS6MtGDsM. Primeiros quatro processados; quinto recebido e processando na consulta. Facebook principal e cinco Shorts confirmados ready/scheduled, preservados sem reenvio.
-- Horários Bahia, ambas as plataformas: principal 05/10 14h; Shorts 1–3 em 05/10 16h, 18h30 e 21h; Shorts 4–5 em 06/10 10h e 13h. Canal usa America/New_York, diferente do horário Bahia.
-- Publicação automática habilitada para YouTube/Facebook, modo agendado; envio YouTube permanece um por execução e protegido por trava de concorrência. IDs já aceitos não são reenviados.
-- Fila automática habilitada às 00:00 America/Bahia, faixa 10–15min, cinco Shorts. Próxima data calculada para produção que concluir após a meia-noite de 05/10 é 06/10, com Shorts distribuídos entre 06 e 07. Essa produção ainda não foi concluída nem enviada: não há garantia de vídeo diário se pesquisa/render falhar.
-- Sem alteração de código neste ajuste. Reconciliação de resposta perdida foi manual; erro incerto futuro continua pausando por segurança e exige conferência. Universo continua error e Panamá rejeitado continua review, ambos fora dos agendamentos.
-## Banco de pautas
-- A pedido do usuário, seis pautas cadastradas no VPS via API autenticada e relidas: todas pending, 15min de referência automática (faixa 10–15), cinco Shorts. Sem disparo manual de produção ou alteração da configuração/agendamentos.
-- Seleção pela API oficial YouTube: RealLifeLore (7,94M inscritos) e The B1M (4,08M); três vídeos principais com mais visualizações de cada, ordenados por viewCount, excluindo Shorts. Consulta em 03/10/2026.
-- Referências RealLifeLore: GE-lAftuQgc (50.478.200), Iy7NzjCmUf0 (33.274.902), hOFRbjjjwCE (25.752.646). Pautas: profundidade do oceano; escala do universo; mudanças possíveis até 2050.
-- Referências The B1M: Wehsz38P74g (20.413.389), QiYvXKQksgI (15.337.347), a_-BrHqQwXI (10.761.313). Pautas: Billionaires’ Row em Nova York; túnel Fehmarnbelt; barragem etíope e Nilo.
-- Briefings exigem roteiro próprio, pesquisa atual, evidência visual e pré-pesquisa antes de produção; previsões antigas não entram como fatos. A pauta do universo amplia o tema do canal, mantida por ser o segundo vídeo mais visto do canal escolhido.
-
-## Disparo da fila e resultado do oceano
-- Corrigido dailyTopicTick: dispara apenas no minuto configurado, sem recuperar meia-noite perdida durante a tarde. Produção manual permanece disponível e trabalho ativo não é interrompido. Teste de horário/worker passou (3 testes de production-readiness); sintaxe conferida.
-- Inconclusivos agora preservam mediaSummary e gaps: painel não deve mostrar zero por ausência desses campos. Auditoria oceano: 1.285 mídias, 53 distintas aprovadas (28 vídeos/25 fotos), 359s conservadores; lacunas Alvin e Deepsea Challenger, 14 falhas de fonte (Library of Congress 403). Não comprova escassez do tema.
-- Universo de7c14ad-1c54-479c-a804-f73e85b60c85 em execução, preservado. Atualização de código será ativada por reinício somente após worker livre; disparos automáticos temporariamente suspensos e restaurados para 00:00 America/Bahia após ativação. Postagens não alteradas neste ajuste.
-
-## Ajuste do planejador de mídia
-- Pré-pesquisa distingue assuntos essenciais de exemplos opcionais. Nomes/instrumentos escolhidos pelo planejador não são obrigatórios em temas gerais; requisitos explícitos do criador e evidência factual continuam exigidos. Conceitos físicos podem ser explicados por gráficos corretos sobre mídia pertinente, sem exigir foto de instrumento.
-- Esquema usa essentialSubjects e optionalSubjects, com blocos guiados pela pergunta central, sem impor história/instrumentos/infraestrutura como tangentes obrigatórias. Plano visual comprovado é passado ao roteiro para evitar depender de exemplos sem mídia.
-- 200 testes locais passaram após implementação; 13 testes da revisão/pre-pesquisa passaram após refinamento final do prompt. Teste real intermediário de oceano mostrou que trocar nomes não bastava: blocos 1/2 passaram, mas o plano ainda inventou manômetro/ROV/cabo como requisitos. Teste intermediário interrompido após o prompt ser substituído; versão final ainda aguarda pré-pesquisa real.
-- Pauta oceano volta a pending para reavaliação à meia-noite; auditoria anterior preservada no arquivo de pré-pesquisa, sem aprovação forçada. Sem disparo de produção adicional. Universo ativo preservado; ativação aguardará worker livre.
-
-## Falha técnica do universo
-- Universo de7c14ad-1c54-479c-a804-f73e85b60c85 falhou na seleção/recuperação com URI malformed, não com escassez comprovada. hasLocation decodificava título, URL e evidência juntos; percentuais literais ou escapes inválidos lançavam exceção e bloqueavam o restante das cenas.
-- Corrigida a função geral: decodifica apenas grupos percent-encoded válidos e preserva grupos inválidos sem lançar. Testes de localização com percentual, URL válida e escape inválido passaram; não aprova automaticamente locais irrelevantes. Código/roteiro/voz e mídias da produção preservados, sem render ou retomada manual nesta ação.
-- Ativação anterior concluiu: produção automática habilitada para 00:00; oceano informado concluído no painel. Esta conclusão não comprova qualidade visual final.
-
-## Próximo passo
-- Verificar as próximas produções no VPS: avaliar principal e cinco Shorts com mídia efetivamente alocada, antes de considerá-los aprovados. Adequar plano/pesquisa às lacunas específicas sem substituições enganosas. Publicação está habilitada; preservar envio sequencial, confirmação de ID externo e pausas em erro incerto/limite.
-
-## Alertas de postagem — 04/10, aproximadamente 11h Bahia
-- Hub Central mostra falhas e horários vencidos por vídeo/Short e plataforma (YouTube/Facebook). Alertas são derivados das pendências atuais, persistem até resolução e desaparecem após aceitação; não disparam reenvios.
-- Seis testes de publicação/alertas passaram; sintaxe do servidor e interface conferida. Implantado no VPS com worker livre e reinício somente do Atlas. Hub autenticado respondeu com os alertas atuais. Universo retomado pelo endpoint automatic: status running, error=null, roteiro/voz/direção reaproveitados; entrou na revisão das cenas sem desenvolvimento visual às 10h57 Bahia. Ainda não concluiu nem foi agendado; não afirmar qualidade ou resolução completa até validar resultado.
-
-## Contenção de custos — 04/10, aproximadamente 11h15 Bahia
-- Por solicitação de investigação do gasto, produção automática pausada (topics enabled=false), com reinício do Atlas para interromper chamadas da produção Universo; etapas persistidas preservadas. Publicação não desativada: uploads/postagens existentes continuam. Pausa posteriormente revogada pelo usuário para retomar testes (estado atual abaixo).
-- Captura de faturamento enviada pelo usuário soma R$1186,90 nas linhas visíveis, compensados por créditos (subtotal R$0): imagem entrada565,60; texto entrada245,21; texto saída338,62; geração imagem25,91; cache11,49; outros0,07. A captura não atribui por execução/projeto.
-- Código confirmado: estimateTokensCost usa tarifas fixas0,075/0,30 por milhão para modelo3.6; providers.gemini descarta usageMetadata e pré-pesquisa usa400/350 tokens fictícios na ausência de usage; revisão não conta thoughtsTokenCount; produção escolhe até48 candidatos por cena, até3 quadros por candidato, e não persiste usage da avaliação. Cache visual é somente em memória e inclui toda a narração da cena, portanto novas cenas/retomadas podem repetir avaliação paga. Orçamento0,10 cobre só pré-pesquisa e com medição incompleta, não produção inteira. Não existe atribuição financeira completa para afirmar quanto cada teste gastou.
-- Próximo passo: instrumentar todas as chamadas com uso real/modelo/etapa (incluindo raciocínio), tarifas verificadas, limite antes de cada chamada e orçamento global por produção/dia; reduzir revisão repetida com cache persistente e quadros dimensionados, preservando critérios de qualidade. Sem testes pagos nesta investigação e sem troca cega de modelo.
-## Substituição por OpenCode — 04/10, aproximadamente 11h40 Bahia
-- Planejamento da pré-pesquisa e pacote de títulos/descrições usam OpenCode Responses quando textProvider=go. Roteiro, Shorts e código visual já possuíam caminho Go. Pesquisa factual com fontes e geração de capa/ilustrações permanecem Google; não inventar grounding no Go.
-- Revisão visual usa OpenCode Chat multimodal quando visualProvider=go, modelo deepseek-v4-flash-vision-exp. Usuário autorizou explicitamente envio dos quadros/imagens. Falha do Go não dispara fallback Gemini: pré-pesquisa retorna inconclusivo e produção preserva a falha de revisão.
-- 14 testes de adapter/revisão visual e quatro de pré-pesquisa passaram; sintaxe conferida. Dois testes reais com capa existente: 695 entrada/302 saída e 744 entrada/555 saída; imagem descrita corretamente e rejeitada como evidência documental por ser ilustração. Custos teóricos off-peak US$0,00028545 e US$0,00044460; não são confirmação de faturamento. Tarifas pico dobram. Fonte: https://opencode.ai/docs/go/
-- Plano Go básico publica franquia equivalente a US$15/mês para este modelo visual, com janelas de cinco horas/semana; plano e saldo efetivos da conta não foram verificados. Uso não é ilimitado. Documentação apresenta o serviço para agentes de programação: disponibilidade técnica não garante adequação contratual para processamento de mídia em volume.
-- Implantado e configurado no VPS: textProvider=go, visualProvider=go, visualModel=deepseek-v4-flash-vision-exp, sceneProvider=go; leitura confirmou produção enabled=false. Pausa revogada por pedido explícito do usuário; produção habilitada para novos testes. Os testes pequenos não comprovam qualidade em todos os temas nem custo de vídeo completo; medição global, cache persistente, orçamento e redução de avaliações continuam pendentes. Usuário autorizou reativação antes da validação de uma produção completa; não apresentar orçamento como garantido.
-
-## Reativação autorizada — 04/10/2026
-- API autenticada confirmou fila enabled=true, disparo00:00 America/Bahia, duração10–15min e cinco Shorts. Não disparada pauta extra durante o dia.
-- Configuração relida: texto e revisão visual Go, deepseek-v4-flash-vision-exp, cenas Go. Publicação YouTube/Facebook habilitada, modo agendado; agendas existentes preservadas.
-- Universo permanece interrupted após contenção de custo, sem retomada manual adicional. Não confundir com produção concluída. Medição/orçamento global ainda pendentes; próxima validação deve medir custo e qualidade de uma produção completa.
-## Correção de lotes OpenCode — 05/10/2026
-- Quatro pautas continuam existentes, inconclusivas após ciclo noturno. Busca encontrou mais de mil mídias/tema; falha de revisão não comprova falta de conteúdo.
-- Reproduzido lote8 com teto2048: HTTP200, finish_reason=length,2048 tokens de raciocínio, conteúdo vazio e zero avaliações. Corrigido para lotes2 e teto8192; respostas truncadas/incompletas agora interrompem avaliação explicitamente, sem busca em cascata e sem fallback Gemini.
-- 15 testes passaram. Teste real lote2: HTTP200 finish=stop,1902 entrada/3844 saída (3729 raciocínio), duas avaliações completas. Consumo maior que teste simples de descrição; custo mensal ainda não validado. Qualidade das pautas não foi aprovada por este teste.
-- Avaliação visual exclusivamente OpenCode conforme pedido; quatro pautas serão reavaliadas no próximo disparo00:00 America/Bahia, sem produção extra durante o dia. Pesquisa factual/geração de imagem continuam na configuração Google previamente acordada.
-- Ajuste do estado visual em05/10: as quatro pautas inconclusivas retornaram a pending, pré-pesquisa anterior preservada em previousPresearch e arquivo de auditoria; presearch atual removida para não exibir lacunas obsoletas como resultado da correção. Alertas antigos correspondentes dispensados. Configuração confirmada enabled=true/00:00; nenhuma busca/produção disparada.
-- Correção instalada no VPS; dois testes do adapter passaram no container após cópia do arquivo de teste não montado por padrão.
+## Limitações e próximo passo
+- Ainda não há medição global financeira confiável incluindo tokens de raciocínio, revisão e Google. Estimativas antigas não comprovam cobrança; teto de chamadas contém consumo mas não garante um vídeo/dia ou um mês no planoUS$10.
+- Após liberação real da franquia, observar retomada2050 à meia-noite e revisar principal/cinco Shorts antes de afirmar qualidade. Medir consumo real de uma produção completa com contexto reduzido para recalibrar tetos. Nenhum render pago de ponta a ponta executado agora.

@@ -50,3 +50,14 @@ test('failed music normalization discards the unbalanced copy',async()=>{
   await assert.rejects(()=>readFile(file));
  }finally{await rm(dir,{recursive:true,force:true});}
 });
+
+test('midnight resumes quota-paused production before creating another topic',async()=>{
+ const dir=await mkdtemp(path.join(tmpdir(),'atlas-resume-'));
+ try{
+  const data=loadTopicsData(dir);data.settings.enabled=true;data.settings.autoRunTime='00:00';data.queue=[{id:'topic',status:'error'}];saveTopicsData(dir,data);
+  let resumed;const store={dir,list:()=>[{id:'existing',topicId:'topic',status:'error',error:'OpenCode HTTP 429: envios suspensos'}]};
+  const result=await dailyTopicTick({store,dir,now:new Date('2026-10-10T03:00:00Z'),settings:{sceneProvider:'go'},runProductionFn:async(id,topic)=>{resumed=[id,topic.id];}});
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(result.resumed,true);assert.deepEqual(resumed,['existing','topic']);assert.equal(loadTopicsData(dir).settings.lastAutoRunDate,'2026-10-10');
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
