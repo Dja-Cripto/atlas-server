@@ -17,7 +17,7 @@ Atualizado em 09/10/2026, aproximadamente 20h20 (America/Bahia).
 
 ## Validação
 -208 testes locais passaram, inclusive cache persistente após limpar memória, invalidação por mídia alterada, bloqueio persistente429, teto diário e retomada do mesmo projeto antes de outra pauta. Sem chamadas pagas nesta execução. Sintaxe/diff conferidos.
-- Implantação: enviar commit desta alteração ao GitHub e avançar /srv/atlas-studio somente com worker livre; reiniciar apenas atlas-studio. Não incorporar scripts avulsos não versionados no VPS. Confirmar saúde/configuração após ativação.
+- Implantado commit0ec7796 no VPS /srv/atlas-studio, enviado ao GitHub, com worker livre e reinício somente de atlas-studio. Saúde HTTP200/container healthy. Proteção testada no container: pausa ativa e zero chamadas externas. Scripts avulsos não versionados do VPS preservados sem incorporar ao commit. Configuração relida: fila enabled=true/00:00, texto/visual/cenas Go e publishingEnabled=true. Produção2050 classificada para retomada; backup salvo fora do Git. Pausa inicial até10/10/2026 20h18 Bahia; primeira oportunidade automática seguinte será00:00 de11/10, sujeita à franquia real e nova429. Não significa que o provedor tenha saldo nessa data.
 
 ## Regras preservadas
 - Fila automática habilitada para00:00 America/Bahia, produções10–15min e cinco Shorts; manual respeita duração pedida. Uma produção por vez.
