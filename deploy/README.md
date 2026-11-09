@@ -5,7 +5,7 @@ O Atlas roda no container `atlas-studio`, escutando apenas em `127.0.0.1:4310` d
 Para acessar a partir do Windows, abra um túnel SSH:
 
 ```powershell
-ssh -i "C:\Users\da338\OneDrive\Desktop\vpss\ssh-key-2026-02-13.key" -L 4310:127.0.0.1:4310 ubuntu@137.131.171.144
+ssh -i "%USERPROFILE%\.ssh\SUA-CHAVE" -L 4310:127.0.0.1:4310 ubuntu@IP-DO-SERVIDOR
 ```
 
 Enquanto essa janela permanecer aberta, acesse `http://127.0.0.1:4310` no navegador.

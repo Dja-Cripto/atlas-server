@@ -14,4 +14,4 @@ echo.
 
 start "" "http://localhost:4310"
 
-ssh -i "C:\Users\da338\OneDrive\Desktop\vpss\ssh-key-2026-02-13.key" -N -L 4310:127.0.0.1:4310 ubuntu@137.131.171.144
+ssh -i "%USERPROFILE%\.ssh\SUA-CHAVE" -N -L 4310:127.0.0.1:4310 ubuntu@IP-DO-SERVIDOR

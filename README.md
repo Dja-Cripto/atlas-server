@@ -1,4 +1,19 @@
-# Atlas Studio — primeira fase
+# Atlas Studio
+
+**Estúdio que conecta pesquisa, roteiro, mídia, narração, montagem e publicação de vídeos e Shorts em um painel só.**
+
+Uma pauta percorre pesquisa com fontes, roteiro, seleção de imagens e filmagens, narração, capa e montagem programática (Remotion e FFmpeg). O mesmo fluxo prepara um vídeo principal e cinco Shorts. O painel guarda etapas, históricos e arquivos para permitir revisar e retomar uma produção.
+
+- **Estado:** sistema implementado e em validação contínua. Falta medir o custo completo por produção e validar a qualidade audiovisual final.
+- **Decisões:** cada botão de etapa faz uma chamada real e não há troca silenciosa de provedor. A seleção de filmagens exige revisão explícita.
+- **Segurança:** as chaves de API são cadastradas pela interface e nunca ficam no repositório. Endereços de servidor e chaves SSH também não.
+- **Stack:** Node.js, SQLite, Remotion, FFmpeg e serviços de IA em etapas específicas.
+- **Portfólio:** https://dja-portfolio.vercel.app
+
+Criado por **Daniel de Jesus**, com IA como parceira de desenvolvimento e revisão, testes e decisões minhas.
+
+---
+## Documentação técnica
 
 Painel local de pré-produção de vídeos em inglês, criado do zero. Requer Node.js 24 ou superior. Usa SQLite nativo do Node e music-metadata para medir a narração.
 
